@@ -1,0 +1,48 @@
+{{define "main"}}
+  <dl class="metalist">
+    <dt>Publish Date</dt>
+    <dd>{{default "Unknown" .Params.publish_date}}</dd>
+    <dt>Author</dt>
+    <dd>{{default "None" .Params.Author}}</dd>
+  </dl>
+
+  {{block "headerimg" .}} {{end}}
+
+  <h1 toc-ignore class="pagetitle">{{.Title}}</h1>
+  <hr>
+
+  <h2 toc-ignore>Table Of Contents</h2>
+  <div id="toc-out"></div>
+
+  <div id="content">
+    {{.Content}}
+    {{block "notes" .}}{{end}}
+  </div>
+
+{{end}}
+
+{{define "headerimg"}}
+  {{$img := .Params.header_img}}
+
+  {{if (not (eq $img nil))}}
+    <img class="headerimg" src="{{$img}}">
+  {{end}}
+{{end}}
+
+{{define "notes"}}
+  {{$fns := .Params.footnotes}}
+  {{if (not (eq $fns nil))}}
+    <hr class="notes-hr">
+    <h2 class="notesheader">Notes</h2>
+    <ol id="footnotes-list">
+
+    {{$idx := 0}}
+    {{$p := .}}
+    {{range $fns}}
+      <li note-idx="{{$idx}}">{{. | $p.RenderString}}</li>
+      {{$idx = (add 1 $idx)}}
+    {{end}}
+
+    </ol>
+  {{end}}
+{{end}}

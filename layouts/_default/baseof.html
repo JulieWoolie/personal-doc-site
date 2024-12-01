@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="{{.Language.Lang}}">
+  <head>
+    {{ partial "head.html" . }}
+  </head>
+  <body class="bg-lighter">
+    <div class="content bg-dark" {{if (default false .Params.wide_page)}}wide="true"{{end}} id="content-el">
+      {{partial "page-path.html" .}}
+      {{ block "main" . }} {{end}}
+    </div>
+
+    {{ partial "scripts.html" . }}
+  </body>
+</html>

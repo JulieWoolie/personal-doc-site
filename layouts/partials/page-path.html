@@ -1,0 +1,10 @@
+{{$current_page := .}}
+
+<div class="ppath">
+  {{range (collections.Reverse .Ancestors)}}
+    <a class="ppath-element" href="{{.RelPermalink}}">{{.Title}}</a>
+    <span class="ppath-comma">/</span>
+  {{end}}
+
+  <span class="ppath-current">{{.Title}}</span>
+</div>

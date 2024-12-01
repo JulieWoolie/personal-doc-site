@@ -1,0 +1,34 @@
+{{define "main"}}
+
+  {{block "headerimg" .}} {{end}}
+
+  <div>
+    <h1 class="pagetitle">{{.Title}}</h1>
+    <hr>
+  </div>
+
+  <div>
+    {{.Content}}
+  </div>
+
+  <div class="booklist">
+    <h2>Book list</h2>
+    <hr>
+
+    {{range .Pages}}
+      <a class="link-card" href="{{.RelPermalink}}">
+        <h3>{{.Title}}</h3>
+        {{.Plain | truncate 200}}
+      </a>
+    {{end}}
+  </div>
+{{end}}
+
+
+{{define "headerimg"}}
+  {{$img := .Params.header_img}}
+
+  {{if (not (eq $img nil))}}
+    <img class="headerimg" src="{{$img}}">
+  {{end}}
+{{end}}
