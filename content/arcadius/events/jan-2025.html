@@ -1,0 +1,127 @@
+---
+title: "January 2025 Event - Ravager Escape"
+publish_date: '2024-12-02 20:00:00 +0200 UTC'
+header_img: "/arcadius/icon3-scaled.png"
+author: "Julie"
+---
+<h2>General Concept</h2>
+<p>
+  The general concept of the event is to escape from many Ravagers chasing the 
+  player. The player is spawned at the edge of a hill, atop which lies several 
+  targets the player must break with snow balls.
+</p>
+<p>
+  The player acquires these snow balls by wondering around the hill and dodging
+  Ravagers. Once enough snowballs have been gotten, the player is able to break
+  all targets at the top of the hill and the event ends.
+</p>
+
+<h2>Event Arena</h2>
+<p>
+  As described before, the main arena of the event is a snowy hill, with 
+  Ravagers. The hill is broken into corridors with cliffs, some connected by 
+  arch ways. At the top of this hill is a clearing with a circular sturcture 
+  which contains the targets the player must hit in order to end the event.
+</p>
+
+<h2>Extras</h2>
+<p>This section describes extra, but optional, features for the event.</p>
+
+<h3>Item Shop</h3>
+<p>
+  A shop that accepts an event-only currency, or gems, in exchange for rare 
+  items. One of the items, if possible, should be an Event Card, a map item that
+  features custom art as a keepsake for the event. This card should be a one-time
+  purchase.
+</p>
+
+<h3>Money Drops</h3>
+<p>
+  Along side the snow balls there could also be small piles of gold litered 
+  around the arena that players can pick up. These gold piles would obiously
+  reward Denarii.
+</p>
+
+<h2>Technical Implementation</h2>
+<p>
+  A player's entry exists as a state machine in one of the following states:
+  <ul>
+    <li><code>INACTIVE</code></li>
+    <li><code>STARTING</code></li>
+    <li><code>PLAY</code></li>
+  </ul>
+  This section defines the states and how they are changed and what happens
+  during each state.
+</p>
+<p>
+  When a player enters the event, their event entry is set to an 
+  <code>STARTING</code> state.
+</p>
+
+<h3><code>STARTING</code> State</h3>
+<dl>
+  <dt>When Entering State</dt>
+  <dd>
+    The player is teleported into the arena, and all the Ravagers are spawned as 
+    well. Neither the player nor the Ravagers are allowed to move at this point.
+    But the player is allowed to look around, but not pick up any coin stacks or
+    other items. Other objects such as the snowballs, coin stacks and anything 
+    else are spawned at this point.
+  </dd>
+
+  <dt>During State</dt>
+  <dd>
+    The player is displayed a countdown each second, from 5 to 1. 1 being 
+    replaced with <i>"Go!"</i>. After the countdown ends, the state transitions
+    to the next state.
+  </dd>
+
+  <dt>Exiting State</dt>
+  <dd>
+    This state always transitions to the <code>PLAY</code> State after the 
+    countdown ends, unless the player manually exits the event, then it 
+    transitions to the <code>INACTIVE</code> state.
+  </dd>
+</dl>
+
+<h3><code>PLAY</code> State</h3>
+<dl>
+  <dt>When Entering State</dt>
+  <dd>
+    The player and all the Ravagers are allowed to move, coins can be interacted
+    with, and items can be picked up. The entry's starting time is set to the 
+    current timestamp.
+  </dd>
+
+  <dt>During State</dt>
+  <dd>
+    A timer is shown on the player's screen indicating how much time they've
+    spent in the event. The value of the timer displayed on the screen, is 
+    always the difference between the current time and entry's starting time.
+  </dd>
+
+  <dt>Exiting State</dt>
+  <dd>
+    Can only be done manually by the player, or when the player destroys all
+    targets in the middle of the arena. If all targets are destroyed, then the 
+    event is exited in a completed way, otherwise the player simply exits.
+  </dd>
+</dl>
+
+<h3><code>INACTIVE</code> State</h3>
+<dl>
+  <dt>When Entering State</dt>
+  <dd>
+    All Ravagers in the event are removed, coin stacks, removed, dropped items
+    removed and the center of the arena is repaired.
+    <p>
+      If the player exited successfully, then compare the player's current score
+      to their record. If the score is lower than the record, set the record to 
+      be the score. Else do nothing.
+    </p>
+  </dd>
+  <dt>During State</dt>
+  <dd>Nothing, State declares end of entry's participation.</dd>
+  <dt>Exiting State</dt>
+  <dd>State cannot be exited.</dd>
+</dl>
