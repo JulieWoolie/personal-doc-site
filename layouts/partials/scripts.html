@@ -1,2 +1,5 @@
 {{$custom_js := resources.Get "js/main.js"}}
 <script src="{{$custom_js.RelPermalink}}"></script>
+
+{{$to_latex := resources.Get "js/to-latex.js"}}
+<script src="{{$to_latex.RelPermalink}}"></script>

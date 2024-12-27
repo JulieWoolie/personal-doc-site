@@ -1,10 +1,12 @@
 {{define "main"}}
   <dl class="metalist">
     <dt>Publish Date</dt>
-    <dd>{{default "Unknown" .Params.publish_date}}</dd>
+    <dd id="publish_date">{{default "Unknown" .Params.publish_date}}</dd>
     <dt>Author</dt>
-    <dd>{{default "None" .Params.Author}}</dd>
+    <dd id="author">{{default "None" .Params.Author}}</dd>
   </dl>
+
+  <button class="latex-convert" id="latex-convert-btn">Copy content as LaTeX</button>
 
   {{block "headerimg" .}} {{end}}
 
@@ -32,9 +34,9 @@
 {{define "notes"}}
   {{$fns := .Params.footnotes}}
   {{if (not (eq $fns nil))}}
-    <hr class="notes-hr">
-    <h2 class="notesheader">Notes</h2>
-    <ol id="footnotes-list">
+    <hr latex-ignore class="notes-hr">
+    <h2 latex-ignore class="notesheader">Notes</h2>
+    <ol latex-ignore id="footnotes-list">
 
     {{$idx := 0}}
     {{$p := .}}
