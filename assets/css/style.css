@@ -22,6 +22,14 @@
   color: white;
 }
 
+sup a {
+  color: darkcyan;
+}
+
+code {
+  color: gray;
+}
+
 .content {
   max-width: calc(210mm - 6cm);
   margin-left: auto;
@@ -50,6 +58,11 @@
 
     &:not(:first-child) {
       margin-top: 5mm;
+    }
+
+    code {
+      font-size: larger;
+      color: white;
     }
   }
 
@@ -98,6 +111,7 @@
 
 .ppath {
   margin-bottom: 2rem;
+  text-align: left;
 }
 .ppath-element {
   text-decoration: none;
@@ -118,7 +132,7 @@
   padding: 1rem;
 
   margin-top: 2rem;
-  margin-bottom: 3rem;
+  margin-bottom: 2mm;
 
   dt {
     font-weight: bold;
@@ -127,6 +141,23 @@
 }
 .pagetitle {
   text-align: center;
+}
+
+.latex-convert {
+  margin-bottom: 3rem;
+  color: white;
+
+  background-color: var(--lighter);
+  border: 1px solid white;
+  padding: 2mm;
+  padding-left: 4mm;
+  padding-right: 4mm;
+
+  &:hover {
+    /* text-decoration: underline; */
+    background-color: var(--dark);
+    cursor: pointer;
+  }
 }
 
 .toc-element {
