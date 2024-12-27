@@ -5,6 +5,10 @@ function processTableOfContents() {
   let content = document.getElementById("content")
   let tocOut = document.getElementById("toc-out")
 
+  if (content == null) {
+    return
+  }
+
   const headerLevels = {
     'H1': 1,
     'H2': 2,
@@ -48,6 +52,10 @@ function processFootnotes() {
   let footnotesOl = document.getElementById("footnotes-list")
   let notes = document.querySelectorAll("note[idx]")
 
+  if (footnotesOl == null) {
+    return
+  }
+
   let idxOrder = []
   let processedNotes = []
   
@@ -74,6 +82,7 @@ function processFootnotes() {
     a.textContent = "AAAAA"
 
     replacement.appendChild(a)
+    replacement.setAttribute("footnote-idx", idx.toString())
 
     let p = note.parentElement
 
