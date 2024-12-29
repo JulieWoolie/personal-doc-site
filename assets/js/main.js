@@ -1,5 +1,25 @@
 processTableOfContents()
 processFootnotes()
+processFigures()
+
+function processFigures() {
+  let content = document.getElementById("content")
+  if (content == null) {
+    return
+  }
+
+  let figcaptions = content.getElementsByTagName("figcaption")
+
+  for (let i = 0; i < figcaptions.length; i++) {
+    let capt = figcaptions.item(i)
+
+    let prefix = document.createElement("span")
+    prefix.setAttribute("latex-ignore", "")
+    prefix.textContent = `Fig.${i + 1} - `
+
+    capt.insertBefore(prefix, capt.firstChild)
+  }
+}
 
 function processTableOfContents() {
   let content = document.getElementById("content")

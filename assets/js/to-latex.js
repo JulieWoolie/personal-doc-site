@@ -1,3 +1,4 @@
+let figCounter = 0
 
 const latexTagHandlers = [
   {
@@ -11,13 +12,19 @@ const latexTagHandlers = [
         prefix = "\n\\newpage"
       }
 
-      return `${prefix}\n\\section{${normalizeText(c.textContent)}}\\label{${normalizeId(c.id)}}`
+      return `${prefix}\n\\section{${toLateXString(c.childNodes)}}\\label{${normalizeId(c.id)}}`
     }
   },
   {
     tagName: "h3",
     handler(c) {
-      return `\n\\subsection{${normalizeText(c.textContent)}}\\label{${normalizeId(c.id)}}\n`
+      return `\n\\subsection{${toLateXString(c.childNodes)}}\\label{${normalizeId(c.id)}}\n`
+    }
+  },
+  {
+    tagName: "h4",
+    handler(c) {
+      return `\n\\subsubsection{${toLateXString(c.childNodes)}}\\label{${normalizeId(c.id)}}\n`
     }
   },
   {
@@ -71,7 +78,7 @@ const latexTagHandlers = [
   {
     tagName: "dt",
     handler(c) {
-      return `\n  \\item[${toLateXString(c.childNodes)}] \\hfill \\\\ \n`
+      return `\n  \\item[\\textit{${toLateXString(c.childNodes)}}] \\hfill \\\\ \n`
     }
   },
   {
@@ -82,9 +89,7 @@ const latexTagHandlers = [
   },
   {
     tagName: "table",
-    handler(c) {
-      return tableToLaTeX(c)
-    }
+    handler: tableToLaTeX
   },
   {
     tagName: "sup",
@@ -94,6 +99,26 @@ const latexTagHandlers = [
       }
 
       return `\\textsuperscript{${toLateXString(c.childNodes)}}`
+    }
+  },
+  {
+    tagName: "pre",
+    handler(c) {
+      return `\n\\verbatim{${c.textContent}}`
+    }
+  },
+  {
+    tagName: "img",
+    handler: imgToLaTeX
+  },
+  {
+    tagName: "figure",
+    handler: figureToLaTeX
+  },
+  {
+    tagName: "pagebreak",
+    handler(c) {
+      return "\n\\newpage"
     }
   }
 ]
@@ -123,6 +148,8 @@ function convertContentToLaTeX() {
   let title = document.title
   let time = new Date()
   let author = document.getElementById("author")?.textContent ?? "Julie"
+
+  let latexContent = toLateXString(contentDiv.childNodes)
 
   let preamble = `
 \\documentclass{article}
@@ -173,9 +200,8 @@ function convertContentToLaTeX() {
 
 \\title{ \\normalsize \\textsc{}
 		\\\\ [2.0cm]
-		\\HRule{1.5pt} \\\\
 		\\LARGE \\textbf{\\uppercase{${title}}}
-    \\HRule{1.5pt} \\\\ [0.6cm] \\vspace*{10\\baselineskip}
+    \\vspace*{15\\baselineskip}
 		}
 \\date{}
 \\author{\\textbf{Author} \\\\
@@ -184,10 +210,8 @@ function convertContentToLaTeX() {
 ${time.toDateString()} Edition
 \\newpage
 
-\\tableofcontents
-\\newpage
-`
-  let latexContent = toLateXString(contentDiv.childNodes)
+\\tableofcontents${figCounter > 0 ? "\n\\listoffigures" : ""}`
+
   return `${preamble}${latexContent}\n\\end{document}`
 }
 
@@ -205,6 +229,10 @@ function toLateXString(nodes) {
   return string
 }
 
+/**
+ * @param {ChildNode} c 
+ * @returns {string}
+ */
 function nodeToLatex(c) {
   if (c.nodeType == Node.TEXT_NODE) {
     return normalizeText(c.textContent)
@@ -273,6 +301,77 @@ function footnoteToLaTeX(sup) {
 }
 
 /**
+ * @param {HTMLImageElement} img 
+ * @returns {string}
+ */
+function imgToLaTeX(img) {
+  let src = img.getAttribute("src")
+  let dotIdx = src.lastIndexOf('.')
+  if (dotIdx >= 0) {
+    src = src.substring(0, dotIdx)
+  }
+  if (src.startsWith("/")) {
+    src = "." + src
+  }
+
+  return `\n\\includegraphics[width=0.5\\textwidth]{${src}}`
+}
+
+/**
+ * @param {HTMLElement} fig 
+ * @returns {string}
+ */
+function figureToLaTeX(fig) {
+  let latexImg = null
+  let latexCapt = null
+  let latexSrc = null
+  let center = false
+
+  for (let c of fig.childNodes) {
+    if (c.nodeType != Node.ELEMENT_NODE) {
+      continue
+    }
+
+    let tagName = c.tagName.toLowerCase()
+    if (tagName == "figcaption") {
+      latexCapt = `\n\\caption{${toLateXString(c.childNodes)}}`
+      continue
+    }
+
+    if (tagName == "img") {
+      latexImg = imgToLaTeX(c)
+      latexSrc = c.getAttribute("src")
+
+      if (c.classList.contains("centeredimg")) {
+        center = true
+      }
+      continue
+    }
+  }
+
+  if (latexImg == null) {
+    return ""
+  }
+
+  let encoded = encodeURIComponent(
+    latexSrc
+      .replaceAll("/", "-")
+      .replaceAll(".", "-")
+  )
+  if (encoded.startsWith("-")) {
+    encoded = encoded.substring(1)
+  }
+  let label = `fig:${encoded}`
+
+  let centerText = center ? "\n\\centering" : ""
+  let out = `\n\\begin{figure}[H]${centerText}${latexCapt ?? ""}${latexImg}\n\\label{${label}}\n\\end{figure}\nSee figure \\ref{${label}}`
+
+  figCounter++
+
+  return out
+}
+
+/**
  * @param {HTMLTableElement} table 
  * @returns {string}
  */
@@ -326,17 +425,18 @@ function tableToLaTeX(table) {
 }
 
 /**
- * 
  * @param {string} text 
  * @returns {string}
  */
 function normalizeText(text) {
-  return text
+  let filtered = text
+    .replaceAll(/\s+/g, " ")
     .replaceAll("_", "\\_")
     .replaceAll("{", "\\{")
     .replaceAll("}", "\\}")
-    .replaceAll(/\s+/g, " ")
     .trim()
+
+  return filtered
 }
 
 /**
