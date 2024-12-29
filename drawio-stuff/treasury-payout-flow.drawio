@@ -1,0 +1,138 @@
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/25.0.2 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="25.0.2">
+  <diagram name="Page-1" id="52a04d89-c75d-2922-d76d-85b35f80e030">
+    <mxGraphModel dx="757" dy="578" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1100" pageHeight="850" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-1" value="" style="ellipse;html=1;shape=startState;fillColor=#000000;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="145" y="20" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-2" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-1" parent="1" target="f_ibkbOd5bbNIT7vXyQD-3">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="160" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-3" value="There is an emperor?" style="rhombus;whiteSpace=wrap;html=1;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="120" y="90" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-4" value="false" style="html=1;align=left;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;curved=1;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-3" parent="1" target="f_ibkbOd5bbNIT7vXyQD-20">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="305" y="110" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="400" y="110" />
+              <mxPoint x="260" y="470" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-5" value="true" style="html=1;align=left;verticalAlign=top;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#1D1D1D;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-3" parent="1" target="f_ibkbOd5bbNIT7vXyQD-6">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="165" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-6" value="Caclulate emperor&#39;s&amp;nbsp;&lt;span style=&quot;background-color: initial;&quot;&gt;salary&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="100" y="170" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-7" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-6" parent="1" target="f_ibkbOd5bbNIT7vXyQD-8">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="115" y="280" as="targetPoint" />
+            <mxPoint x="175" y="220" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-8" value="Can afford to pay emperor?" style="rhombus;whiteSpace=wrap;html=1;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="120" y="240" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-9" value="false" style="html=1;align=left;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-8" parent="1" target="f_ibkbOd5bbNIT7vXyQD-17">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="155" y="310" as="targetPoint" />
+            <mxPoint x="145" y="300" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-10" value="yes" style="html=1;align=left;verticalAlign=top;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#1D1D1D;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-8" parent="1" target="f_ibkbOd5bbNIT7vXyQD-11">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="75" y="340" as="targetPoint" />
+            <mxPoint x="85" y="330" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-11" value="Pay Emperor" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="115" y="320" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-12" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-11" parent="1" target="f_ibkbOd5bbNIT7vXyQD-15">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="75" y="400" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-15" value="Remove money from treasury" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="100" y="370" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-17" value="Tell emperor they cannot be paid" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="245" y="240" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-18" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-17" parent="1" target="f_ibkbOd5bbNIT7vXyQD-19">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="225" y="420" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-19" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="290" y="300" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-20" value="Calculate total salary of senators" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="100" y="450" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-21" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-20" parent="1" target="f_ibkbOd5bbNIT7vXyQD-22">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-22" value="Can afford to pay?" style="rhombus;whiteSpace=wrap;html=1;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="120" y="540" width="80" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-24" value="false" style="html=1;align=left;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#000000;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="f_ibkbOd5bbNIT7vXyQD-22" target="f_ibkbOd5bbNIT7vXyQD-26">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="265" y="600" as="targetPoint" />
+            <mxPoint x="205" y="590" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-25" value="yes" style="html=1;align=left;verticalAlign=top;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;labelBackgroundColor=none;fontColor=#1D1D1D;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="f_ibkbOd5bbNIT7vXyQD-22" target="f_ibkbOd5bbNIT7vXyQD-28">
+          <mxGeometry x="-1" relative="1" as="geometry">
+            <mxPoint x="160" y="640" as="targetPoint" />
+            <mxPoint x="165" y="610" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-26" value="Tell senators there is no budget to pay them" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="260" y="536.67" width="140" height="46.67" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-27" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;curved=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-26" parent="1" target="f_ibkbOd5bbNIT7vXyQD-33">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="330" y="715" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-28" value="Pay senators" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="115" y="620" width="90" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-29" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" source="f_ibkbOd5bbNIT7vXyQD-28" parent="1" target="f_ibkbOd5bbNIT7vXyQD-30">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="150" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-30" value="Remove money from treasury" style="rounded=1;whiteSpace=wrap;html=1;arcSize=40;fontColor=#000000;fillColor=#ffffc0;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="100" y="670" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-32" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" target="f_ibkbOd5bbNIT7vXyQD-33" source="f_ibkbOd5bbNIT7vXyQD-30">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="200" y="810" as="targetPoint" />
+            <mxPoint x="155" y="730" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-33" value="" style="ellipse;html=1;shape=endState;fillColor=#000000;strokeColor=#ff0000;" vertex="1" parent="1">
+          <mxGeometry x="145" y="750" width="30" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="f_ibkbOd5bbNIT7vXyQD-36" value="" style="html=1;verticalAlign=bottom;endArrow=open;endSize=8;strokeColor=#ff0000;rounded=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" edge="1" parent="1" source="f_ibkbOd5bbNIT7vXyQD-15" target="f_ibkbOd5bbNIT7vXyQD-20">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="165" y="380" as="targetPoint" />
+            <mxPoint x="165" y="360" as="sourcePoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

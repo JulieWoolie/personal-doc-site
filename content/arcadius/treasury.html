@@ -1,0 +1,169 @@
+---
+title: 'Treasury'
+author: "Julie"
+publish_date: '2024-12-27 11:00:00 +0200 UTC'
+header_img: "/arcadius/icon3-scaled.png"
+---
+
+<h2>Introduction</h2>
+<p>
+  This document describes the imperial treasury system. A relatively simple 
+  system for storing the amount of money earned by the imperial government and
+  its relative payout.
+</p>
+
+<h2 no-pre-break>Purpose</h2>
+<p>
+  To keep track of the economic movement of the server. And to provide payouts 
+  to the current emperor and any members of senate or any other 
+  government-affiliated organizations that may be added in the future.
+</p>
+
+<h2>Concept</h2>
+<p>
+  The concept revolves around storing the amount of money paid in either taxes 
+  or rent as funding for the imperial treasury. A percentage of this money can 
+  then be paid out in regular intervals to the current emperor, and to senators.
+</p>
+<p>
+  With all left over funds being stored and kept. Maybe the senate can vote to 
+  even spend the funds to reward players, giving all players a percent of the 
+  funds.
+</p>
+
+<h2>Implementation</h2>
+<p>
+  The Treasury plugin would be implenented with it's own 
+  <code>Arcadius-Treasury</code> plugin. The plugin tracks the amount of money
+  in the treasury and regularly pays out from the treasury.
+</p>
+<p>
+  Implantation should be done mainly with event listeners. Listening to the 
+  following events:
+</p>
+<dl>
+  <dt><code>RentPaidEvent</code></dt>
+  <dd>Amount paid is added to treasury.</dd>
+
+  <dt><code>SignShopUseEvent</code></dt>
+  <dd>Taxed amount is added to treasury</dd>
+
+  <dt><code>MerchantReturnEvent</code></dt>
+  <dd>
+    If the merchant is from Latium, and the merchant returned with profits, 
+    then the taxed value is added to the treasury.
+  </dd>
+</dl>
+<h3>Config</h3>
+<p>
+  This section defines a list of options available in the treasury plugin's 
+  config file.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th style="width: 3cm;">Option</th>
+      <th>Type</th>
+      <th>Default value</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>starting-wealth</code></td>
+      <td><code>int</code></td>
+      <td><code>75,000</code></td>
+      <td>The starting size of the treasury.</td>
+    </tr>
+    <tr>
+      <td><code>payout-interval</code></td>
+      <td><code>time</code></td>
+      <td><code>1week</code></td>
+      <td>Duration between payouts from the treasury.</td>
+    </tr>
+    <tr>
+      <td><code>emperor-salary</code></td>
+      <td><code>int</code></td>
+      <td><code>7,500</code></td>
+      <td>Salary paid to the current emperor, if there is one.</td>
+    </tr>
+    <tr>
+      <td><code>senator-salary</code></td>
+      <td><code>int</code></td>
+      <td><code>2,500</code></td>
+      <td>Salary paid to senators.</td>
+    </tr>
+  </tbody>
+</table>
+
+<h3>Payout</h3>
+<figure>
+  <img class="centeredimg" src="/diagrams/treasury-payout-flow.png">
+  <figcaption>Payout flow diagram</figcaption>
+</figure>
+
+<h3>Commands</h3>
+<p>
+  Describes the commands the treasury plugin provides.
+</p>
+<table>
+  <thead>
+    <tr>
+      <th>Field</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Command name</td>
+      <td><code>/treasury</code></td>
+    </tr>
+    <tr>
+      <td>Aliases</td>
+      <td>(none)</td>
+    </tr>
+    <tr>
+      <td>Permission</td>
+      <td><code>arcadius.treasury.command</code></td>
+    </tr>
+  </tbody>
+</table>
+<h4>Arguments</h4>
+<dl>
+  <dt><code>/treasury info</code></dt>
+  <dd>
+    Shows the current size of the treasury, along with the last payout time, 
+    next payout time and the size of the last payout, and next payout
+  </dd>
+
+  <dt><code>/treasury set &lt;size&gt;</code></dt>
+  <dd>Set how much money is currently in the treasury.</dd>
+
+  <dt><code>/treasury emperor-salary info</code></dt>
+  <dd>
+    Shows information on the emperor's salary, the last and next payouts.
+    As well as providing a list of modifiers.
+  </dd>
+
+  <dt><code>/treasury emperor-salary modifiers add &lt;options&gt;</code></dt>
+  <dd>
+    Adds a modifier that affects the emperor's salary.
+    Options list:
+    <dl>
+      <dt><code>duration: time</code></dt>
+      <dd>Duration the modifier lasts for.</dd>
+      <dt><code>value: float</code></dt>
+      <dd>Modifier value.</dd>
+      <dt><code>tag: string</code></dt>
+      <dd>Arbitrary tag to apply to the modifier.</dd>
+      <dt><code>operation: modifier-op</code></dt>
+      <dd>Operation of the modifier.</dd>
+    </dl>
+  </dd>
+
+  <dt><code>/treasury emperor-salary modifiers clear</code></dt>
+  <dd>Clears all modifiers affecting the emperor's salary.</dd>
+
+  <dt><code>/treasury emperor-salary modifiers remove &lt;index: 1..&gt;</code></dt>
+  <dd>Removes a modifier affecting the emperor's salary.</dd>
+</dl>
