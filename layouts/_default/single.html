@@ -8,10 +8,7 @@
 
   <button class="latex-convert" id="latex-convert-btn">Copy content as LaTeX</button>
 
-  {{block "headerimg" .}} {{end}}
-
-  <h1 toc-ignore class="pagetitle">{{.Title}}</h1>
-  <hr>
+  {{partial "title.html" .}}
 
   <h2 toc-ignore>Table Of Contents</h2>
   <div id="toc-out"></div>
@@ -21,14 +18,9 @@
     {{block "notes" .}}{{end}}
   </div>
 
-{{end}}
+  {{$images := resources.Get "js/images.js"}}
+  <script src="{{$images.RelPermalink}}"></script>
 
-{{define "headerimg"}}
-  {{$img := .Params.header_img}}
-
-  {{if (not (eq $img nil))}}
-    <img class="headerimg" src="{{$img}}">
-  {{end}}
 {{end}}
 
 {{define "notes"}}

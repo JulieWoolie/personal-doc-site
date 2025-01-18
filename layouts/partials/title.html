@@ -1,0 +1,31 @@
+<div>
+
+{{$img_is_title := .Params.header_is_title | default false}}
+{{if $img_is_title}}
+  {{block "headerimg" .}} {{end}}
+{{else}}
+  {{block "headerimg" .}} {{end}}
+  {{$sub := .Params.subtitle}}
+
+  <h1 toc-ignore class="pagetitle">{{.Title}}</h1>
+  
+  {{if $sub}}
+    <div class="subtitle">{{$sub}}</div>
+  {{end}}
+{{end}}
+
+</div>
+
+{{define "headerimg"}}
+  {{$img := .Params.header_img}}
+  {{$img_is_title := .Params.header_is_title | default false}}
+  {{$classname := "headerimg"}}
+
+  {{if $img_is_title}}
+    {{$classname = "titleimg"}}
+  {{end}}
+
+  {{if (not (eq $img nil))}}
+    <img class="{{$classname}}" src="{{$img}}">
+  {{end}}
+{{end}}

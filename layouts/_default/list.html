@@ -1,34 +1,31 @@
 {{define "main"}}
+  {{partial "title.html" .}}
 
-  {{block "headerimg" .}} {{end}}
-
-  <div>
-    <h1 class="pagetitle">{{.Title}}</h1>
-    <hr>
-  </div>
-
+  {{$has_content := (strings.ContainsNonSpace .Content)}}
+  {{if $has_content}}
   <div>
     {{.Content}}
   </div>
+  {{end}}
 
   <div class="booklist">
-    <h2>Pages</h2>
-    <hr>
+    {{if $has_content}}
+      <h2>Pages</h2>
+      <hr>
+    {{end}}
 
-    {{range .Pages}}
+    {{ $pageArr := .Pages.ByWeight}}
+    {{ $reversed := .Params.reversedOrder | default false}}
+
+    {{if $reversed}}
+      {{ $pageArr = $pageArr.Reverse}}
+    {{end}}
+
+    {{range $pageArr}}
       <a class="link-card" href="{{.RelPermalink}}">
         <h3>{{.Title}}</h3>
         {{.Plain | truncate 200}}
       </a>
     {{end}}
   </div>
-{{end}}
-
-
-{{define "headerimg"}}
-  {{$img := .Params.header_img}}
-
-  {{if (not (eq $img nil))}}
-    <img class="headerimg" src="{{$img}}">
-  {{end}}
 {{end}}
