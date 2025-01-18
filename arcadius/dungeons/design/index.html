@@ -1,0 +1,80 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><title>Design Document</title></head><body class=bg-lighter><div class="content bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/arcadius/>Arcadius Universe</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/arcadius/dungeons/>Dungeons</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>Design Document</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2024-12-08 17:55:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><button class=latex-convert id=latex-convert-btn>Copy content as LaTeX</button><div><img class=headerimg src=/arcadius/icon3-scaled.png><h1 toc-ignore class=pagetitle>Design Document</h1></div><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><div id=content><h2>Abstract</h2><p>The Dungeons, generally, is a rougelike feature of ArcadiusMC, similar to
+games like Hades, and Pressure (Roblox), with ULTRAKILL serving as inspiration
+as well.</p><p>Players will enter the randomly-generated dungeons, fight through rooms of
+enemies until they find a boss room, fight the boss and then advance on to the
+next level.</p><p>The purpose of this document is to outline the methods of implementation for
+the dungeons.</p><h2>Dungeon Structure</h2><p>The structures that will comprise the Dungeons' levels will be made with the
+<i>"Arcadius-Structures"</i> plugin. This plugin is developed in house and
+provides support for <i>"Structure Functions"</i> which the dungeon generator
+can later use to add elements to levels that did not exist before.</p><p>The Dungeons is made up of <i>"Room Pieces"</i>, which are connected to
+eachother with <i>"Doorway Pieces"</i>. This should be simple to understand,
+rooms are connected with doorways. These doorways are demarked with the
+<code>dungeons/connector</code> structure functions.</p><p>Each dungeon piece can have 1 parent piece, an entrance, that it originates
+from, and many child pieces, the room's exits. This forms the Dungeons as a
+node-tree structure.</p><h2>Generation</h2><p>This section describes the generation process of the dungeon levels.</p><p>To even begin, the generator takes in a config that specifies parameters that
+will be referenced in the coming sections. This config also specifies a list
+of <i>"Structure Types"</i>. With each denoting a structure name and kind.</p><p>List of <i>Structure Kinds</i>:<dl><dt><code>ROOT</code></dt><dd>The root room, from which all other rooms are generated from.</dd><dt><code>MOB_ROOM</code></dt><dd>A regular room that is intended for combat, looting. The main room of
+action for players</dd><dt><code>BOSS_ROOM</code></dt><dd>Rooms that a boss is meant to spawn in.</dd><dt><code>CONNECTOR</code></dt><dd>A hallway, stairway, or any other type of room that is meant as a
+transitional space.</dd><dt><code>CLOSED_GATE</code></dt><dd>A closed doorway between two rooms.</dd><dt><code>DECORATED_GATE</code></dt><dd>A closed and decorated doorway between two rooms.</dd><dt><code>OPEN_GATE</code></dt><dd>An open doorway for connecting 2 Room Pieces.</dd></dl></p><h3>Initial Tree Generation</h3><p><b>NOTE:</b> This is a messy and incomplete, but general, explanation of the
+generation process.</p><p>This section will walk through the process of generating the initial tree
+structure of a dungeons level.</p><p>For the generation process, a <i>Queue</i> will be used to perform generation
+in a breadth-first pattern. This queue will contain objects that contain:<dl><dt><code>originDoor: doorway</code></dt><dd>The Doorway the generation piece is being placed at.</dd><dt><code>sectionType: enum</code></dt><dd>The type of the section, one of: <code>connector</code>, or <code>room</code></dd><dt>sectionDepth: int</dt><dd>The amount of pieces in this section placed one after another.</dd></dl></p><p>First, the generator is initialized by picking a <code>ROOT</code> room at
+random. If no root room found, generation fails. All the doorways of that
+root room are then placed into the generation queue. Initialization is now
+finished and the generator enters a loop that continues until the structure
+has finished generating, with each loop being considered a <i>"step"</i>.</p><p>For each step: Poll the first element in the generation queue, if the queue is
+empty, generation is finished, stop step. Else move onto the <i>genStep</i>.
+Depending on the result of the gen step, the following happens:</p><dl><dt><code>SUCCESS</code></dt><dd>The generated piece is attached to the doorway it was generated for. If the
+piece is a <code>connector</code>, all exits are kept open, otherwise, a
+random amount of exits between <code>config.minRoomExits</code> and
+<code>config.maxRoomExits</code> are closed.<p>All exits still open are then added to the end of the generation queue.</p></dd><dt><code>FAILED</code></dt><dd>The <code>originDoor</code> is closed and this branch of the structure tree
+is considered <i>"complete"</i>,</dd><dt><code>MAXDEPTH</code></dt><dd>If the piece's section depth is less than the <i>"optimal"</i> depth
+<i>(A random value between the section's min depth and max depth)</i> then
+rewind the generation back to the root piece of the section and restart
+generation from there.</dd><dt><code>MAX_SECTION_DEPTH</code></dt><dd>Flip section type and place back into the queue, this time to the front.</dd></dl><p>Repeat until generation queue is empty. Then move onto structure optimization.</p><h4>genStep</h4><p>If the current total structure depth is greater than allowed by the config,
+return a <code>MAXDEPTH</code>. If the current section's depth is greater
+than specified by the config, return a <code>MAX_SECTION_DEPTH</code> error.</p><p>Get a list of all potential pieces for this context. If current section's
+type is <code>connector</code>, then only get connector pieces. Drop all room
+types that have already been used in the current section. If no rooms have
+been found, or if all possible rooms have already been tried, return a
+<code>FAILED</code> error.</p><p>Otherwise, iterate through each room type and each doorway of each room.
+Randomize iteration order of the doors. For each doorway, align the room by
+that doorway to the <code>originDoor</code> and then check if the room would
+overlap any existing room pieces. If not, return a <code>SUCCESS</code>
+result. Otherwise, keep iterating. If no rooms match, return a
+<code>FAILEd</code> error.</p><h4>Structure Optimization</h4><p>This is a small set of operations performed to make the structure better for
+players and add missing pieces.</p><dl><dt>Attach boss room</dt><dd>The first post processing pass is to add a boss room. If no boss room types
+were specified in the config, do not perform this pass. Otherwise, find all
+room exits that are not connected to any other rooms, sort them by order and
+iterate through them. Try placing a boss room at each exit, if a valid
+placement is not found, move onto the next one, if it is, the boss room's
+location is found.</dd><dt>Drop dead ends</dt><dd>This pass uses a loop to iterate over all <code>connector</code> type rooms
+in the current structure and drops them from the structure if they have
+no exits, or have no exits that are attached to other rooms.</dd><dt>Close ending gates</dt><dd>Iterate over all dead end exit doorways and close them.</dd><dt>Decorate gates</dt><dd>Iterate over all dead end exit gates and randomly swap out closed gates with
+decorated gates.</dd></dl><h3>Structure decoration and placement</h3><p>This section outlines the processors and functions used to transform plain
+dungeon pieces into decorated levels.</p><p><b>NOTE:</b> This is a general explanation of the process, specifics make
+my head hurt.</p><h4>Setup</h4><p>Initially we create a <i>BlockBuffer</i><note idx=0></note> with enough
+space to cover the whole dungeons structure.</p><h4>Passes</h4><p><i>GenerationPasses</i> are loaded from the config and can have any paramaters
+specified by the user. This section will define the types of generation passes
+supported and what config options they accept.</p><h2>Session Flow</h2><p>This section describes the process of dungeon sessions being created, playing,
+and closing.</p><p>Sessions are started with a player initiating the session. With the initiating
+player as the only player in the session. This player also becomes the
+<i>owner</i> of the session. The owner can then modify the session's settings,
+such as: max players in the session, dungeon settings, and any other future
+parameters.</p><p>When the owner of the session decides to actually start the dungeon, they
+initiate the generator. The dungeon then generates according to the parameter.</p><h3>Session State</h3><dl><dt><code>BEGINNING</code></dt><dd>The beginning phase of a session. This starts when a session is created by
+a player. In this phase, a player can add other players to their session,
+modify their dungeon generation settings.</dd><dt><code>GENERATING</code></dt><dd>The dungeon is being generated. This state starts when the owner of the
+session starts the generation process. When the state ends, all players are
+teleported inside.</dd><dt><code>ACTIVE</code></dt><dd>Dungeon session is active, players are inside the dungeon and fighting
+monsters, looting and whatever.</dd><dt><code>INACTIVE</code></dt><dd>Session is inactive.</dd></dl><hr latex-ignore class=notes-hr><h2 latex-ignore class=notesheader>Notes</h2><ol latex-ignore id=footnotes-list><li note-idx=0>A BlockBuffer is an in memory representation of an area of blocks
+that can be edited async. This is to avoid modifying the world during
+generation, which is slow. BlockBuffers have a defined area of space
+that they can represent and they cannot be resized.</li></ol></div><script src=/js/images.js></script></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script></body></html>
