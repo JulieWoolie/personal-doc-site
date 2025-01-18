@@ -53,7 +53,7 @@ function processTableOfContents() {
       return
     }
 
-    let txt = `toc-${encodeURIComponent(c.textContent.toLowerCase())}`
+    let txt = encodeURIComponent(c.textContent.toLowerCase())
     c.id = txt
 
     let a = document.createElement("a")
