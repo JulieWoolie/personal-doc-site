@@ -27,12 +27,12 @@ sup a {
 }
 
 @media(min-width: 1024px) {
-  .content {
+  .content-sizing {
     max-width: calc(210mm - 6cm);
     margin-left: auto;
     margin-right: auto;
-    padding-left: 3cm;
-    padding-right: 3cm;
+    padding-left: 3cm !important;
+    padding-right: 3cm !important;
   }
 }
 
@@ -51,13 +51,39 @@ sup a {
   color: gray;
 }
 
-.content {
-  text-justify: newspaper;
-  text-align: justify;
+.content-sizing {
   padding-top: 1cm;
-  padding-bottom: 5cm;
   padding-right: 1cm;
   padding-left: 1cm;
+}
+
+.footer {
+  padding-bottom: 2cm;
+}
+.footer-flex {
+  display: flex;
+  gap: 2mm;
+  justify-content: space-evenly;
+  flex-wrap: wrap;
+}
+.footermsg {
+  text-align: center;
+  margin-top: 5mm;
+}
+
+.body {
+  margin: 0;
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.content {
+  padding-bottom: 5cm;
+
+  text-justify: newspaper;
+  text-align: justify;
 
   min-height: 100vh;
 
@@ -171,10 +197,8 @@ sup a {
   margin-bottom: 2mm;
 }
 
-.latex-convert {
-  margin-bottom: 3rem;
+.button {
   color: white;
-
   background-color: var(--lighter);
   border: 1px solid white;
   padding: 2mm;

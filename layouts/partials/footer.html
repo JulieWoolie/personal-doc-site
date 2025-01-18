@@ -1,0 +1,16 @@
+<div class="bg-dark content-sizing footer" style="margin-top: 2cm;">
+  <div class="footer-flex">
+    {{if (eq .Kind "page")}}
+      <button class="button" id="latex-convert-btn">Copy content as LaTeX</button>
+    {{end}}
+    <button class="button" id="bg-toggle-btn">Toggle background</button>
+  </div>
+
+  <div class="footermsg">
+    I am a footer :)
+  </div>
+
+  <div class="footermsg" id="bg-info">
+    Background info: 
+  </div>
+</div>
