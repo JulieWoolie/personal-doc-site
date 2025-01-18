@@ -26,11 +26,13 @@ sup a {
   color: darkcyan;
 }
 
-@media only screen and (min-width: 1024px) {
+@media(min-width: 1024px) {
   .content {
     max-width: calc(210mm - 6cm);
     margin-left: auto;
     margin-right: auto;
+    padding-left: 3cm;
+    padding-right: 3cm;
   }
 }
 
@@ -53,9 +55,9 @@ sup a {
   text-justify: newspaper;
   text-align: justify;
   padding-top: 1cm;
-  padding-right: 3cm;
   padding-bottom: 5cm;
-  padding-left: 3cm;
+  padding-right: 1cm;
+  padding-left: 1cm;
 
   min-height: 100vh;
 
