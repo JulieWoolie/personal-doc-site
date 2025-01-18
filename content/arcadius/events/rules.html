@@ -3,50 +3,93 @@ title: "Event Setup rules and guides"
 publish_date: '2024-12-02 20:00:00 +0200 UTC'
 header_img: "/arcadius/icon3-scaled.png"
 author: "Julie"
+weight: 10000000
 ---
 <h2>Event Rules</h2>
-<p>The following checks must be passed during testing for an event to be considered in &#39;acceptable&#39; conditions:</p>
+<p>
+  The following checks must be passed during testing for an event to be 
+  considered in 'acceptable' conditions:
+</p>
 <ol>
-<li>Dying in the event must remove you from the event instantly and nullify any potential score gain, as well as remove any event-provided items and/or effects.</li>
-<li>Quitting in the event must do the same as above.</li>
-<li>It should be impossible to enter the event with potion effects, they must be either:<ul>
-<li>Cleared upon entering</li>
-<li>Prevented from entering if they possess potion effects</li>
-</ul>
-</li>
-<li>Entering the event should function perfectly each time</li>
-<li>Exiting the event should function perfectly each time</li>
-<li>Completing the event, different from exiting, should follow the event&#39;s context and assign scores only if:<ul>
-<li>The player&#39;s score is higher than their record</li>
-<li>The event uses the assign-only-if-score-greater rule</li>
-</ul>
-</li>
-<li>Alt accounts are not permitted to gain score on the same ground as main accounts, when dealing with an alt, one of the following methods must be used<ul>
-<li>The alt is unable to enter (preferred)</li>
-<li>The alt is unable to gain score</li>
-<li>The alt&#39;s score is given to the main</li>
-</ul>
-</li>
+  <li>
+    Dying in the event must remove you from the event instantly and nullify any
+    potential score gain, as well as remove any event-provided items and/or
+    effects.
+  </li>
+  <li>Quitting in the event must do the same as above.</li>
+  <li>
+    It should be impossible to enter the event with potion effects, they must 
+    be either:
+    <ul>
+      <li>Cleared upon entering</li>
+      <li>Prevented from entering if they possess potion effects</li>
+    </ul>
+  </li>
+  <li>Entering the event should function perfectly each time</li>
+  <li>Exiting the event should function perfectly each time</li>
+  <li>
+    Completing the event, different from exiting, should follow the event's
+    context and assign scores only if:
+    <ul>
+      <li>The player&#39;s score is higher than their record</li>
+      <li>The event uses the assign-only-if-score-greater rule</li>
+    </ul>
+  </li>
+  <li>
+    Alt accounts are not permitted to gain score on the same ground as main 
+    accounts, when dealing with an alt, one of the following methods must be 
+    used
+    <ul>
+      <li>The alt is unable to enter (preferred)</li>
+      <li>The alt is unable to gain score</li>
+      <li>The alt&#39;s score is given to the main</li>
+    </ul>
+  </li>
 </ol>
+
 <p>The follwing are optional checks which apply on a per-event basis:</p>
 <ol>
-<li>Entering the event with items in your inventory shouldn&#39;t be possible, it should be checked. An event may never remove items from, or clear, your inventory, unless the items were given by the event</li>
+  <li>
+    Entering the event with items in your inventory shouldn't be possible, it 
+    should be checked. An event may never remove items from, or clear, your
+    inventory, unless the items were given by the event
+  </li>
 </ol>
-<p>If the event uses an &#39;arena&#39; which is built either by generation or example-pasting the following should be checked:</p>
+
+<p>
+  If the event uses an &#39;arena&#39; which is built either by generation or 
+  example-pasting the following should be checked:
+</p>
 <ol>
-<li>The arena generates correctly,</li>
-<li>All triggers within the arena function correctly</li>
-<li>Any and all spawned or moved entities be placed correclty</li>
-<li>Any and all spawned or moved entities function correclty</li>
-<li>If the arena features a &#39;tick list&#39; then the following must be check:<ul>
-<li>Each tick-list-entry is ticked correctly and at correct intervals</li>
-<li>Any exception thrown by an entry does not stop the tick&#39;s execution</li>
-<li>Any exception thrown by an entry is logged in console</li>
-</ul>
-</li>
+  <li>The arena generates correctly,</li>
+  <li>All triggers within the arena function correctly</li>
+  <li>Any and all spawned or moved entities be placed correclty</li>
+  <li>Any and all spawned or moved entities function correclty</li>
+  <li>
+    If the arena features a &#39;tick list&#39; then the following must be 
+    check:
+    
+    <ul>
+      <li>Each tick-list-entry is ticked correctly and at correct intervals</li>
+      <li>
+        Any exception thrown by an entry does not stop the tick&#39;s execution
+      </li>
+      <li>Any exception thrown by an entry is logged in console</li>
+    </ul>
+  </li>
 </ol>
-<p>Events must block the following commands:
-<code>tpa, tpask, tpahere, tpaskhere, tpdeny, tpcancel, tpaccept, home, echest, ec, enderchest, wb, workbench, kit, back, workb, warp</code></p>
+
+<p>
+  Events must block the following commands: 
+  <code>
+    tpa, tpask, tpahere, tpaskhere, tpdeny, tpcancel, tpaccept, home, echest,
+    ec, enderchest, wb, workbench, kit, back, workb, warp
+  </code>
+</p>
+
 <h2 id="project-rules">Project rules</h2>
-<p>Any project for a Succession Event must - from here on out - follow the following naming principle: 
-<code>{MONTH}-{YEAR}-{NAME}Event</code> An example would be <code>April-2022-PrankEvent</code></p>
+<p>
+  Any project for a Succession Event must - from here on out - follow the 
+  following naming principle: <code>{MONTH}-{YEAR}-{NAME}Event</code> An example
+  would be <code>April-2022-PrankEvent</code>
+</p>
