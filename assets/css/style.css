@@ -26,27 +26,42 @@ sup a {
   color: darkcyan;
 }
 
-code {
+@media only screen and (min-width: 1024px) {
+  .content {
+    max-width: calc(210mm - 6cm);
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+#content {
+  img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    cursor: pointer;
+  }
+}
+
+.subtitle {
+  text-align: center;
   color: gray;
 }
 
 .content {
-  max-width: calc(210mm - 6cm);
-  margin-left: auto;
-  margin-right: auto;
-  padding-top: 1cm;
-  padding-bottom: 5cm;
-  padding-left: 3cm;
-  padding-right: 3cm;
   text-justify: newspaper;
   text-align: justify;
+  padding-top: 1cm;
+  padding-right: 3cm;
+  padding-bottom: 5cm;
+  padding-left: 3cm;
 
   min-height: 100vh;
 
   &[wide="true"] {
     max-width: 75vw;
   }
-
 
   h2, h3, h4, h5, h6 {
     margin-top: 3rem;
@@ -64,6 +79,16 @@ code {
       font-size: larger;
       color: white;
     }
+  }
+
+  p:first-child {
+    margin-top: 0;
+  }
+  p[big-letter]::first-letter {
+    font-size: 200%;
+  }
+  p:not(h1+p, h2+p, h3+p, h4+p, h5+p)::first-letter {
+    margin-inline-start: 5mm;
   }
 
   table {
@@ -141,6 +166,7 @@ code {
 }
 .pagetitle {
   text-align: center;
+  margin-bottom: 2mm;
 }
 
 .latex-convert {
@@ -184,6 +210,14 @@ h2.notesheader {
 
 .headerimg {
   width: 33.33%;
+  image-rendering: crisp-edges;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.titleimg {
+  width: 100%;
   image-rendering: crisp-edges;
   display: block;
   margin-left: auto;
