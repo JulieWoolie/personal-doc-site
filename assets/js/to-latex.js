@@ -30,7 +30,15 @@ const latexTagHandlers = [
   {
     tagName: "p",
     handler(c) {
-      return `\n${toLateXString(c.childNodes)}\n`
+      let prefix
+
+      if (c.matches(":first-child")) {
+        prefix = ""
+      } else {
+        prefix = "\n"
+      }
+
+      return `${prefix}${toLateXString(c.childNodes)}\n`
     }
   },
   {
@@ -378,20 +386,27 @@ function figureToLaTeX(fig) {
 function tableToLaTeX(table) {
   let out = "\n\\begin{tabular}"
   let rows = table.rows
+  let columnCount = 0
 
-  for (let i = 0; i < rows.length; i++) {
+  for (let row of rows) {
+    columnCount = Math.max(0, row.cells.length)
+  }
+  
+  let fraction = 1.0 / columnCount
+
+  for (let i = 0; i < columnCount; i++) {
     if (i == 0) {
       out += "{ |"
     }
-    out += "l|"
+    out += ` l|p{${fraction}\\textwidth}| `
   }
 
-  out += " }\n"
+  out += "}\n"
 
   let capt = table.caption
   if (capt != null) {
     out += "\\hline\n"
-    out += `\\multicolumn{${rows.length}}{|c|}{${toLateXString(capt.childNodes)}} \\\\ \n`
+    out += `\\multicolumn{${columnCount}}{|c|}{${toLateXString(capt.childNodes)}} \\\\ \n`
   }
 
   for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
@@ -413,8 +428,8 @@ function tableToLaTeX(table) {
     }
 
     out += "\\\\ \n"
-
-    if (rowIdx == 0) {
+    
+    if (rowIdx != rows.length - 1) {
       out += "\n\\hline\n"
     }
   }
@@ -440,7 +455,6 @@ function normalizeText(text) {
 }
 
 /**
- * 
  * @param {string} text 
  * @returns {string}
  */
