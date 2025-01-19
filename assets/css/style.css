@@ -79,6 +79,28 @@ sup a {
   background-attachment: fixed;
 }
 
+.list-content {
+  margin-top: 1cm;
+}
+
+.card-subtitle {
+  color: gray;
+  margin-top: 0;
+}
+.card-title {
+  margin-bottom: 2mm;
+}
+
+.section-num {
+  color: gray;
+  margin-inline-end: 2mm;
+}
+
+.title-container {
+  margin-top: 2.5cm;
+  margin-bottom: 5cm;
+}
+
 .content {
   padding-bottom: 5cm;
 
@@ -89,6 +111,10 @@ sup a {
 
   &[wide="true"] {
     max-width: 75vw;
+  }
+
+  video {
+    width: 100%;
   }
 
   h2, h3, h4, h5, h6 {
@@ -115,7 +141,7 @@ sup a {
   p[big-letter]::first-letter {
     font-size: 200%;
   }
-  p:not(h1+p, h2+p, h3+p, h4+p, h5+p)::first-letter {
+  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p)::first-letter {
     margin-inline-start: 5mm;
   }
 
@@ -235,11 +261,23 @@ h2.notesheader {
 }
 
 .headerimg {
-  width: 33.33%;
+  width: 100%;
   image-rendering: crisp-edges;
   display: block;
   margin-left: auto;
   margin-right: auto;
+
+  &.large {
+    width: 75%;
+  }
+
+  &.medium {
+    width: 50%;
+  }
+
+  &.small {
+    width: 33.33%;
+  }
 }
 
 .titleimg {
