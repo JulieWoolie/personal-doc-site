@@ -1,6 +1,67 @@
+const headerLevels = {
+  'H1': 1,
+  'H2': 2,
+  'H3': 3,
+  'H4': 4,
+  'H5': 5,
+  'H6': 6
+}
+
+numberHeaders()
 processTableOfContents()
 processFootnotes()
 processFigures()
+
+function numberHeaders() {
+  let content = document.getElementById("content")
+  if (content == null) {
+    return
+  }
+
+  applyHeaderNumbers(content)
+}
+
+/** 
+ * @param {HTMLElement} element 
+ */
+function applyHeaderNumbers(element) {
+  let children = element.childNodes
+  let numbers = []
+  let currentLevel = -1
+
+  for (let child of children) {
+    if (child.nodeType != Node.ELEMENT_NODE) {
+      continue
+    }
+
+    let tname = child.tagName
+    let level = headerLevels[tname]
+
+    if (!level || level == 1) {
+      continue
+    }
+
+    level--
+
+    if (level == currentLevel) {
+      numbers[numbers.length - 1]++
+    } else if (level < currentLevel) {
+      numbers.pop()
+      numbers[numbers.length - 1]++
+    } else {
+      numbers.push(1)
+    }
+
+    currentLevel = level
+
+    let span = document.createElement("span")
+    span.setAttribute("latex-ignore", "")
+    span.textContent = numbers.join(".") + " "
+    span.className = "section-num"
+
+    child.insertBefore(span, child.firstChild)
+  }
+}
 
 function processFigures() {
   let content = document.getElementById("content")
@@ -29,15 +90,6 @@ function processTableOfContents() {
     return
   }
 
-  const headerLevels = {
-    'H1': 1,
-    'H2': 2,
-    'H3': 3,
-    'H4': 4,
-    'H5': 5,
-    'H6': 6
-  }
-
   let contentChildren = content.childNodes
   contentChildren.forEach(c => {
     if (c.nodeType == Node.TEXT_NODE || c.hasAttribute("toc-ignore")) {
@@ -53,12 +105,20 @@ function processTableOfContents() {
       return
     }
 
-    let txt = encodeURIComponent(c.textContent.toLowerCase())
+    let txt = encodeURIComponent(
+      c.textContent.toLowerCase()
+        .replaceAll(" ", "-")
+        .replaceAll(",", "")
+        .replaceAll("'", "")
+        .replaceAll("/", "")
+        .replaceAll("\"", "")
+    )
     c.id = txt
 
     let a = document.createElement("a")
-    if (level != 2) {
-      a.style.paddingLeft = `${level - 2}em`
+    if (level > 2) {
+      let leftPad = (level - 2) * 3
+      a.style.paddingLeft = `${leftPad}mm`
     }
     a.classList.add("toc-element")
     a.innerHTML = c.innerHTML
