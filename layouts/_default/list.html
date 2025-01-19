@@ -3,9 +3,9 @@
 
   {{$has_content := (strings.ContainsNonSpace .Content)}}
   {{if $has_content}}
-  <div>
-    {{.Content}}
-  </div>
+    <div class="list-content">
+      {{.Content}}
+    </div>
   {{end}}
 
   <div class="booklist">
@@ -23,8 +23,13 @@
 
     {{range $pageArr}}
       <a class="link-card" href="{{.RelPermalink}}">
-        <h3>{{.Title}}</h3>
-        {{.Plain | truncate 200}}
+        <h3 class="card-title">{{.Title}}</h3>
+
+        {{if (strings.ContainsNonSpace .Params.subtitle)}}
+          <p class="card-subtitle">{{.Params.subtitle}}</p>
+        {{end}}
+
+        <p>{{.Plain | truncate 200}}</p>
       </a>
     {{end}}
   </div>
