@@ -1,0 +1,39 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>NLayout Engine</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>NLayout Engine</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>Unknown</dd><dt>Author</dt><dd id=author>None</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>NLayout Engine</h1><div class=subtitle>The biggest nightmare in this project.</div></div><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><div id=content><h2>Introduction</h2><p>This document describes the process of writing the <i>NLayout</i> engine that
+executes layout for Delphi and how it works.</p><p>This part, the layout engine, has been the most difficult part of the Delphi
+project to date, executing layout with so many variables that interact in so
+many different ways depending on layout context and such.</p><p>The layout engine is part of the <code>delphirender</code> module which
+handles DOM rendering and Minecraft entity management.</p><h3>The Name</h3><p><i>NLayout</i> just means <i>"New Layout"</i>, after the Java class I started
+writing it in, which was the 2nd version of the layout engine. The first being
+very primitive, just taking in a <code>layout-direction</code> (Either X or Y)
+and tiling elements in that direction.</p><h2>Layout passes</h2><p>Layout is divided into passes, and this section describes the initial concept
+for the engine and the passes it executed.</p><p><b>Note:</b> Passes are executed either bottom-to-up (Starting at the
+deepest elements and iterating up through the tree), or top-to-bottom
+(Starting at the root element and iterating through its children)</p><h3>Intrinsic Measurement</h3><p>Measure every style property that can be measured (everything that isn't
+'auto' or a percent value.), this also includes node content, if present.</p><p>This pass is done bottom to top</p><h3>Resolve parent based sizes, if possible</h3><p>Iterate from root downwards, attempt to resolve all possible relative sizes
+(% unit values)</p><h3>Layout</h3><p>Iterate from the bottom up and apply the appropriate layout algorithms for
+each element. Skip content nodes, and nodes without child objects.</p><p>As this step is being executed, the sizes of each element will be set as well.
+This means, this will require an additional step after to finally resolve all
+%-based values. (I think)</p><p>Use the appropriate algorithm for each layout mode:</p><dl><dt><code>display: flex</code></dt><dd>Flex layout</dd><dt><code>position: absolute</code></dt><dd>Position Layout</dd><dt>Otherwise</dt><dd>Flow layout</dd></dl><h4>Flow</h4><p>Split elements into 'lines' of elements. Iterate over child elements.<br>If element is 'display: inline' it is part of the current line.<br>If the <code>currentLineWidth + element.size.x + element.margin.x()</code> is
+greater than <code>maxWidth</code> => line break.<br>If <code>display: inline-block</code> => line break after element.<br>If <code>position: absolute</code> => skip, do not include in line.</p><p>When iterating over elements, keep track of the largest margin separately.
+This is because all elements will sit on the same baseline, but the margin of
+each on the bottom can vary, and the largest margin becomes the line's bottom
+margin.</p><p>After all elements are split into lines, lay them out in the way specified by
+the lines. Include bottom margin when moving from 1 line to another.</p><h4>Position</h4><p>Move current element to position specified by 'left', and 'top' properties,
+ignore all existing elements and do not count element in parent element's
+size measurement.</p><h4>Flex</h4><p>Create a <code>mainDir: vec2</code>, and a <code>crossDir: vec2</code> with
+values appropriate to the <code>flex-direction</code> property.<br><code>flex-direction: row | row-reverse => mainDir = (1, 0), crossDir = (0, 1)</code><br><code>flex-direction: column | column-reverse => mainDir = (0, 1), crossDir = (1, 0)</code></p><h3>Post Processing</h3><p>This pass is performed in the same order as PASS 3: Layout. This step involves
+applying post layout operations like handling <code>margin: auto</code>
+properties.</p><h4>Flow</h4><p>After Flow layout is conducted, measure element size (if width was not
+explicitly set) and re-iterate over <code>display: block</code> elements to
+apply any <code>auto</code> margin values.</p><p>Left and right margins determine the x-axis layout of the element, if both
+are <code>auto</code>, then the <code>x margins = (parentContentArea.x - elementSize.x) / 2</code>.</p><p>Otherwise, the auto margin = <code>parentContentArea.x - elementSize.x - oppositeMargin</code>.</p><p>The other 2 margins determine the vertical layout of the element. For these
+calculations, we'll need a variable, <code>N</code>, which is equal to
+<code>parentContentArea.y - usedSpace.y + elementSize.y</code>.</p><p>If both <code>top</code> and <code>bottom</code> are 'auto', then <code>y margin = (N - elementSize.y) / 2</code>
+Otherwise, the <code>auto margin = N - elementSize.y</code>.</p><h2>Sources / Docs / Tutorials</h2><ul><li><a href=https://www.quirksmode.org/css/flexbox-algorithm.html>www.quirksmode.org - Flexbox Algorithm</a></li><li><a href=https://www.w3.org/TR/css-flexbox-1/>W3.org - CSS Flexbox Spec</a></li><li><a href=https://tchayen.com/how-to-write-a-flexbox-layout-engine>tchayen.com - How to Write a Flexbox Layout Engine</a></li><li><a href=https://css-tricks.com/snippets/css/a-guide-to-flexbox/>css-tricks.com - A Guide To Flexbox/</a></li></ul></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>

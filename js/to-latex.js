@@ -128,6 +128,18 @@ const latexTagHandlers = [
     handler(c) {
       return "\n\\newpage"
     }
+  },
+  {
+    tagName: "br",
+    handler(c) {
+      return `\\linebreak `
+    }
+  },
+  {
+    tagName: "a",
+    handler(c) {
+      return `\\href{${c.href}}{${toLateXString(c.childNodes)}}`
+    }
   }
 ]
 
@@ -141,6 +153,10 @@ function latexConversionMain() {
 
   let latex = convertContentToLaTeX()
 
+  if (latex == null) {
+    return
+  }
+
   el.onclick = (ev) => {
     window.navigator.clipboard.writeText(latex)
   }
@@ -150,7 +166,7 @@ function convertContentToLaTeX() {
   let contentDiv = document.getElementById("content")
 
   if (contentDiv == null) {
-    return ""
+    return null
   }
 
   let title = document.title
@@ -220,7 +236,9 @@ ${time.toDateString()} Edition
 
 \\tableofcontents${figCounter > 0 ? "\n\\listoffigures" : ""}`
 
-  return `${preamble}${latexContent}\n\\end{document}`
+  let latexDoc = `${preamble}${latexContent}\n\\end{document}`
+
+  return {doc: latexDoc, content: latexContent}
 }
 
 /**
@@ -449,6 +467,8 @@ function normalizeText(text) {
     .replaceAll("_", "\\_")
     .replaceAll("{", "\\{")
     .replaceAll("}", "\\}")
+    .replaceAll("/", "\\/")
+    .replaceAll("%", "\\%")
     .trim()
 
   return filtered
