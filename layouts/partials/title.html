@@ -1,4 +1,4 @@
-<div>
+<div class="title-container">
 
 {{$img_is_title := .Params.header_is_title | default false}}
 {{if $img_is_title}}
@@ -23,6 +23,9 @@
 
   {{if $img_is_title}}
     {{$classname = "titleimg"}}
+  {{else}}
+    {{$hsize := .Params.header_size | default "small"}}
+    {{$classname = (delimit (slice $classname  $hsize) " ")}}
   {{end}}
 
   {{if (not (eq $img nil))}}
