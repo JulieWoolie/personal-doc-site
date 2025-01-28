@@ -1,0 +1,38 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>28-01-2025</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>28-01-2025</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-01-28 15:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>28-01-2025</h1><div class=subtitle>Text Rendering and some thoughts about the future.</div></div><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><div id=content><h2>Intro</h2><p>It's been weeks, maybe even months since I've touched this project... oh god.</p><p>I started finally implementing the renderer I created in the
+<code>delphirender</code> module. Starting with a very simple Flow layout
+that just places elements after each other. I'll implement the rest of the
+layout once I know the configuration and projection of entities is correct.</p><h2>Afterword</h2><p>It's 7 hours later. I hate this project...</p><p>I spent almost all of today thinking about and fixing issues related to the
+most simple parts of rendering and layout possible. And now, 7 hours later,
+this still doesn't work fully. There's still many issues to fix.</p><p>For some reason all elements are offset slightly to the left, and maybe down
+a bit? This probably has something to do with the code expecting
+<code>content-start</code><note idx=0></note> position to be relative to
+something it isn't anymore.</p><p>Other than the bugs that didn't exist before, all is well. I'll need to remind
+myself to take screenshots and maybe even videos so I can show stuff off here.</p><h3>A little rant</h3><p>Mojang, I know they didn't do this to screw me over, but it just feels like
+they did. They changed the way Text Display entities are rendered in
+<a href=https://bugs.mojang.com/browse/MC-263858 target=_blank>MC-263858</a>.
+Just a minor change right? Wrong! The method all of Delphi's menus were
+rendered with was by using that 1 pixel of invisible background on empty text
+displays. And they fixed it!</p><p>So, I had to take an hour to fix that. Delphi now uses a '0' character set to
+opacity 24, which, according to the wiki, is invisible because any opacity
+under 25 is not rendered.</p><h2>Tomorrow's goals</h2><ul><li>Eliminate the new bugs</li><li>Work on layout (Flow layout)</li><li>Get auto margins working.</li><li>Fix chunk loading/unloading errors.<p>When a chunk with a Delphi menu in it is unloaded and then loaded again,
+the menu will be gone because the entities are not persistend (this is
+intentional), so they will need to be manually respawned when the chunk
+is loaded again.</p><p>Entities should also be marked as invalid and killed when the chunk is
+unloaded.</p></li></ul><h2>Thinking of the future: Translations</h2><p>Delphi will need to support translations to other languages and as such will
+need to support languages and text in other languages.</p><p>The first issue to solve is related to translated messages, although these
+may rarely appear, it may be important to provide support for them. Currently,
+the server software the plugin is written for, Paper, only has English
+translations stored server side. As such, we'll most likely need to download
+the current version's client jar and extract the translation files for other
+languages from there. This should go further, to cover all possible bases, it
+should also download the Server Resource Pack, specified by
+<code>server-resource-pack</code> in <code>server.properties</code>.</p><hr latex-ignore class=notes-hr><h2 latex-ignore class=notesheader>Notes</h2><ol latex-ignore id=footnotes-list><li note-idx=0>The upper left corner of the content box.</li></ol></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>
