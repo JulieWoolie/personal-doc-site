@@ -1,0 +1,95 @@
+---
+title: "28-01-2025"
+subtitle: "Text Rendering and some thoughts about the future."
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-01-28 15:00:00 +0200 UTC'
+weight: 10
+
+footnotes:
+  - "The upper left corner of the content box."
+---
+
+<h2>Intro</h2>
+<p>
+  It's been weeks, maybe even months since I've touched this project... oh god.
+</p>
+<p>
+  I started finally implementing the renderer I created in the 
+  <code>delphirender</code> module. Starting with a very simple Flow layout 
+  that just places elements after each other. I'll implement the rest of the 
+  layout once I know the configuration and projection of entities is correct.
+</p>
+
+<h2>Afterword</h2>
+<p>
+  It's 7 hours later. I hate this project...
+</p>
+<p>
+  I spent almost all of today thinking about and fixing issues related to the 
+  most simple parts of rendering and layout possible. And now, 7 hours later, 
+  this still doesn't work fully. There's still many issues to fix.
+</p>
+<p>
+  For some reason all elements are offset slightly to the left, and maybe down 
+  a bit? This probably has something to do with the code expecting 
+  <code>content-start</code><note idx="0"></note> position to be relative to 
+  something it isn't anymore.
+</p>
+<p>
+  Other than the bugs that didn't exist before, all is well. I'll need to remind
+  myself to take screenshots and maybe even videos so I can show stuff off here.
+</p>
+
+<h3>A little rant</h3>
+<p>
+  Mojang, I know they didn't do this to screw me over, but it just feels like 
+  they did. They changed the way Text Display entities are rendered in 
+  <a href="https://bugs.mojang.com/browse/MC-263858" target="_blank">MC-263858</a>.
+  Just a minor change right? Wrong! The method all of Delphi's menus were 
+  rendered with was by using that 1 pixel of invisible background on empty text
+  displays. And they fixed it!
+</p>
+<p>
+  So, I had to take an hour to fix that. Delphi now uses a '0' character set to
+  opacity 24, which, according to the wiki, is invisible because any opacity 
+  under 25 is not rendered.
+</p>
+
+<h2>Tomorrow's goals</h2>
+<ul>
+  <li>Eliminate the new bugs</li>
+  <li>Work on layout (Flow layout)</li>
+  <li>Get auto margins working.</li>
+  <li>
+    Fix chunk loading/unloading errors.
+
+    <p>
+      When a chunk with a Delphi menu in it is unloaded and then loaded again,
+      the menu will be gone because the entities are not persistend (this is 
+      intentional), so they will need to be manually respawned when the chunk 
+      is loaded again.
+    </p>
+    <p>
+      Entities should also be marked as invalid and killed when the chunk is 
+      unloaded.
+    </p>
+  </li>
+</ul>
+
+<h2>Thinking of the future: Translations</h2>
+<p>
+  Delphi will need to support translations to other languages and as such will
+  need to support languages and text in other languages.
+</p>
+<p>
+  The first issue to solve is related to translated messages, although these
+  may rarely appear, it may be important to provide support for them. Currently,
+  the server software the plugin is written for, Paper, only has English 
+  translations stored server side. As such, we'll most likely need to download
+  the current version's client jar and extract the translation files for other
+  languages from there. This should go further, to cover all possible bases, it
+  should also download the Server Resource Pack, specified by 
+  <code>server-resource-pack</code> in <code>server.properties</code>.
+</p>
