@@ -135,6 +135,23 @@ sup a {
     }
   }
 
+  figcaption {
+    margin-top: 2mm;
+    margin-block-start: 2mm;
+  }
+
+  .figure-num {
+    color: gray;
+  }
+  .figref {
+    color: gray;
+    text-decoration: underline;
+  }
+
+  figure {
+    margin-top: 8mm;
+  }
+
   p:first-child {
     margin-top: 0;
   }
