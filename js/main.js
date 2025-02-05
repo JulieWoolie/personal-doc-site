@@ -11,6 +11,7 @@ numberHeaders()
 processTableOfContents()
 processFootnotes()
 processFigures()
+processFigureRefs()
 
 function numberHeaders() {
   let content = document.getElementById("content")
@@ -63,6 +64,38 @@ function applyHeaderNumbers(element) {
   }
 }
 
+function processFigureRefs() {
+  let elements = [...document.getElementsByTagName("figref")]
+
+  for (let el of elements) {
+    let figureId = el.getAttribute("fig")
+
+    if (!figureId) {
+      console.warn(`No 'fig' attribute in`, el)
+      continue
+    }
+
+    let figureEl = document.getElementById(figureId)
+    if (!figureEl) {
+      console.warn(`No figure found with id ${figureId}`, el)
+      continue
+    }
+
+    let figNum = figureEl.getAttribute("figure-number") ?? "0"
+
+    let ahref = document.createElement("a")
+    ahref.href = `#${figureEl.id}`
+    ahref.textContent = `(See Fig.${figNum})`
+    ahref.className = "figref"
+    ahref.setAttribute("latex-ignore", "")
+
+    let parent = el.parentElement
+
+    parent.insertBefore(ahref, el)
+    parent.removeChild(el)
+  }
+}
+
 function processFigures() {
   let content = document.getElementById("content")
   if (content == null) {
@@ -77,8 +110,16 @@ function processFigures() {
     let prefix = document.createElement("span")
     prefix.setAttribute("latex-ignore", "")
     prefix.textContent = `Fig.${i + 1} - `
+    prefix.className = "figure-num"
 
     capt.insertBefore(prefix, capt.firstChild)
+
+    let parent = capt.parentElement
+    if (parent.tagName.toLowerCase() != "figure") {
+      continue
+    }
+
+    parent.setAttribute("figure-number", i + 1)
   }
 }
 
@@ -86,7 +127,7 @@ function processTableOfContents() {
   let content = document.getElementById("content")
   let tocOut = document.getElementById("toc-out")
 
-  if (content == null) {
+  if (!content || !tocOut) {
     return
   }
 

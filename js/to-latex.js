@@ -158,7 +158,7 @@ function latexConversionMain() {
   }
 
   el.onclick = (ev) => {
-    window.navigator.clipboard.writeText(latex)
+    window.navigator.clipboard.writeText(latex.doc)
   }
 }
 

@@ -1,0 +1,53 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>05-02-2025</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>05-02-2025</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-02-05 15:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>05-02-2025</h1><div class=subtitle>Nightmares.</div></div><div id=content><p>Today I'll most likely be fixing yesterday's bugs, getting the Flow layout
+completely functional with auto margins and stuff.</p><p>I started by adding support the <code>box-sizing</code> property to Chimera
+and NLayout.</p><figure id=offsetbug><img src=/delphi/bug-off-to-right.png><figcaption>The offset bug I described yesterday. The blue is where the black
+background is intended to be located. The item element (pickaxe) is also
+wildly offset from where it is intended to be. Another bug to fix...</figcaption></figure><figure id=nobg><img src=/delphi/bug-nobg.png><figcaption>On top of the previous bug, when a page is spawned, the backgrounds, outlines
+and anything other than content is blank, resulting in this. To force the
+background to render I need to trigger a visual update, which can be done by
+looking at the Item element, as its tooltip appearing causes a render update
+of the DOM tree... for some reason.</figcaption></figure><p>Fixing the second bug <figref fig=nobg></figref> was easy. It turns out I
+wasn't calling the function that set the background element's content to
+<code>"0"</code> and opacity to 24 when initially spawning the element.</p><h2>Nightmares...</h2><p>The first part of this log was written 29-01-2025. This part is written on
+the 5th of February...</p><p>After a week or even more, after rewriting the whole renderer... The error is
+that the <code>0</code> char is not centered in the Display entity. It's
+offset.</p><p>If I haven't already, I'll define the term <i>"Empty Text Display Block"</i>,
+it is a text display, with content <code>"0"</code>, set to a scale of
+<code>x=5.714286 y=4.0</code>. This means that '0' (along with the 1 pixel of
+padding the entity is given) is scaled up to the size of a single block. At
+that scale, the origin point of the entity is offset from its actual visual
+center by <code>0.0625</code>.</p><p>This offset from the center is what caused the first bug:
+<figref fig=offsetbug></figref>. And to fix it, I came up with this simple
+function:<pre><code>
+    EMPTY_TD_BLOCK_SIZE_X = 1.0 / (0.025 * 7.0)
+    BLOCK_OFFSET_X =  0.0625
+    <i>f</i>(x) = (x / EMPTY_TD_BLOCK_SIZE_X) * BLOCK_OFFSET_X
+  </code></pre>Where <code>x</code> is the current X-scale of the display entity.</p><p>With this fixed, I now need to re-add support for the
+<code>GLOBAL_SCALAR</code> constant, which I removed as I thought it was
+interfering with stuff.</p><p>Hour later, and that's done.</p><figure id=afterworking><img src=/delphi/endof-05-02-2025.png><figcaption>The <code>test:index.xml</code> menu after bug fixes.</figcaption></figure><p>Now, the immediate remaining issues:<ul><li>ItemStacks are too far from the menu surface</li><li>Tooltip is underneath its item, most likely related to the above issue</li><li>Scale doesn't correctly apply to item stack render objects.<br>By this, I mean that when you have an <code>&lt;item/></code>
+element, changing its width (for eg: <code>&lt;item style="width: 10px; height: 64px;" /></code>)
+should change the item's size as well, but at the moment, it just
+changes <code>ItemRenderObject</code>'s <code>ElementRenderObject</code>
+parent size.<br>Fix by calculating item entity scalar with the parent size, if available.</li><li>Screen projection is disabled.<note idx=0></note></li></ul></p><p>I realized the constant that offsets the item entity was missing a
+<code>GLOBAL_SCALAR</code> multiply, and now it's an acceptable distance from
+the screen. And I also realized I'd forgotten to support the
+<code>z-index</code> style property, which I quickly fixed. And with that,
+the first 2 remaining issues are fixed.</p><figure><img src=/delphi/funny-scaled-item.png><figcaption>Item scaling fixed, demonstrated by an item with funny dimensions (32px x 10px)</figcaption></figure><figure><img src=/delphi/working-projections.png><figcaption>And after uncommenting some code, projection is back as well.</figcaption></figure><h2>Afterword</h2><p>Oh my god... That was a nightmare. I couldn't figure out why the offset bug
+was happening, I was convinced my math was wrong and that my data structure
+was so terribly set up I couldn't catch it, so I rewrote the renderer's data
+structure.</p><p>Took me an actual week to figure out the 0 character center offset was the
+issue.</p><p>Now, as for the future. I might try to set up something to automatically test
+layouts (element sizes and positions). But if that becomes too cumbersome (or
+I just don't feel like it), I'll focus on the Layout system by itself.</p><p>For the layout, I'll first need to make sure that measurement pass over the
+render tree functions correctly. I know it doesn't because I just don't vibe
+with the measurement function. (I also haven't tested it beyond the above
+shown screenshot <figref fig=afterworking></figref>)</p><hr latex-ignore class=notes-hr><h2 latex-ignore class=notesheader>Notes</h2><ol latex-ignore id=footnotes-list><li note-idx=0>Screen projection is the process of scaling and rotating render objects to be inline with the screen&rsquo;s normal and size.</li></ol></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>
