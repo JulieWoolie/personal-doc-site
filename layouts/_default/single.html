@@ -8,8 +8,11 @@
 
   {{partial "title.html" .}}
 
-  <h2 toc-ignore>Table Of Contents</h2>
-  <div id="toc-out"></div>
+  {{$toc_setting := .Params.toc | default true}}
+  {{if $toc_setting}}
+    <h2 toc-ignore>Table Of Contents</h2>
+    <div id="toc-out"></div>
+  {{end}}
 
   <div id="content">
     {{.Content}}
