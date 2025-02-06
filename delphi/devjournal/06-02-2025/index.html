@@ -1,0 +1,85 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>06-02-2025</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>06-02-2025</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-02-06 12:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>06-02-2025</h1><div class=subtitle>More Progress.</div></div><div id=content><p>The Day started with me testing the measurement system only to find out it
+worked... like as far as I could see, it worked. This was unexpected.</p><p>There were some visual bugs I found, that I fixed after adjusting the
+<code>BLOCK_OFFSET_X</code> from yesterday to <code>0.0717</code> which was
+more accurate. And by making regular text render objects also apply the
+offset. (Before, only the empty text displays used the offset) The results
+produced by this were actually really good and fixed a visual error I
+encountered this morning:</p><figure><img src=/delphi/before-blockoffset-adjust.png><figcaption>Before adjusting the constant.</figcaption></figure><figure><img src=/delphi/after-blockoffset-adjust.png><figcaption>After adjusting the constant.</figcaption></figure><p>After that, I worked in some support for the <code>box-sizing</code>
+property.</p><figure><img src=/delphi/box-sizing-test.png><figcaption><code>box-sizing</code> test. The above is set to the default,
+<code>content-box</code> value, while the lower container is set to
+<code>border-box</code>.</figcaption></figure><p>As you can see, the below one fits perfectly inside the the content area of
+the upper box. A quick render tree dump confirms it, the element size of the
+lower box is the exact same as the content area of the upper one! Yipeee!</p><p>After that was fixed, I added some miscellaneous features to the XML parser:</p><ul><li>You can now write CSS styles inside the <code>&lt;style></code> element
+like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=line><span class=cl><span class=p>&lt;</span><span class=nt>style</span><span class=p>&gt;</span>
+</span></span><span class=line><span class=cl>  <span class=p>.</span><span class=nc>btn</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>background-color</span><span class=p>:</span> <span class=kc>red</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>.</span><span class=nc>btn</span><span class=p>:</span><span class=nd>hover</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>background-color</span><span class=p>:</span> <span class=kc>blue</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>&lt;/</span><span class=nt>style</span><span class=p>&gt;</span></span></span></code></pre></td></tr></table></div></div></li><li>You can now write JSON inside <code>&lt;item></code> elements,
+like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span><span class=lnt>18
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;item&gt;</span>
+</span></span><span class=line><span class=cl>  {
+</span></span><span class=line><span class=cl>    &#34;id&#34;: &#34;minecraft:golden_pickaxe&#34;,
+</span></span><span class=line><span class=cl>    &#34;count&#34;: 1,
+</span></span><span class=line><span class=cl>    &#34;components&#34;: {
+</span></span><span class=line><span class=cl>      &#34;max_stack_size&#34;: 75,
+</span></span><span class=line><span class=cl>      &#34;enchantments&#34;: {
+</span></span><span class=line><span class=cl>        &#34;show_in_tooltip&#34;: true,
+</span></span><span class=line><span class=cl>        &#34;levels&#34;: {
+</span></span><span class=line><span class=cl>          &#34;minecraft:efficiency&#34;: 5,
+</span></span><span class=line><span class=cl>          &#34;minecraft:silk_touch&#34;: 1,
+</span></span><span class=line><span class=cl>          &#34;minecraft:mending&#34;: 1,
+</span></span><span class=line><span class=cl>          &#34;minecraft:unbreaking&#34;: 3
+</span></span><span class=line><span class=cl>        }
+</span></span><span class=line><span class=cl>      }
+</span></span><span class=line><span class=cl>    }
+</span></span><span class=line><span class=cl>  }
+</span></span><span class=line><span class=cl><span class=nt>&lt;/item&gt;</span></span></span></code></pre></td></tr></table></div></div></li><li>Added a new element: <code>&lt;chat-component></code>. You can write
+JSON inside it like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;chat-component&gt;</span>
+</span></span><span class=line><span class=cl>  {
+</span></span><span class=line><span class=cl>    &#34;text&#34;: &#34;Hello, world!&#34;,
+</span></span><span class=line><span class=cl>    &#34;color&#34;:&#34;red&#34;
+</span></span><span class=line><span class=cl>  }
+</span></span><span class=line><span class=cl><span class=nt>&lt;/chat-component&gt;</span></span></span></code></pre></td></tr></table></div></div></li></ul></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>
