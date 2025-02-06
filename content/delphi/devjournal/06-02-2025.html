@@ -1,0 +1,107 @@
+---
+title: "06-02-2025"
+subtitle: "More Progress."
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-02-06 12:00:00 +0200 UTC'
+weight: 30
+toc: false
+---
+
+<p>
+  The Day started with me testing the measurement system only to find out it 
+  worked... like as far as I could see, it worked. This was unexpected.
+</p>
+<p>
+  There were some visual bugs I found, that I fixed after adjusting the 
+  <code>BLOCK_OFFSET_X</code> from yesterday to <code>0.0717</code> which was 
+  more accurate. And by making regular text render objects also apply the 
+  offset. (Before, only the empty text displays used the offset) The results 
+  produced by this were actually really good and fixed a visual error I 
+  encountered this morning:
+</p>
+
+<figure>
+  <img src="/delphi/before-blockoffset-adjust.png">
+  <figcaption>Before adjusting the constant.</figcaption>
+</figure>
+<figure>
+  <img src="/delphi/after-blockoffset-adjust.png">
+  <figcaption>After adjusting the constant.</figcaption>
+</figure>
+
+<p>
+  After that, I worked in some support for the <code>box-sizing</code> 
+  property.
+</p>
+<figure>
+  <img src="/delphi/box-sizing-test.png">
+  <figcaption>
+    <code>box-sizing</code> test. The above is set to the default, 
+    <code>content-box</code> value, while the lower container is set to 
+    <code>border-box</code>.
+  </figcaption>
+</figure>
+<p>
+  As you can see, the below one fits perfectly inside the the content area of
+  the upper box. A quick render tree dump confirms it, the element size of the 
+  lower box is the exact same as the content area of the upper one! Yipeee!
+</p>
+
+<p>
+  After that was fixed, I added some miscellaneous features to the XML parser:
+</p>
+<ul>
+  <li>
+    You can now write CSS styles inside the <code>&lt;style&gt;</code> element 
+    like so:
+    {{< highlight html >}}
+    <style>
+      .btn {
+        background-color: red;
+      }
+      .btn:hover {
+        background-color: blue;
+      }
+    </style>
+    {{< /highlight >}}
+  </li>  
+  <li>
+    You can now write JSON inside <code>&lt;item&gt;</code> elements, 
+    like so: 
+    {{< highlight xml >}}
+    <item>
+      {
+        "id": "minecraft:golden_pickaxe",
+        "count": 1,
+        "components": {
+          "max_stack_size": 75,
+          "enchantments": {
+            "show_in_tooltip": true,
+            "levels": {
+              "minecraft:efficiency": 5,
+              "minecraft:silk_touch": 1,
+              "minecraft:mending": 1,
+              "minecraft:unbreaking": 3
+            }
+          }
+        }
+      }
+    </item>
+    {{< /highlight >}}
+  </li>
+  <li>
+    Added a new element: <code>&lt;chat-component&gt;</code>. You can write 
+    JSON inside it like so:
+    {{< highlight xml >}}
+    <chat-component>
+      {
+        "text": "Hello, world!",
+        "color":"red"
+      }
+    </chat-component>
+    {{< /highlight >}}
+
+  </li>
+</ul>
