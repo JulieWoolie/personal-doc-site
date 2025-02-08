@@ -1,0 +1,83 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>08-02-2025</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>08-02-2025</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-02-08 12:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>08-02-2025</h1><div class=subtitle>More Progress.</div></div><div id=content><p>This, unlike the previous entries is being written retrospectively, so there
+will be missing screenshots and things.</p><p>I added support for inline margins, this means implementing the
+<code>margin-inline</code>, <code>margin-inline-start</code> and
+<code>margin-inline-end</code> Properties. Normal margins won't be used on
+non-block render objects anymore, but inline margins will.</p><p>After that, I mostly finished implementing the Flow layout algorithm, with the
+caveat that I don't know how to handle max sizes on elements without them
+being too large or small. So I just gave up and used the screen's size as the
+maximum size.</p><h2>Ditching the <code>scale</code> property and <code>GLOBAL_SCALAR</code></h2><p>Then came the big thing. Up until this point I was using a scalar for
+basically every element in the form of both a <code>GLOBAL_SCALAR</code>
+(<code>0.5</code>) and a <code>scale</code> CSS property. This was bad code
+and a mess to reason through. So I have removed it and in its place are some
+alternatives: <code>&lt;item></code> elements can be scaled by just setting
+the <code>with</code> and <code>height</code> properties directly. While text
+can be scaled with a <code>font-size</code> property.</p><p>I wasn't sure how to properly implement the <code>font-size</code> property,
+so, at the moment it accepts either a base numerical value, or a percent
+value. In the case of percent values, the number is divided by 100 and then
+used as the text's scalar. If no percent is used, the number itself is used
+as the text scalar.</p><p>Text by itself is way too big on screens, so there's a
+<code>GLOBAL_FONT_SCALAR</code> which is set to the previous
+<code>GLOBAL_SCALAR</code> value of <code>0.5</code>.</p><h2>Chimera: get and set property functions</h2><p>I added 2 functions to the Chimera SCSS engine:</p><dl><dt><code>get-property(propertyName)</code></dt><dd>Returns the value of a property in the current scope, for example:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-scss data-lang=scss><span class=line><span class=cl><span class=nc>.rule</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=na>margin-left</span><span class=o>:</span> <span class=mi>1</span><span class=kt>px</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>@debug</span> <span class=nf>get-property</span><span class=p>(</span><span class=s2>&#34;margin-left&#34;</span><span class=p>);</span> <span class=c1>// 1.0px
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span></span></span></code></pre></td></tr></table></div></div></dd><dt><code>set-property(propertyName, value, important?)</code></dt><dd>Set the value of a property in the current scope, for example:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-scss data-lang=scss><span class=line><span class=cl><span class=nc>.rule</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nt>set-property</span><span class=o>(</span><span class=s2>&#34;margin-left&#34;</span><span class=o>,</span> <span class=nt>2px</span><span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=k>@debug</span> <span class=nf>get-property</span><span class=p>(</span><span class=s2>&#34;margin-left&#34;</span><span class=p>);</span> <span class=c1>// 2.0px
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>The third parameter, <code>important</code>, is an optional one and allows
+you to mark the property as important, like with <code>!important</code>
+in regular CSS.</p><p>I did have to majorly break SCSS rules to allow you to just call functions
+without assigning their return value to a property or variable.</p></dd></dl>These functions should make it easier to do stuff similar to this in
+regular SCSS.<br>Normal SCSS:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-scss data-lang=scss><span class=line><span class=cl><span class=nc>.rule</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nv>$colors</span><span class=o>:</span> <span class=p>(</span><span class=s2>&#34;background&#34;</span><span class=o>:</span> <span class=no>red</span><span class=o>,</span> <span class=s2>&#34;outline&#34;</span><span class=o>:</span> <span class=no>green</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=k>@each</span><span class=p>(</span><span class=nv>$prop</span><span class=o>,</span> <span class=nv>$color</span> <span class=ow>in</span> <span class=nv>$colors</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=si>#{</span><span class=nv>$prop</span><span class=si>}</span><span class=na>-color</span><span class=o>:</span> <span class=nv>$color</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div>Chimera SCSS:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-scss data-lang=scss><span class=line><span class=cl><span class=nc>.rule</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nv>$colors</span><span class=o>:</span> <span class=p>(</span><span class=s2>&#34;background&#34;</span><span class=o>:</span> <span class=no>red</span><span class=o>,</span> <span class=s2>&#34;outline&#34;</span><span class=o>:</span> <span class=no>green</span><span class=p>);</span>
+</span></span><span class=line><span class=cl>  <span class=k>@each</span><span class=p>(</span><span class=nv>$prop</span><span class=o>,</span> <span class=nv>$color</span> <span class=ow>in</span> <span class=nv>$colors</span><span class=p>)</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nt>set-property</span><span class=o>(</span><span class=err>$</span><span class=nt>prop</span> <span class=o>+</span> <span class=s2>&#34;-color&#34;</span><span class=o>,</span> <span class=err>$</span><span class=nt>color</span><span class=o>)</span><span class=p>;</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div>The most ironic part about these examples is that <code>@each</code> and maps
+aren't supported in Chimera at time of writing.<h2>Chimera: Mixins</h2><p>I added very basic support for mixins to Chimera's SCSS. Currently, this is
+the most you can do with them:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-scss data-lang=scss><span class=line><span class=cl><span class=k>@mixin</span><span class=nf> mixin-name</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=na>background-color</span><span class=o>:</span> <span class=no>red</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span>
+</span></span><span class=line><span class=cl><span class=nc>.rule</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=k>@include</span><span class=nd> mixin-name</span><span class=p>;</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><h2>Misc. stuff</h2><p>And now for the rest of the miscellaneous stuff I added:</p><ul><li>Improved the testing system Chimera has</li><li>Added the <code>if($condition, $if-true, $if-false)</code> function to Chimera</li><li>Some internal changes to Chimera's lists</li><li>Implement the <code>visibility</code> CSS property.</li><li>Add support for hiding elements from NLayout and rendering
+(<code>display: none;</code> and <code>visibility: hidden;</code>).</li></ul></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>
