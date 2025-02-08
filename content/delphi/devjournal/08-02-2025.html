@@ -1,0 +1,141 @@
+---
+title: "08-02-2025"
+subtitle: "More Progress."
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-02-08 12:00:00 +0200 UTC'
+weight: 40
+toc: false
+---
+
+<p>
+  This, unlike the previous entries is being written retrospectively, so there 
+  will be missing screenshots and things.
+</p>
+<p>
+  I added support for inline margins, this means implementing the 
+  <code>margin-inline</code>, <code>margin-inline-start</code> and 
+  <code>margin-inline-end</code> Properties. Normal margins won't be used on 
+  non-block render objects anymore, but inline margins will.
+</p>
+<p>
+  After that, I mostly finished implementing the Flow layout algorithm, with the
+  caveat that I don't know how to handle max sizes on elements without them 
+  being too large or small. So I just gave up and used the screen's size as the 
+  maximum size.
+</p>
+
+<h2>Ditching the <code>scale</code> property and <code>GLOBAL_SCALAR</code></h2>
+<p>
+  Then came the big thing. Up until this point I was using a scalar for 
+  basically every element in the form of both a <code>GLOBAL_SCALAR</code> 
+  (<code>0.5</code>) and a <code>scale</code> CSS property. This was bad code 
+  and a mess to reason through. So I have removed it and in its place are some 
+  alternatives: <code>&lt;item&gt;</code> elements can be scaled by just setting
+  the <code>with</code> and <code>height</code> properties directly. While text
+  can be scaled with a <code>font-size</code> property.
+</p>
+<p>
+  I wasn't sure how to properly implement the <code>font-size</code> property, 
+  so, at the moment it accepts either a base numerical value, or a percent 
+  value. In the case of percent values, the number is divided by 100 and then 
+  used as the text's scalar. If no percent is used, the number itself is used 
+  as the text scalar.
+</p>
+<p>
+  Text by itself is way too big on screens, so there's a 
+  <code>GLOBAL_FONT_SCALAR</code> which is set to the previous 
+  <code>GLOBAL_SCALAR</code> value of <code>0.5</code>.
+</p>
+
+<h2>Chimera: get and set property functions</h2>
+<p>
+  I added 2 functions to the Chimera SCSS engine:
+</p>
+<dl>
+  <dt><code>get-property(propertyName)</code></dt>
+  <dd>
+    Returns the value of a property in the current scope, for example:
+    {{< highlight scss >}}
+    .rule {
+      margin-left: 1px;
+      @debug get-property("margin-left"); // 1.0px
+    }
+    {{< /highlight >}}
+  </dd>
+  <dt><code>set-property(propertyName, value, important?)</code></dt>
+  <dd>
+    Set the value of a property in the current scope, for example:
+
+    {{< highlight scss >}}
+    .rule {
+      set-property("margin-left", 2px);
+      @debug get-property("margin-left"); // 2.0px
+    }
+    {{< /highlight >}}
+
+    <p>
+      The third parameter, <code>important</code>, is an optional one and allows
+      you to mark the property as important, like with <code>!important</code> 
+      in regular CSS.
+    </p>
+    <p>
+      I did have to majorly break SCSS rules to allow you to just call functions
+      without assigning their return value to a property or variable.
+    </p>
+  </dd>
+</dl>
+These functions should make it easier to do stuff similar to this in 
+regular SCSS.
+<br>
+Normal SCSS:
+{{< highlight scss >}}
+.rule {
+  $colors: ("background": red, "outline": green);
+  @each($prop, $color in $colors) {
+    #{$prop}-color: $color;
+  }
+}
+{{< /highlight >}}
+
+Chimera SCSS:
+{{< highlight scss >}}
+.rule {
+  $colors: ("background": red, "outline": green);
+  @each($prop, $color in $colors) {
+    set-property($prop + "-color", $color);
+  }
+}
+{{< /highlight >}}
+The most ironic part about these examples is that <code>@each</code> and maps 
+aren't supported in Chimera at time of writing.
+
+<h2>Chimera: Mixins</h2>
+<p>
+  I added very basic support for mixins to Chimera's SCSS. Currently, this is 
+  the most you can do with them:
+</p>
+{{< highlight scss >}}
+@mixin mixin-name {
+  background-color: red;
+}
+.rule {
+  @include mixin-name;
+}
+{{< /highlight >}}
+
+<h2>Misc. stuff</h2>
+<p>
+  And now for the rest of the miscellaneous stuff I added:
+</p>
+<ul>
+  <li>Improved the testing system Chimera has</li>
+  <li>Added the <code>if($condition, $if-true, $if-false)</code> function to Chimera</li>
+  <li>Some internal changes to Chimera's lists</li>
+  <li>Implement the <code>visibility</code> CSS property.</li>
+  <li>
+    Add support for hiding elements from NLayout and rendering 
+    (<code>display: none;</code> and <code>visibility: hidden;</code>).
+  </li>
+</ul>
