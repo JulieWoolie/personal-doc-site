@@ -47,8 +47,11 @@ function applyHeaderNumbers(element) {
     if (level == currentLevel) {
       numbers[numbers.length - 1]++
     } else if (level < currentLevel) {
-      numbers.pop()
-      numbers[numbers.length - 1]++
+      let dif = currentLevel - level;
+      for (let i = 0; i < dif; i++) {
+        numbers.pop()
+        numbers[numbers.length - 1]++
+      }
     } else {
       numbers.push(1)
     }
