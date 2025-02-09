@@ -35,6 +35,11 @@ sup a {
     padding-right: 3cm !important;
   }
 }
+@media(max-width: 1024px) { 
+  .highlight {
+    overflow-x: scroll;
+  }
+}
 
 #content {
   img {
