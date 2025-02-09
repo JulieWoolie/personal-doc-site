@@ -1,0 +1,173 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Rendering Elements</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>Rendering Elements</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-02-09 15:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>Rendering Elements</h1><div class=subtitle>Turning DOM elements into display entities.</div></div><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><div id=content><h2>Introduction</h2><p>This document describes the process of turning DOM elements into render
+objects and how those objects are rendered into display entities.</p><p>The rendering is part of the <code>delphirender</code> module.</p><p><b>Note:</b> The document uses a lot of pseudo code with syntax similar to
+TypeScript, but breaks it occasionally for simplicity or brevity.</p><h2>Data Structure</h2><p>At the heart of the renderer is the data structure which more or less maps
+render objects to their DOM elements.</p><p>This uses a generic base class called <code>RenderObject</code> which does
+very little.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span><span class=lnt>8
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ts data-lang=ts><span class=line><span class=cl><span class=kr>abstract</span> <span class=kr>class</span> <span class=nx>RenderObject</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nx>position</span>: <span class=kt>Vector2f</span>
+</span></span><span class=line><span class=cl>  <span class=nx>size</span>: <span class=kt>Vector2f</span>
+</span></span><span class=line><span class=cl>  <span class=nx>depth</span>: <span class=kt>float</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=kr>abstract</span> <span class=nx>spawn</span><span class=p>()</span><span class=o>:</span> <span class=k>void</span>
+</span></span><span class=line><span class=cl>  <span class=kr>abstract</span> <span class=nx>kill</span><span class=p>()</span><span class=o>:</span> <span class=k>void</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>Aside from some utility functions and methods, that is all the class declares.
+Almost all of the heavy lifting is up to its inheritors. This class is
+extended by another render object class, whose purpose is to make handling
+render objects that only use 1 display entity easier:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
+</span><span class=lnt> 2
+</span><span class=lnt> 3
+</span><span class=lnt> 4
+</span><span class=lnt> 5
+</span><span class=lnt> 6
+</span><span class=lnt> 7
+</span><span class=lnt> 8
+</span><span class=lnt> 9
+</span><span class=lnt>10
+</span><span class=lnt>11
+</span><span class=lnt>12
+</span><span class=lnt>13
+</span><span class=lnt>14
+</span><span class=lnt>15
+</span><span class=lnt>16
+</span><span class=lnt>17
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ts data-lang=ts><span class=line><span class=cl>  <span class=kr>abstract</span> <span class=kr>class</span> <span class=nx>SingleEntityRenderObject</span><span class=p>&lt;</span><span class=nt>T</span> <span class=na>extends</span> <span class=na>Display</span><span class=p>&gt;</span> <span class=o>:</span> <span class=nx>RenderObject</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>    <span class=nx>entity</span>: <span class=kt>T?</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=kr>abstract</span> <span class=nx>spawnEntity</span><span class=p>(</span><span class=nx>w</span>: <span class=kt>World</span><span class=p>,</span> <span class=nx>l</span>: <span class=kt>Location</span><span class=p>)</span><span class=o>:</span> <span class=nx>T</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=kr>protected</span> <span class=nx>configure</span><span class=p>(</span><span class=nx>entity</span>: <span class=kt>T</span><span class=p>,</span> <span class=nx>trans</span>: <span class=kt>Transformation</span><span class=p>)</span><span class=o>:</span> <span class=k>void</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>      <span class=c1>// Left for child classes to override
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nx>spawn</span><span class=p>()</span><span class=o>:</span> <span class=k>void</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>      <span class=c1>// Bunch of stuff covered later
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>    <span class=nx>kill</span><span class=p>()</span><span class=o>:</span> <span class=k>void</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>      <span class=c1>// Bunch of stuff covered later
+</span></span></span><span class=line><span class=cl><span class=c1></span>    <span class=p>}</span>
+</span></span><span class=line><span class=cl>  <span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>The <code>SingleEntityRenderObject</code> is extended by several other classes:</p><dl><dt><code>BoxRenderObject</code></dt><dd><p>This is a simple render object that is used to render a single rectangle.</p><p>When spawned, this render object sets the text display entity's content to
+be a single <code>0</code> character with text opacity <code>24</code>.
+Because any text opacity under 26 stops the text from even being
+rendered... for some reason.</p></dd><dt><code>TextRenderObject</code></dt><dd>These are themselves actually an abstract class, divided into
+<code>StringRenderObject</code> and <code>ComponentRenderObject</code>, but
+they behave almost identically.</dd><dt><code>ItemRenderObject</code></dt><dd>Responsible for rendering itemstacks.</dd></dl><p>And lastly, there is the <code>ElementRenderObject</code>:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-ts data-lang=ts><span class=line><span class=cl><span class=kr>class</span> <span class=nx>ElementRenderObject</span>: <span class=kt>RenderObject</span> <span class=p>{</span>
+</span></span><span class=line><span class=cl>  <span class=nx>boxes</span>: <span class=kt>BoxRenderObject</span><span class=p>[]</span>
+</span></span><span class=line><span class=cl>  <span class=nx>children</span>: <span class=kt>List</span><span class=p>&lt;</span><span class=nt>RenderObject</span><span class=p>&gt;</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl>  <span class=nx>style</span>: <span class=kt>FullStyle</span>
+</span></span><span class=line><span class=cl>  <span class=nx>comp</span>: <span class=kt>ComputedStyleSet</span>
+</span></span><span class=line><span class=cl><span class=p>}</span></span></span></code></pre></td></tr></table></div></div><p>They store the background (padding), border and outline as
+<code>BoxRenderObject</code>s in their boxes array, along with a list of
+child elements. Element render objects also store a
+<code>ComputedStyleSet</code> which is the exact same style set as stored in
+the CSS object model. Meaning that any changes to the CSS object model are
+easily accessible in the render object. And the <code>style: FullStyle</code>
+contains the fully computed style values.</p><p>The <code>boxes</code> array in element render objects is initialized to
+always be length 3, with each box being set to particular a part of the
+element:</p><ol start=0><li>Background (padding)</li><li>Border</li><li>Padding</li></ol><p>Each of these boxes also has their depth calculated by iterating over each
+box and multiplying its index by <code>MICRO_LAYER_DEPTH</code> and adding
+the element render object's <code>depth</code> to it.</p><h3>DOM to Render Tree Mapping</h3><p>This section describes how the DOM is mapped to the render tree. Since this
+mapping process is handled differently per DOM Element and Node, I'll describe
+the conversion cases.</p><dl><dt>Text nodes</dt><dd>Text nodes are easily mapped by simply creating a
+<code>TextRenderObject</code> instance with the text node's content as the
+render object's content.</dd><dt><code>&lt;chat-component></code> elements</dt><dd>An element render object is created, with it's <code>comp</code> field
+linked to the DOM element's style set. Then a single text render object is
+created (Same as in a text node's case) and set as the only child element
+of the element render object.</dd><dt><code>&lt;item></code> elements</dt><dd>A <code>ItemRenderObject</code> is created with the item element's item
+stack as its content. Then we create an element render object, and set the
+item render object as its only child.</dd><dt>Elements</dt><dd>An element render object is created. Then we iterate over all children of
+the DOM element and perform this same mapping on them, with the resulting
+render objects being added as children to the first element render object.</dd></dl><p>All render objects have their <code>depth</code> field calculated by taking
+DOM node's depth (Which is a flat integer) and multiplying it with
+<code>MACRO_LAYER_DEPTH</code>.</p><p><b>Note:</b> For <code>&lt;item></code> and
+<code>&lt;chat-component></code> render objects, the depths of the item
+render object and text render object inside the resulting element render
+object have to be manually set when mapping from the DOM.</p><h2>Constants</h2><p>This section will define some constants and try to quickly describe them.</p><dl><dt><code>CHAR_PX_SIZE_X</code> and <code>CHAR_PX_SIZE_Y</code></dt><dd>The size of a single pixel on an unscaled text display. Both constants
+are equal to <code>0.025</code></dd><dt><code>CH_0_SIZE_X</code></dt><dd>The width (in pixels) of a text display with the content <code>"0"</code>.
+This constant includes both the character pixels and the 1 pixel of padding
+the display entity has on both the left and right sides.<p>The value of this constant is <code>7.0</code></p></dd><dt><code>CH_0_SIZE_Y</code></dt><dd>The height (in pixels) of a text display with the content <code>"0"</code>.
+This constant includes both the character pixels and the 1 pixel of padding
+the display entity has on both the top and bottom.<p>The value of this constant is <code>10.0</code></p></dd><dt><code>EMPTY_TD_BLOCK_SIZE_X</code></dt><dd>The X scale of a text display with the content <code>"0"</code> stretched to
+fill a whole block.<p>The value of this constant is
+<code>1.0f / (CHAR_PX_SIZE_X * CH_0_SIZE_X)</code> or around
+<code>5.714286</code></p></dd><dt><code>EMPTY_TD_BLOCK_SIZE_Y</code></dt><dd>The Y scale of a text display with the content <code>"0"</code> stretched to
+fill a whole block.<p>The value of this constant is
+<code>1.0f / (CHAR_PX_SIZE_Y * CH_0_SIZE_Y)</code> or <code>4.0</code></p></dd><dt><code>BLOCK_OFFSET_X</code></dt><dd>The distance between a text display entity's visual center and its entity
+origin point when it's been scaled to <code>EMPTY_TD_BLOCK_SIZE_X</code>
+and <code>EMPTY_TD_BLOCK_SIZE_Y</code>.<p>The value of this constant is <code>0.0717</code></p><p>I won't lie, this is a bad name for this constant.</p></dd><dt><code>MICRO_LAYER_DEPTH</code></dt><dd>The distance between each box inside an element render object on the Z axis.<p>The value of this constant is <code>0.0001</code></p><p><b>Note:</b> This is the smallest I could make this value before Z
+fighting became a major issue. Luckily, this value is also small enough so
+it doesn't look like elements are floating above other elements too
+obviously.</p></dd><dt><code>MACRO_LAYER_DEPTH</code></dt><dd>The distance between each render object on the Z axis.<p>The value of this constant is <code>MICRO_LAYER_DEPTH * 3</code>, or
+<code>0.0003</code>.</p></dd></dl><h2>Render Screen</h2><p>The render screen is a plane defined by a position, normal and 4 corners. It
+is the plane onto which render objects are drawn.</p><p>Render screens, although defined by the aforementioned properties, also
+contain more information. For one, render screens can be rotated to face any
+direction and be in any orientation possible. Screens can also be scaled.</p><p>To accomplish this, they also maintain a left rotation, scale and right
+rotation values.</p><p>It's required to note that the initial size of the screen is not changed when
+the screen is transformed, rather a scalar is applied to it. This gives us
+another property that is needed for projection later:
+<code>screenDimensionScale</code>. This property is the difference between the
+set screen size and the actual size of the screen in the world.</p><h2>Rendering Transformations</h2><p>To render an element, the resulting display entity needs to be transformed in
+a variety of ways to align it correctly to where it is intended to be, and to
+ensure is aligned to the screen.</p><p>Firstly, I'm going to clarify for anyone that isn't aware, Minecraft provides
+us with 4 transformations that are stored in a
+<code>Transformation</code> object. These 4 transformations are, in order:</p><dl><dt>Translation</dt><dd>This moves, offsets, the entity by a specified amount</dd><dt>Left Rotation</dt><dd>Rotates the entity. Called left rotation because it is applied before
+scaling, the next step</dd><dt>Scaling</dt><dd>Multiplies the entity's size.</dd><dt>Right Rotation</dt><dd>Rotates the entity. Called right rotation because it is applied after
+scaling.</dd></dl><h3>Translation</h3><p>Render objects consider their origin point to be the top left corner of the
+object's bounding box, display entities, however, are aligned differently.
+Text Displays are aligned to the bottom middle <note idx=0></note>, while
+Item displays are aligned to the center middle of the entity.</p><p>As such, to align the entity correctly, we first offset the entity along the
+X axis by half the render object's size. Then, depending on if the entity is
+an item display or text display, we offset by either half its height, or by
+its full height, respectively on the Y axis.</p><p>And the Z component of the translation becomes equal to the render object's
+depth value, plus the <code>z-index</code> value, multiplied by
+<code>2.9999999e-4</code>.</p><p>Text and Box render objects also have to compensate for the visual alignment
+offset bug display entities have. <note idx=0></note>. To get the
+compensation value, the scaling step has to be performed first (See next
+section). After that we use the following function:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl>  <span class=kd>public</span> <span class=kd>static</span> <span class=kt>float</span> <span class=nf>visualCenterOffset</span><span class=o>(</span><span class=kt>float</span> <span class=n>scaleX</span><span class=o>)</span> <span class=o>{</span>
+</span></span><span class=line><span class=cl>    <span class=k>return</span> <span class=n>BLOCK_OFFSET_X</span> <span class=o>*</span> <span class=o>(</span><span class=n>scaleX</span> <span class=o>/</span> <span class=n>EMPTY_TD_BLOCK_SIZE_X</span><span class=o>);</span>
+</span></span><span class=line><span class=cl>  <span class=o>}</span></span></span></code></pre></td></tr></table></div></div><p>The value returned from this function is then subtracted from X translation
+of the text display.</p><h3>Scaling</h3><p>Scaling is handled in a complicated to describe way. As such, I'll describe
+how its performed per each object type:</p><dl><dt><code>ItemRenderObject</code></dt><dd><p>Since we know that an item's sprite is, by default, the size of a block in
+GUI render mode, we can easily figure out the transformation scale by just
+dividing the intended size by that constant size.</p><p>As a side note, item displays are scaled down on the Z axis to prevent
+them from popping out of the page or from clipping into it. The Z scale is
+a constant of <code>0.075</code>. Values less than this tend to mess with
+the entity's brightness in unexpected ways.</p></dd><dt><code>TextRenderObject</code></dt><dd><p>First, the object's base text size is measured. Then the intended size of
+the element is divided by the measured text's size to get the X and Y
+scale. Z scale remains unchanged.</p></dd><dt><code>BoxRenderObject</code></dt><dd>The scale is gotten by multiplying the object's size x and y sizes with the
+<code>EMPTY_TD_BLOCK_SIZE_X</code> and <code>EMPTY_TD_BLOCK_SIZE_Y</code>
+constants respectively.</dd></dl><h3>Projection</h3><p>Projection is what I choose to call the part of transformation where the
+display entity is rotated and scaled to be aligned to the screen.</p><p>First the X and Y components of the display translation are multiplied by the
+<code>screenDimensionScale</code>. Then the display scale is multiplied by
+screen's scale. Then the screen's left and right rotations are applied onto
+the display translation. And finally, the display's left and right rotations
+are multiplied by the screen's left and right rotations respectively.</p><h3>Notes on Transformations</h3><p><code>ItemRenderObject</code>s perform the translation and scaling step
+differently. They execute the same operations, however, they do not use their
+own render object's size to perform these calculations, they use the parent
+size.</p><p>This is because otherwise, the item display wouldn't scale as intended with
+CSS changes to the parent <code>ElementRenderObject</code>.</p><hr latex-ignore class=notes-hr><h2 latex-ignore class=notesheader>Notes</h2><ol latex-ignore id=footnotes-list><li note-idx=0>Not actually the middle. They are slightly offset from the middle, this has caused me so much headache. See <a href=/delphi/devjournal/05-02-2025#1-nightmares>Dev Journal, 05-02-2025</a></li></ol></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>

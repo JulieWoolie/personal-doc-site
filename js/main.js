@@ -126,11 +126,39 @@ function processFigures() {
   }
 }
 
+/**
+ * 
+ * @param {HTMLDivElement} content 
+ * @returns 
+ */
+function applyHeadingIds(content) {
+  if (!content) {
+    return
+  }
+
+  let headings = content.querySelectorAll("h1, h2, h3, h4, h5, h6")
+
+  for (let heading of headings) {
+    let txt = encodeURIComponent(
+      heading.textContent.toLowerCase()
+        .replaceAll(" ", "-")
+        .replaceAll(",", "")
+        .replaceAll(".", "")
+        .replaceAll("'", "")
+        .replaceAll("/", "")
+        .replaceAll("\"", "")
+    )
+
+    heading.id = txt
+  }
+}
+
 function processTableOfContents() {
   let content = document.getElementById("content")
   let tocOut = document.getElementById("toc-out")
 
   if (!content || !tocOut) {
+    applyHeadingIds(content)
     return
   }
 
