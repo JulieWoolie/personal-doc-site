@@ -36,118 +36,56 @@ author: Julie
   Layout is divided into passes, and this section describes the initial concept
   for the engine and the passes it executed.
 </p>
-<p>
-  <b>Note: </b> Passes are executed either bottom-to-up (Starting at the 
-  deepest elements and iterating up through the tree), or top-to-bottom 
-  (Starting at the root element and iterating through its children)
-</p>
 
-<h3>Intrinsic Measurement</h3>
+<h3>Measurement</h3>
 <p>
-  Measure every style property that can be measured (everything that isn't 
-  'auto' or a percent value.), this also includes node content, if present.
+  Iterate over each element, and measure it, calculate style properties, 
+  padding, margins, etc.
 </p>
 <p>
-  This pass is done bottom to top
+  This pass uses a stack of vector2s called <code>parentSizes</code>, as 
+  elements are measured and we move onto their child elements, we push the 
+  element's content size onto the stack. And pop after we finish
 </p>
-
-<h3>Resolve parent based sizes, if possible</h3>
 <p>
-  Iterate from root downwards, attempt to resolve all possible relative sizes 
-  (% unit values)
+  If an element's size is set, then we use that as the element's size, 
+  otherwise, we calculate the size based off of it's child elements and layout 
+  algorithm.
+</p>
+<p>
+  Firstly, if an element's size is based off of it's child elements, we assume
+  the element's initial size to be the screen's size and then calculate its 
+  child elements. We then adjust the element's size to be the measured result.
+  Then, the whole process is executed over and over until the child elements 
+  stop changing their size, aka, until the layout stabilizes.
 </p>
 
 <h3>Layout</h3>
 <p>
-  Iterate from the bottom up and apply the appropriate layout algorithms for 
-  each element. Skip content nodes, and nodes without child objects.
-</p>
-<p>
-  As this step is being executed, the sizes of each element will be set as well.
-  This means, this will require an additional step after to finally resolve all
-  %-based values. (I think)
-</p>
-<p>
-  Use the appropriate algorithm for each layout mode:
-</p>
-<dl>
-  <dt><code>display: flex</code></dt>
-  <dd>Flex layout</dd>
-  <dt><code>position: absolute</code></dt>
-  <dd>Position Layout</dd>
-  <dt>Otherwise</dt>
-  <dd>Flow layout</dd>
-</dl>
-
-<h4>Flow</h4>
-<p>
-Split elements into 'lines' of elements. Iterate over child elements.
-<br>
-If element is 'display: inline' it is part of the current line.
-<br>
-If the <code>currentLineWidth + element.size.x + element.margin.x()</code> is
-greater than <code>maxWidth</code> => line break.
-<br>
-If <code>display: inline-block</code> => line break after element.
-<br>
-If <code>position: absolute</code> => skip, do not include in line.
-</p>
-<p>
-  When iterating over elements, keep track of the largest margin separately. 
-  This is because all elements will sit on the same baseline, but the margin of
-  each on the bottom can vary, and the largest margin becomes the line's bottom
-  margin.
-</p>
-<p>
-  After all elements are split into lines, lay them out in the way specified by
-  the lines. Include bottom margin when moving from 1 line to another.
+  Layout is performed by Layout algorithms, each executing it differently. At 
+  time of writing only Flow is supported.
 </p>
 
-<h4>Position</h4>
+<h4>Flow layout</h4>
 <p>
-  Move current element to position specified by 'left', and 'top' properties, 
-  ignore all existing elements and do not count element in parent element's 
-  size measurement.
-</p>
-
-<h4>Flex</h4>
-<p>
-  Create a <code>mainDir: vec2</code>, and a <code>crossDir: vec2</code> with 
-  values appropriate to the <code>flex-direction</code> property.
-  <br>
-  <code>flex-direction: row | row-reverse => mainDir = (1, 0), crossDir = (0, 1)</code>
-  <br>
-  <code>flex-direction: column | column-reverse => mainDir = (0, 1), crossDir = (1, 0)</code>
-</p>
-
-<h3>Post Processing</h3>
-<p>
-  This pass is performed in the same order as PASS 3: Layout. This step involves
-  applying post layout operations like handling <code>margin: auto</code> 
-  properties.
-</p>
-
-<h4>Flow</h4>
-<p>
-  After Flow layout is conducted, measure element size (if width was not 
-  explicitly set) and re-iterate over <code>display: block</code> elements to 
-  apply any <code>auto</code> margin values. 
+  Take the child elements of the element we're laying out and break them into 
+  lines. To do that, we iterate over each one, skipping ones with 
+  <code>display: hide;</code>. If an element is not <code>display: inline</code> 
+  or its too big for the current line, a line break is triggered. If the 
+  element is <code>display: block</code> another line break is triggered after 
+  the element.
 </p>
 <p>
-  Left and right margins determine the x-axis layout of the element, if both 
-  are <code>auto</code>, then the <code>x margins = (parentContentArea.x - elementSize.x) / 2</code>.
+  Then all the elements are laid out. Elements on the same line are stacked 
+  horizontally, while lines are stacked vertically.
 </p>
 <p>
-  Otherwise, the auto margin = <code>parentContentArea.x - elementSize.x - oppositeMargin</code>. 
-</p>
-<p>
-  The other 2 margins determine the vertical layout of the element. For these 
-  calculations, we'll need a variable, <code>N</code>, which is equal to 
-  <code>parentContentArea.y - usedSpace.y + elementSize.y</code>.
-</p>
-<p>
-  If both <code>top</code> and <code>bottom</code> are 'auto', then <code>y margin = (N - elementSize.y) / 2</code>
-  Otherwise, the <code>auto margin = N - elementSize.y</code>.
+  After layout has finished, iterate over all child elements with 
+  <code>display: block</code>. And check if they have any horizontal auto 
+  margins. If they do, properly move the element according to those margins: Do
+  nothing if only right margin is set to auto. Move element to the ride side of 
+  the parent's content if only left margin is set, and center element if both 
+  are set.
 </p>
 
 <h2>Sources / Docs / Tutorials</h2>
