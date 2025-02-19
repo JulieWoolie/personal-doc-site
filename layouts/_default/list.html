@@ -29,7 +29,9 @@
           <p class="card-subtitle">{{.Params.subtitle}}</p>
         {{end}}
 
-        <p>{{.Plain | truncate 200}}</p>
+        <div>
+          {{.Plain | truncate 250}}
+        </div>
       </a>
     {{end}}
   </div>

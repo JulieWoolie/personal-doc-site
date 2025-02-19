@@ -1,0 +1,175 @@
+---
+title: "DOM Restructuring And Lots of Boring Systems"
+subtitle: "19-02-2025"
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-02-19 18:00:00 +0200 UTC'
+weight: 50
+toc: true
+
+footnotes: 
+  - "'Content source' means the source of the element's data. This is a value that can be in one of 3 states: `none`, `src_attribute` or `text_content`"
+  - The `delphidom` module is the DOM API implementation and parser. It can only access the DOM API and Chimera's SCSS
+  - "Contains Delphi's plugin code: commands, event listeners, DocumentView implementation and module system implementation. Notably, it is also the only module with access to the backend code of Bukkit. That access is required to load item stacks."
+---
+
+<h2>Intro</h2>
+<p>
+  Yeah, I kinda forgot about this project after I got a bit burned out. But I'm
+  back and with some major changes to the structure of the API and the DOM tree.
+</p>
+<p>
+  But before all that, little sneak peek at the dev tools I started working on:
+</p>
+<video controls>
+  <source src="/delphi/devtools-sneakpreview.mp4">
+</video>
+<p>
+  I'm just proud of how all of highlighting stuff and CSS style changing on the 
+  fly works.
+</p>
+
+<h2>DOM Restructuring</h2>
+<p>
+  For context, before this, the actual part of the document represented by 
+  Delphi's API was the <code>&lt;body&gt;</code> element. No other parts like 
+  the head, or the root <code>&lt;page&gt;</code> element were not accessible.
+  Those elements were parsed specially by the SAX parser and then disregarded.
+</p>
+<p>
+  That has changed, now the entire document's XML is represented inside the 
+  API. Mostly, this meant a big boring challenge for me to change things around.
+  Before I needed only to worry about the DOM head elements during parsing, and 
+  that was it, now I needed DOM elements to represent them. Elements that could 
+  change arbitrarily at any time.
+</p>
+<p>
+  To make this task easier, I came up with a thing called 
+  <code>ObjectModelSystem</code>s. Think of them like Systems, and think of 
+  elements like Components inside an Entity Component Framework.
+</p>
+<p>
+  And now, after 2 days of boring work I have created the following systems.
+</p>
+
+<h3><code>OptionElementSystem</code></h3>
+<p>
+  This keeps the <code>&lt;option&gt;</code> elements in the head synced up 
+  to the actual options accessible through 
+</p>
+<code>Document.getOption(String name)</code>.
+<p>
+  The difficulty with this system was figuring out how to handle the 
+  option element itself. Because it used 2 attributes <i>"name"</i> and 
+  <i>"value"</i> to store the option's value, and tracking both confused me.
+</p>
+<p>
+  I dropped support for the <code>&lt;options&gt;</code> element completely.
+  It was too much to keep that synced up as well.
+</p>
+
+<h3><code>StyleElementSystem</code></h3>
+<p>
+  This isn't the CSSOM system itself, just the system that keeps the 
+  stylesheets linked to and parsed from style elements synced.
+</p>
+<p>
+  When making this, I made a decision that set the precedent for the next 3
+  systems as well. This being that a style element can link a stylesheet 
+  with the <i>"src"</i> attribute, or specify the stylesheet in the text 
+  content of the element.
+</p>
+<p>
+  I opted to lock the <i>"content source"</i><note idx="0"></note> to one type and only listen 
+  to changes to that type. This means that if you set the style element to 
+  use the <i>"src"</i> attribute, then it will not care about any changes 
+  to the element's content until the attribute is unset. This applies vice 
+  versa as well to the text content.
+</p>
+<p>
+  There was also a 2nd issue that would need solving. The systems that sync 
+  and handle all of these things are located in the 
+  <code>delphidom</code><note idx="1"></note> module, but methods that 
+  access module files (<code>loadItemStack(uri)</code> and <code>loadStylesheet(uri)</code>)
+  were implemented in the <code>delphiplugin</code><note idx="2"></note> 
+  module. So these systems require that the document's view be initialized.
+</p>
+<p>
+  This was solved by just storing all the style elements that exist and 
+  iterating over them after the view had been initialized to check if they 
+  needed to fetch a stylesheet through the loader.
+</p>
+
+<h3><code>ItemElementSystem</code> and <code>ComponentElementSystem</code></h3>
+<p>
+  These 2 function effectively identically but for different elements. The 
+  first, <code>ItemElementSystem</code>, handles <code>&lt;item&gt;</code> 
+  elements. The second, <code>ComponentElementSystem</code> handles 
+  <code>&lt;chat-component&gt;</code> elements. The most major difference with 
+  these from the previous style element system is that instead of requiring the
+  document's view to be initialized for the <i>"src"</i> attribute to be loaded,
+  they require it for both the attribute and for the text content.
+</p>
+
+<h2>Tag changes</h2>
+<p>
+  Some tag names were changed because I felt the tag names should either match 
+  HTML names, or might be too broad to reserve them for system.
+</p>
+<dl>
+  <dt><code>&lt;page&gt;</code> renamed to <code>&lt;delphi&gt;</code></dt>
+  <dd>
+    The <code>&lt;page&gt;</code> (Now <code>&lt;delphi&gt;</code>) is the 
+    root element of any Delphi XML file. The <i>"page"</i> tag felt too broad
+    to reserve as the root tag of a document.
+  </dd>
+  <dt><code>&lt;header&gt;</code> renamed to <code>&lt;head&gt;</code></dt>
+  <dd>
+    Consistency with HTML's <code>&lt;head&gt;</code> tag. And there's also the 
+    fact that <i>"header"</i> is an actual term for the top part of a document,
+    so again, it felt wrong to reserve it as the keyword for a document's 
+    metadata section.
+  </dd>
+  <dt>Dropping support for the <code>&lt;options&gt;</code> tag</dt>
+  <dd>
+    The options tag allowed you to specify multiple options inside one XML 
+    element, like this:
+    {{<highlight xml>}}
+    <options screen-width="2" screen-height="3"/>
+    {{</highlight>}}
+
+    <p>
+      This was too much to manage with the aforementioned dom refactoring. So I
+      dropped support for it.
+    </p>
+  </dd>
+</dl>
+
+<h2>Miscellaneous Stuff</h2>
+<p>
+  I dropped a literally useless <code>root</code> function argument from all 
+  selectors (Test function signature used to be: <code>boolean test(Element 
+  root, Element element)</code>). That argument does not mean the root of the 
+  DOM tree, but rather the root element at which the query was started. I added 
+  that, because of a misunderstanding with how CSS selectors function.
+</p>
+
+<h2>Worries</h2>
+<p>
+  This is a section that will just describe some of my issues or bugs that will 
+  probably pop up.
+</p>
+<ul>
+  <li>
+    There is no listener or update callback for if a document's body element 
+    is removed or changed, neither the CSS or render system is updated when 
+    that happens. In fact I think it may start producing errors as it expects 
+    the body to always be there, instead of being null.
+  </li>
+  <li>
+    Similar worry, except for the head element. There's no callback or listener 
+    for if the head element is just removed. It can happen, idk why, but it can 
+    happen. So I should probably listen for it and handle things accordingly.
+  </li>
+</ul>

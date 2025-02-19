@@ -39,6 +39,9 @@ sup a {
   .highlight {
     overflow-x: scroll;
   }
+  .footer {
+    display: none;
+  }
 }
 
 #content {
