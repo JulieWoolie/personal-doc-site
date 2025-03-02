@@ -4,7 +4,7 @@
   font-family: 'Trajan Pro', sans-serif !important;
 }
 .times-new-roman {
-  font-family: 'Times New Roman', Times, serif;
+  font-family: Arial, Helvetica, sans-serif;
   font-size: 1.15rem;
 }
 
@@ -317,4 +317,24 @@ h2.notesheader {
   display: block;
   margin-left: auto;
   margin-right: auto;
+}
+
+input {
+  background-color: var(--dark);
+  outline: 1px solid white;
+  color: white;
+  border: unset;
+  padding: 5px;
+  width: 100%;
+}
+
+.copy-header-ref {
+  visibility: hidden;
+  margin-inline-start: 2mm;
+  text-decoration: none;
+  font-size: 0.75em;
+}
+
+:hover > .copy-header-ref {
+  visibility: visible;
 }
