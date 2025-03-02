@@ -165,6 +165,14 @@ class ElementRenderObject: RenderObject {
     item render object as its only child.
   </dd>
 
+  <dt><code>&lt;input&gt;</code> elements</dt>
+  <dd>
+    A <code>StringRenderObject</code> is created with the input element's 
+    placeholder or inputted value, depending if the value is unset. Then we 
+    create an element render object and set the string render object as its 
+    only child.
+  </dd>
+
   <dt>Elements</dt>
   <dd>
     An element render object is created. Then we iterate over all children of 
