@@ -139,18 +139,39 @@ function applyHeadingIds(content) {
   let headings = content.querySelectorAll("h1, h2, h3, h4, h5, h6")
 
   for (let heading of headings) {
-    let txt = encodeURIComponent(
-      heading.textContent.toLowerCase()
-        .replaceAll(" ", "-")
-        .replaceAll(",", "")
-        .replaceAll(".", "")
-        .replaceAll("'", "")
-        .replaceAll("/", "")
-        .replaceAll("\"", "")
-    )
-
-    heading.id = txt
+    processHeadingElement(heading)
   }
+}
+
+/**
+ * @param {HTMLElement} heading 
+ * @returns {string} ID
+ */
+function processHeadingElement(heading) {
+  let txt = encodeURIComponent(
+    heading.textContent.toLowerCase()
+      .replaceAll(" ", "-")
+      .replaceAll(",", "")
+      .replaceAll(".", "")
+      .replaceAll("'", "")
+      .replaceAll("/", "")
+      .replaceAll("\"", "")
+  )
+  
+  let linkAnchor = document.createElement("a")
+  linkAnchor.href = `#${txt}`
+  linkAnchor.className = "copy-header-ref"
+  linkAnchor.textContent = "\uD83D\uDD17"
+  linkAnchor.onclick = (ev) => {
+    let url = window.location
+    url.hash = txt
+    window.navigator.clipboard.writeText(url.toString())
+  }
+
+  heading.lastChild.after(linkAnchor)
+  heading.id = txt
+
+  return txt
 }
 
 function processTableOfContents() {
@@ -177,15 +198,7 @@ function processTableOfContents() {
       return
     }
 
-    let txt = encodeURIComponent(
-      c.textContent.toLowerCase()
-        .replaceAll(" ", "-")
-        .replaceAll(",", "")
-        .replaceAll("'", "")
-        .replaceAll("/", "")
-        .replaceAll("\"", "")
-    )
-    c.id = txt
+    let txt = processHeadingElement(c)
 
     let a = document.createElement("a")
     if (level > 2) {

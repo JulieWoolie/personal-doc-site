@@ -1,0 +1,61 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Input elements and devtools</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>Input elements and devtools</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-03-02 11:00:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>Input elements and devtools</h1><div class=subtitle>05-02-2025</div></div><div id=content><p>Been a while since I wrote any updates here, apologies, real life got in the
+way.</p><p>But alas, I've reworked some stuff and added support for
+<code>&lt;input/></code> elements. I had some issues implementing these
+elements and confusion conceptually, mentioned below.</p><h2>Going public</h2><p>I finally went "public" with this project, meaning I posted it on HangarMC and
+made the repository public and posted about it to the PaperMC Discord.</p><p>So the project's finally open source. Let's see what that brings.</p><h2>Input elements</h2><p>If you've used the <code>&lt;input></code> HTML elements, you know what I
+wanted to get out of these. But in case you don't, this is an HTML input
+element:</p><input type=text placeholder="Enter text..."><p>Basically, it lets you input text that the page can use somehow. The above
+shown input is styled the same way as it is styled by default in Delphi.</p><p>Before making an input element, I had to come up with how the element would
+take input from the player. The first and easiest solution I came up with was
+to use Bukkit's <code>Conversation</code> API. But, that has an issue, it
+takes all chat input as conversation input. Which is perfect, but you can't
+provide custom suggestions for non-command chat as dynamically as you can for
+commands.</p><p>So I had an idea, use a command like <code>/delphi-input &lt;input></code>
+to access take input and also provide suggestions. When a player clicks on the
+input element, they're placed into a map, with a timeout of a minute or so.
+When the player inputs that command, it can fetch the element they're
+inputting to and get appropriate suggestions or anything. With this, the text
+in the element could change dynamically with each call to the tab completion
+method.</p><p>I ultimately decided against the command solution because using the
+Conversation API was easier, faster and felt it made more sense, you open chat
+and type in the input.</p><p>If I decide the other method to be better, I might refactor in the future.</p><p>After some small changes to the render system, a new event and some other
+minor additions, the input element was fully supported. In the end, it uses
+a global listener to listen for clicks on input elements, which then uses a
+Bukkit Conversation to listen for input from the player.</p><p>What's left?</p><ul><li>Handle the <code>active</code> state of the input element differently. While
+the element is waiting for input it should be considered
+<code>active</code>.</li><li>While <code>active</code>, it should prevent multiple players from trying to
+input into the same element at once.</li><li>Support for the <code>prompt</code> attribute that the Bukkit Conversation
+will use when prompting the player for input.</li></ul><h2>DevTools</h2><p>If you've ever worked on frontend design on the web, or just right-clicked
+and clicked on <i>"Inspect Element"</i>, you've used your browser's devtools.
+Devtools show you an overview of the HTML and effective CSS of elements among
+many other things. It is an amazing tool for debugging and working with web
+design. So it makes sense that Delphi should have something similar.</p><p>As of writing this post, the devtools only shows the XML layout of a Delphi
+page and nothing more. But I'm hoping to add the following:</p><ul><li>A <i>"Devtool Stick"</i> that, when used to right click on an element,
+opens the devtools window.</li><li>An overlay that shows the padding box, border box, outline box and margin
+box of an element when hovered over with a devtool stick or when the
+corresponding element's XML is hovered over in the devtools window.</li><li>A css explorer <i>(Or whatever it's called)</i> for selecting an element in
+the XML tree and then inspecting its effective CSS rules and inline style.</li><li>A document info tab that shows you metadata about a page, along with a few
+buttons (such as the debug XML dump)</li><li>Inspect element interactivity. This means clicking on elements to get a
+dropdown to remove it, change the tag name, add/remove attributes or other
+things, clicking on attribute values to edit them, clicking on the name to
+rename, or remove it, etc. The CSS for these things is kinda already set up,
+with hover colors to indicate things can be interacted with, but the logic
+itself isn't implemented yet.<p>This will require a future technology: Drop downs or just context menus
+that appear when you right click select elements.</p></li></ul><p>I added support for a new type of module, as well: Hidden modules. These will
+be internal modules at the moment. I basically only added this so I could
+support the devtools module without it being visible to anyone typing in the
+command.</p><h2>Misc. Changes</h2><p>I moved the logic that handles <code>&lt;java-object></code> element logic
+to a System<note idx=0></note> instead of performing the logic inside the
+element class itself.</p><p>The ID system itself was also moved to its own System<note idx=0></note>,
+which for a couple hours caused me strife because I used a
+<code>getTarget</code> instead of <code>getNode</code> when listening to
+mutation events.</p><hr latex-ignore class=notes-hr><h2 latex-ignore class=notesheader>Notes</h2><ol latex-ignore id=footnotes-list><li note-idx=0>Think of XML nodes and elements as components/entities in an ECS. Systems are like the Systems of entity component systems. They handle the logic of the elements, which themselves are just data</li></ol></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>

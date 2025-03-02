@@ -94,7 +94,10 @@ linked to the DOM element's style set. Then a single text render object is
 created (Same as in a text node's case) and set as the only child element
 of the element render object.</dd><dt><code>&lt;item></code> elements</dt><dd>A <code>ItemRenderObject</code> is created with the item element's item
 stack as its content. Then we create an element render object, and set the
-item render object as its only child.</dd><dt>Elements</dt><dd>An element render object is created. Then we iterate over all children of
+item render object as its only child.</dd><dt><code>&lt;input></code> elements</dt><dd>A <code>StringRenderObject</code> is created with the input element's
+placeholder or inputted value, depending if the value is unset. Then we
+create an element render object and set the string render object as its
+only child.</dd><dt>Elements</dt><dd>An element render object is created. Then we iterate over all children of
 the DOM element and perform this same mapping on them, with the resulting
 render objects being added as children to the first element render object.</dd></dl><p>All render objects have their <code>depth</code> field calculated by taking
 DOM node's depth (Which is a flat integer) and multiplying it with
