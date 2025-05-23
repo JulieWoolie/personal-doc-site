@@ -338,3 +338,56 @@ input {
 :hover > .copy-header-ref {
   visibility: visible;
 }
+
+.sql-namegen {
+  background-color: var(--lighter);
+  padding: 5mm;
+  padding-top: 5mm;
+
+  h2 {
+    margin-top: 0;
+  }
+
+  .inputsgroup {
+    display: flex;
+    gap: 2mm;
+
+    input {
+      flex-grow: 1;
+    }
+    select {
+      color: white;
+      background-color: var(--dark);
+    }
+  }
+
+  #sqlnamegen-roundtime {
+    background-color: unset;
+    outline: initial;
+    color: initial;
+    border: initial;
+    padding: initial;
+    width: initial;
+  }
+
+  .sng-checkbox {
+    margin-top: 2mm;
+    margin-bottom: 2mm;
+  }
+
+  .sng-output {
+    display: flex;
+    gap: 3mm;
+
+    code {
+      flex-grow: 1;
+      background-color: var(--dark);
+      padding: 2mm;
+    }
+
+    span {
+      margin-top: 2mm;
+      margin-bottom: 2mm;
+    }
+  }
+}

@@ -1,0 +1,78 @@
+---
+title: "Random Tools"
+subtitle: "Random tools I've needed or created just because I can"
+header_img: "/lisa.webp"
+weight: 50
+toc: false
+author: Julie
+publish_date: '2025-06-23 10:04:38 +0200 UTC'
+---
+
+<section class="sql-namegen">
+  <h2>Sequelize migration/seeder name generator</h2>
+
+  <div class="inputsgroup">
+    <input id="sqlnamegen-in" placeholder="Enter file name">
+    <select id="sqlnamegen-filesuffix">
+      <option value="js">JS</option>
+      <option value="ts">TS</option>
+    </select>
+  </div>
+
+  <div class="sng-checkbox">
+    <input type="checkbox" id="sqlnamegen-roundtime">
+    <span>Zero time</span>
+  </div>
+
+  <div class="sng-output">
+    <span>Output: </span>
+    <code id="sqlnamegen-out"></code>
+    <button class="button" id="sng-outcopy">Copy</button>
+  </div>
+
+  <script>
+    const input = document.getElementById("sqlnamegen-in")
+    const output = document.getElementById("sqlnamegen-out")
+    const suffix = document.getElementById("sqlnamegen-filesuffix")
+    const copyButton = document.getElementById("sng-outcopy")
+    const zeroTime = document.getElementById("sqlnamegen-roundtime")
+
+    const date = new Date()
+
+    input.oninput = updateInput
+    suffix.oninput = updateInput
+    zeroTime.oninput = updateInput
+
+    copyButton.onclick = () => {
+      window.navigator.clipboard.writeText(output.textContent)
+    }
+
+    function updateInput() {
+      let v = input.value
+
+      if (v == "") {
+        output.value = ""
+        return
+      }
+
+      let name = n(v.replaceAll(" ", "-"))
+      output.textContent = name
+    }
+
+    function n(s) {
+      const datePrefix = `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}`
+      let timePrefix;
+
+      if (zeroTime.checked) {
+        timePrefix = "000000"
+      } else {
+        timePrefix = `${p(date.getHours())}${p(date.getMinutes())}${p(date.getSeconds())}`
+      }
+
+      return `${datePrefix}${timePrefix}-${s}.${suffix.value}`
+    }
+    function p(x, z = 2) {
+      return x.toString().padStart(z, "0")
+    }
+  </script>
+</section>
