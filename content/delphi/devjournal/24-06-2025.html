@@ -1,0 +1,156 @@
+---
+title: "Scripting support and some minor bug fixes"
+subtitle: "24-06-2025"
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-24-06 17:32:00 +0200 UTC'
+weight: 70
+toc: false
+---
+
+<p>
+  Oh my god, it's been awhile since I even touched this project. And here I am,
+  I'm back to work on it... for another 2 or 3 days until I other things take 
+  my attention away from it.
+</p>
+
+<h2>JS Support</h2>
+<p>
+  I've added JS support, although currently it's very basic and <i>very</i> 
+  unsecure.
+</p>
+<p>
+  In keeping with my love of ancient greek stuff, the JS integration module has
+  been named <i>"Hephaestus"</i>, as the smith that's going to make these menus 
+  actually functional. I'll show off a small bit of it functioning later, but 
+  first, I'll talk about how I got it to start working.
+</p>
+<p>
+  I knew that I wanted to use either Lua or JS for the scripting language, but, 
+  after looking for Lua interpreters in Java I realized they're all either 
+  abandoned or... very close the original C implementation (low level and 
+  difficult to work with), I gave that up.
+</p>
+<p>
+  For JavaScript, I basically only had 1 option: GraalVM's Polyglot engine. As 
+  far as I'm aware, all of GraalVM is currently on an open source license so 
+  its use is allowed. (Which was not the case some years ago).
+</p>
+<p>
+  There was also Mozilla's Rhino engine which I used when writing a scripting 
+  engine for a server me and my friends were making (ArcadiusMC), so I had 
+  expirience with it, but I also knew its limits. The most major limit, or flaw,
+  rather, is that it's stuck on ECMAScript version 5, which was released 10 
+  years ago now. Graal's is upto date, as far as I'm aware and supports a 
+  majority of the JS standard library (console.log lol)
+</p>
+<p>
+  Working with Graal's polyglot, I do miss the layered scopes that Rhino had, 
+  which broke down the data script's had access to into stacks, like, you know,
+  how every language does. Graal doesn't have that, Graal has one (kinda 2) 
+  scopes: the global scope. Not too big of an issue and it does make sense for
+  the projet I'm working on, where all scripts loaded by a page should run in 
+  the same scope and context anyway.
+</p>
+<p>
+  Implementing GraalVM wasn't that time consuming, just add the depedencies, 
+  and write another DomSystem... and then change about 50 other things to add 
+  script support, make the loading of JS files easier and actually add the 
+  system to the document instances. It works though, and here it is, in action:
+</p>
+
+<video controls>
+  <source src="/delphi/js-1.mp4">
+</video>
+
+<p>
+  As the video shows, you can use JS in both the <code>&lt;script&gt;</code> 
+  element's content, or link to a <code>.js</code> file with the 
+  <code>src</code> attribute.
+</p>
+<p>
+  And it works!! It runs! It actually does its job and you're able to use 
+  Java objects, like the DOM and <code>DocumentView</code> with it.
+</p>
+<p>
+  Granted, it's a very basic setup, and I want to curtail the access JS has to 
+  the host VM, or maybe I don't?? I don't know yet. I want it to be powerful, 
+  but I'm also worried it will be abused.
+</p>
+<p>
+  For now, the only stdlib (yes, I'm calling it that) function available is
+  <code>command(args...)</code> that lets you execute a console command, 
+  example:
+</p>
+{{<highlight js>}}
+// Simple command example
+command(`tellraw @a "Hello, world"`)
+
+// You can also use multiple arguments, they will be concatened
+const player = server.getPlayer("JulieWoolie");
+const amount = parseInt(view.getPath().getQuery("amount")) ?? 1
+command("give", player.getName(), "minecraft_stick", amount)
+{{</highlight>}}
+
+<h2>Devtools Development</h2>
+<p>
+  I worked on the Devtools a bit, not a lot, but a bit. I'll be adding in 
+  another tab: <i>"Actions"</i>, which will allow you to perform some actions 
+  on the menu, such as:
+</p>
+<ul>
+  <li>Moving the menu</li>
+  <li>Forcing it to re-render</li>
+  <li>Closing the menu</li>
+</ul>
+<p>
+  Ontop of that, I also fixed some bugs that were ocurring as a result of the 
+  devtools and changed a few small things around. Namely:
+</p>
+<ul>
+  <li>
+    The child node removal event is now fired <i>after</i> a node has been 
+    removed from it's parents, not before.
+  </li>
+  <li>
+    Fixed a concurrent modification exception when removing attributes.
+  </li>
+  <li>
+    Fixed another exception that ocurred when closing menus with a devtool 
+    instance attached to them.
+  </li>
+</ul>
+
+<h2>Minor changes</h2>
+<ul>
+  <li>
+    Added support for the new <code>TranslationStore</code> which allows me to 
+    load components straight from the translation files
+  </li>
+  <li>
+    Expanded the locale loader to also load any custom translations one might 
+    want from the <code>plugins/Delphi/data/lang</code> directory.
+  </li>
+  <li>
+    I'm now finally running off an M.2 SSD so I have an all new windows 
+    installation, anyway, I installed Java 24, so the build process stopped 
+    working <code>;-;</code>... jk fixed that.
+  </li>
+  <li>
+    Fixed an error being thrown when removing the <code>style</code> attribute,
+    caused by me forgetting to add a <code>return;</code> months and months ago.
+  </li>
+</ul>
+
+<h2>Future plans</h2>
+<ul>
+  <li>
+    Wrapping the DOM and Delphi APIs in <code>Proxy</code>s to make them 
+    easier to use in JavaScript.
+  </li>
+  <li>
+    Making the Renderer exclude the <code>&lt;script&gt;</code> element from 
+    being rendered.
+  </li>
+</ul>
