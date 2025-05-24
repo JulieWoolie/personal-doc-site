@@ -1,0 +1,67 @@
+<!doctype html><html lang=en><head><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Scripting support and some minor bug fixes</title><meta name=viewport content="width=device-width,initial-scale=1"></head><body class="bg-lighter body"><div class="content content-sizing bg-dark" id=content-el><div class=ppath><a class=ppath-element href=/>Julie's Document Website</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/>Delphi Menu Engine</a>
+<span class=ppath-comma>/</span>
+<a class=ppath-element href=/delphi/devjournal/>Dev Journal</a>
+<span class=ppath-comma>/</span>
+<span class=ppath-current>Scripting support and some minor bug fixes</span></div><dl class=metalist><dt>Publish Date</dt><dd id=publish_date>2025-24-06 17:32:00 +0200 UTC</dd><dt>Author</dt><dd id=author>Julie</dd></dl><div class=title-container><img class="headerimg large" src=/delphi/temple.jpg><h1 toc-ignore class=pagetitle>Scripting support and some minor bug fixes</h1><div class=subtitle>24-06-2025</div></div><div id=content><p>Oh my god, it's been awhile since I even touched this project. And here I am,
+I'm back to work on it... for another 2 or 3 days until I other things take
+my attention away from it.</p><h2>JS Support</h2><p>I've added JS support, although currently it's very basic and <i>very</i>
+unsecure.</p><p>In keeping with my love of ancient greek stuff, the JS integration module has
+been named <i>"Hephaestus"</i>, as the smith that's going to make these menus
+actually functional. I'll show off a small bit of it functioning later, but
+first, I'll talk about how I got it to start working.</p><p>I knew that I wanted to use either Lua or JS for the scripting language, but,
+after looking for Lua interpreters in Java I realized they're all either
+abandoned or... very close the original C implementation (low level and
+difficult to work with), I gave that up.</p><p>For JavaScript, I basically only had 1 option: GraalVM's Polyglot engine. As
+far as I'm aware, all of GraalVM is currently on an open source license so
+its use is allowed. (Which was not the case some years ago).</p><p>There was also Mozilla's Rhino engine which I used when writing a scripting
+engine for a server me and my friends were making (ArcadiusMC), so I had
+expirience with it, but I also knew its limits. The most major limit, or flaw,
+rather, is that it's stuck on ECMAScript version 5, which was released 10
+years ago now. Graal's is upto date, as far as I'm aware and supports a
+majority of the JS standard library (console.log lol)</p><p>Working with Graal's polyglot, I do miss the layered scopes that Rhino had,
+which broke down the data script's had access to into stacks, like, you know,
+how every language does. Graal doesn't have that, Graal has one (kinda 2)
+scopes: the global scope. Not too big of an issue and it does make sense for
+the projet I'm working on, where all scripts loaded by a page should run in
+the same scope and context anyway.</p><p>Implementing GraalVM wasn't that time consuming, just add the depedencies,
+and write another DomSystem... and then change about 50 other things to add
+script support, make the loading of JS files easier and actually add the
+system to the document instances. It works though, and here it is, in action:</p><video controls>
+<source src=/delphi/js-1.mp4></video><p>As the video shows, you can use JS in both the <code>&lt;script></code>
+element's content, or link to a <code>.js</code> file with the
+<code>src</code> attribute.</p><p>And it works!! It runs! It actually does its job and you're able to use
+Java objects, like the DOM and <code>DocumentView</code> with it.</p><p>Granted, it's a very basic setup, and I want to curtail the access JS has to
+the host VM, or maybe I don't?? I don't know yet. I want it to be powerful,
+but I'm also worried it will be abused.</p><p>For now, the only stdlib (yes, I'm calling it that) function available is
+<code>command(args...)</code> that lets you execute a console command,
+example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
+</span><span class=lnt>2
+</span><span class=lnt>3
+</span><span class=lnt>4
+</span><span class=lnt>5
+</span><span class=lnt>6
+</span><span class=lnt>7
+</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-js data-lang=js><span class=line><span class=cl><span class=c1>// Simple command example
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>command</span><span class=p>(</span><span class=sb>`tellraw @a &#34;Hello, world&#34;`</span><span class=p>)</span>
+</span></span><span class=line><span class=cl>
+</span></span><span class=line><span class=cl><span class=c1>// You can also use multiple arguments, they will be concatened
+</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kr>const</span> <span class=nx>player</span> <span class=o>=</span> <span class=nx>server</span><span class=p>.</span><span class=nx>getPlayer</span><span class=p>(</span><span class=s2>&#34;JulieWoolie&#34;</span><span class=p>);</span>
+</span></span><span class=line><span class=cl><span class=kr>const</span> <span class=nx>amount</span> <span class=o>=</span> <span class=nb>parseInt</span><span class=p>(</span><span class=nx>view</span><span class=p>.</span><span class=nx>getPath</span><span class=p>().</span><span class=nx>getQuery</span><span class=p>(</span><span class=s2>&#34;amount&#34;</span><span class=p>))</span> <span class=o>??</span> <span class=mi>1</span>
+</span></span><span class=line><span class=cl><span class=nx>command</span><span class=p>(</span><span class=s2>&#34;give&#34;</span><span class=p>,</span> <span class=nx>player</span><span class=p>.</span><span class=nx>getName</span><span class=p>(),</span> <span class=s2>&#34;minecraft_stick&#34;</span><span class=p>,</span> <span class=nx>amount</span><span class=p>)</span></span></span></code></pre></td></tr></table></div></div><h2>Devtools Development</h2><p>I worked on the Devtools a bit, not a lot, but a bit. I'll be adding in
+another tab: <i>"Actions"</i>, which will allow you to perform some actions
+on the menu, such as:</p><ul><li>Moving the menu</li><li>Forcing it to re-render</li><li>Closing the menu</li></ul><p>Ontop of that, I also fixed some bugs that were ocurring as a result of the
+devtools and changed a few small things around. Namely:</p><ul><li>The child node removal event is now fired <i>after</i> a node has been
+removed from it's parents, not before.</li><li>Fixed a concurrent modification exception when removing attributes.</li><li>Fixed another exception that ocurred when closing menus with a devtool
+instance attached to them.</li></ul><h2>Minor changes</h2><ul><li>Added support for the new <code>TranslationStore</code> which allows me to
+load components straight from the translation files</li><li>Expanded the locale loader to also load any custom translations one might
+want from the <code>plugins/Delphi/data/lang</code> directory.</li><li>I'm now finally running off an M.2 SSD so I have an all new windows
+installation, anyway, I installed Java 24, so the build process stopped
+working <code>;-;</code>... jk fixed that.</li><li>Fixed an error being thrown when removing the <code>style</code> attribute,
+caused by me forgetting to add a <code>return;</code> months and months ago.</li></ul><h2>Future plans</h2><ul><li>Wrapping the DOM and Delphi APIs in <code>Proxy</code>s to make them
+easier to use in JavaScript.</li><li>Making the Renderer exclude the <code>&lt;script></code> element from
+being rendered.</li></ul></div><script src=/js/images.js></script></div><div class="bg-dark content-sizing footer" style=margin-top:2cm><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button>
+<button class=button id=bg-toggle-btn>Toggle background</button></div><div class=footermsg>I am a footer :)</div><div class=footermsg id=bg-info>Background info:</div></div><script src=/js/main.js></script>
+<script src=/js/to-latex.js></script>
+<script src=/js/background.js></script></body></html>
