@@ -1,0 +1,78 @@
+---
+title: "Scripting Expansions"
+subtitle: "25-05-2025"
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-26-05 19:29:00 +0200 UTC'
+weight: 80
+toc: false
+---
+
+<h2>Script expansions</h2>
+<p>
+  I added scheduling functions! <code>setInterval(cb, delay, interval)</code> 
+  and <code>setTimeout(cb, delay)</code> are now supported. But keep in mind, 
+  they take in delays and intervals in ticks, not milliseconds. Both of these 
+  functions return an ID integer that represents their task ID.
+</p>
+<p>
+  There is of course an accompanying <code>clearTimeout(taskId)</code> to 
+  cancel both interval and timeout tasks.
+</p>
+<p>
+  This was all made possible with the scheduling API I added to the 
+  <code>DocumentView</code>. This quick little API allows you to schedule tasks
+  that run after a certain amount of ticks or are run over and over. Once the 
+  view itself is closed, the tasks are closed and don't execute.
+</p>
+<iframe 
+  style="width: 100%; height: 300px;" 
+  src="https://www.youtube.com/embed/f2bup3f3mMw" 
+  title="Clicker game,  but made with Display Entities and JS" 
+  frameborder="0" 
+  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+  referrerpolicy="strict-origin-when-cross-origin" 
+  allowfullscreen
+>
+</iframe>
+
+<h2>Custom Events</h2>
+<p>
+  I also added support for custom events, which I thought might be a good way for 
+  plugins to communicate with menus written with JS, or just a good way to 
+  communicate with menus, really.
+</p>
+
+{{<highlight java>}}
+DocumentView view = /* .. idk */;
+Document document = view.getDocument();
+
+// Create the event object itself, the only parameter needed, 
+// being the event's type
+CustomEvent event = document.newCustomEvent("something-happened");
+
+// The "Map.of" can be any map of string to object that contains data 
+// for the event.
+event.initEvent(null, false, false, Map.of("data", 1, "data2", false));
+
+// Then finally, dispatch the event
+document.dispatchEvent(event);
+
+// Sidenote: you can access those map properties like this:
+Object data = event.getProperty("data");
+{{</highlight>}}
+
+
+<h2>Other</h2>
+<p>
+  There isn't really any other changes, I fixed a weird jerk that would happen when you set a text 
+  node's text content to a text with a different size. For less than a tick, it would be squished 
+  or stretched out before correcting.
+</p>
+<p>
+  This was happening because the renderer's callback for a text node's content being modified would
+  directly update that text node's render object. But the actual layout update would happen when 
+  the view's tick method was called, much later. This difference caused a half second of the text 
+  looking smushed or stretched before being updated again.
+</p>
