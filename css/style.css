@@ -11,6 +11,7 @@
 :root {
   --dark: #121212;
   --lighter: #1f1f1f;
+  font-family: Cambria,Georgia,serif;
 }
 
 .bg-dark {
@@ -28,7 +29,7 @@ sup a {
 
 @media(min-width: 1024px) {
   .content-sizing {
-    max-width: calc(210mm - 6cm);
+    max-width: calc(220mm - 6cm);
     margin-left: auto;
     margin-right: auto;
     padding-left: 3cm !important;
@@ -39,7 +40,12 @@ sup a {
   .highlight {
     overflow-x: scroll;
   }
-  .footer {
+
+  .overflow-x-scroll {
+    overflow-x: scroll;
+  }
+
+  #bg-toggle-btn {
     display: none;
   }
 }
@@ -116,6 +122,7 @@ sup a {
   text-align: justify;
 
   min-height: 100vh;
+  font-size: 14pt;
 
   &[wide="true"] {
     max-width: 75vw;
@@ -168,6 +175,10 @@ sup a {
   }
   p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p)::first-letter {
     margin-inline-start: 5mm;
+  }
+
+  :is(h1,h2,h3,h4,h5)+p {
+    margin-block-start: 2em;
   }
 
   table {
@@ -390,4 +401,23 @@ input {
       margin-bottom: 2mm;
     }
   }
+}
+.footer-metadata {
+  margin-top: 4mm;
+}
+
+a {
+  color: #66b2ff; /* soft blue */
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+
+a:hover,
+a:focus {
+  color: #99ccff; /* lighter on hover */
+  border-bottom: 1px solid #99ccff;
+}
+
+a:active {
+  color: #cce6ff; /* even lighter on active */
 }
