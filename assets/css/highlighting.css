@@ -84,3 +84,10 @@
 /* GenericTraceback */ .chroma .gt {  }
 /* GenericUnderline */ .chroma .gl {  }
 /* TextWhitespace */ .chroma .w {  }
+
+.chroma * {
+    font-size: 10.5pt;
+}
+.highlight {
+    overflow-x: auto;
+}
