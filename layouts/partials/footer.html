@@ -6,11 +6,28 @@
     <button class="button" id="bg-toggle-btn">Toggle background</button>
   </div>
 
-  <div class="footermsg">
-    I am a footer :)
-  </div>
-
   <div class="footermsg" id="bg-info">
     Background info: 
   </div>
+
+  <table class="footer-metadata">
+    <tbody>
+    <tr>
+      <td>Author</td>
+      <td>{{default "None" .Params.Author}}</td>
+    </tr>
+    <tr>
+      <td>Publish Date</td>
+      <td>{{default "Unknown" .Params.publish_date}}</td>
+    </tr>
+    <tr>
+      <td>Last Change</td>
+      <td>{{.Lastmod}}</td>
+    </tr>
+    <tr>
+      <td>Last Change</td>
+      <td>{{.GitInfo.Subject}}</td>
+    </tr>
+    </tbody>
+  </table>
 </div>

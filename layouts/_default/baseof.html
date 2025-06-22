@@ -4,10 +4,10 @@
     {{ partial "head.html" . }}
   </head>
   <body class="bg-lighter body">
-    <div class="content content-sizing bg-dark" {{if (default false .Params.wide_page)}}wide="true"{{end}} id="content-el">
+    <main class="content content-sizing bg-dark" {{if (default false .Params.wide_page)}}wide="true"{{end}} id="content-el">
       {{ partial "page-path.html" .}}
       {{ block "main" . }} {{end}}
-    </div>
+    </main>
 
     {{ partial "footer.html" . }}
     {{ partial "scripts.html" . }}

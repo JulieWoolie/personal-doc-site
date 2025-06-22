@@ -1,4 +1,4 @@
-<div class="title-container">
+<header class="title-container">
 
 {{$img_is_title := .Params.header_is_title | default false}}
 {{if $img_is_title}}
@@ -14,7 +14,7 @@
   {{end}}
 {{end}}
 
-</div>
+</header>
 
 {{define "headerimg"}}
   {{$img := .Params.header_img}}

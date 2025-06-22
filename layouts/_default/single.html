@@ -1,11 +1,4 @@
 {{define "main"}}
-  <dl class="metalist">
-    <dt>Publish Date</dt>
-    <dd id="publish_date">{{default "Unknown" .Params.publish_date}}</dd>
-    <dt>Author</dt>
-    <dd id="author">{{default "None" .Params.Author}}</dd>
-  </dl>
-
   {{partial "title.html" .}}
 
   {{$toc_setting := .Params.toc | default true}}
@@ -14,10 +7,10 @@
     <div id="toc-out"></div>
   {{end}}
 
-  <div id="content">
+  <article id="content">
     {{.Content}}
     {{block "notes" .}}{{end}}
-  </div>
+  </article>
 
   {{$images := resources.Get "js/images.js"}}
   <script src="{{$images.RelPermalink}}"></script>
