@@ -350,10 +350,12 @@ input {
   visibility: visible;
 }
 
-.sql-namegen {
+.tool {
   background-color: var(--lighter);
   padding: 5mm;
   padding-top: 5mm;
+
+  margin-top: 5mm;
 
   h2 {
     margin-top: 0;
