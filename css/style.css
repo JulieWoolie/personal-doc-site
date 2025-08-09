@@ -106,8 +106,15 @@ sup a {
 }
 
 .section-num {
+  display: inline-block;
   color: gray;
-  margin-inline-end: 2mm;
+  min-width: 12.5mm;
+}
+
+.list-img {
+  width: 25%;
+  display: block;
+  margin: 4mm auto;
 }
 
 .title-container {
@@ -240,6 +247,9 @@ sup a {
 }
 .ppath-comma {
   opacity: 0.5;
+}
+.ppath-line:not(:first-of-type) {
+  margin-left: 5mm;
 }
 
 .metalist {
@@ -422,4 +432,8 @@ a:focus {
 
 a:active {
   color: #cce6ff; /* even lighter on active */
+}
+
+li:not(:first-child) {
+  margin-top: 3mm;
 }
