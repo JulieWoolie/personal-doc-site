@@ -16,6 +16,7 @@
 
     {{ $pageArr := .Pages.ByWeight}}
     {{ $reversed := .Params.reversedOrder | default false}}
+    {{ $includeheader := .Params.include_header | default false}}
 
     {{if $reversed}}
       {{ $pageArr = $pageArr.Reverse}}
@@ -24,6 +25,14 @@
     {{range $pageArr}}
       <a class="link-card" href="{{.RelPermalink}}">
         <h3 class="card-title">{{.Title}}</h3>
+
+        {{$pheader := .Params.header_img | default ""}}
+        {{$pheader_inc := .Params.header_img_show | default true}}
+        {{$showheader := (and $includeheader $pheader_inc (ne $pheader ""))}}
+
+        {{if $showheader}}
+          <img class="list-img" src="{{$pheader}}">
+        {{end}}
 
         {{if (strings.ContainsNonSpace .Params.subtitle)}}
           <p class="card-subtitle">{{.Params.subtitle}}</p>
