@@ -1,0 +1,166 @@
+---
+title: "Canvas Elements and Trying To Get The Word Out There"
+subtitle: "09-08-2025"
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-08-09 22:40:00 +0200 UTC'
+weight: 90
+toc: true
+---
+
+<h2>Intro</h2>
+<p>
+  Alright, it's been another long while (4 months) since I posted an update
+  about how this plugin is going. Been busy <i>(with everything except working
+  on the damned flexbox support)</i>.
+</p>
+
+<h2>Canvas elements!</h2>
+<p>
+  Canvas elements are basically images, that you can draw whatever you want on
+  to. I thought these would be good for people wanting to implement more complex
+  features for their menus, and would also be cool for potential providing a
+  basis for an <code>&lt;img&gt;</code> element in the future.
+</p>
+<p>
+  Now, basically, a canvas element is an array of pixels. You can configure the
+  size of the canvas with the <code>width</code> and <code>height</code>
+  attributes. These will change the pixel resolution of the canvas, but if you
+  override the <code>width</code> or <code>height</code> CSS properties, then
+  the canvas will use that for it's size (pixel resolution will not change,
+  pixels will just have different sizes than normal)
+</p>
+<p>
+  With it just being an array of pixels there comes an issue, however. A 16x16
+  image is 256 pixels. How can you draw 256 different pixels with just Display
+  Entities? Well, you use a separate display entity for each pixel. This
+  obviously presents a problem, how the hell do you render any canvas with a
+  significant size without using literally thousands of entities?
+</p>
+
+<h3>Greedy Meshing pixels... or whatever you call this</h3>
+<p>
+  In order to minimize the amount of entities used, we need group pixels of the
+  same color value into one entity when possible. To do this, I implemented
+  what I think is called a greedy mesher? I've only seen that applied to voxels,
+  so I don't know what the correct term is.
+</p>
+<p>
+  The algorithm is really simple <i>(See algorithm <a href="https://github.com/JulieWoolie/delphi/blob/main/render/src/main/java/com/juliewoolie/delphirender/object/CanvasRenderObject.java#L188" target="_blank">here</a>.)</i>
+  It works by iterating over each pixel, and then expanding horizontally until
+  it encounters a pixel with a different value, then it tries to expand
+  vertically. If it managed to expand in any direction, the grouped size is a
+  mesh! If not, who cares, move on.
+</p>
+<p>
+  This grouping can help save on the amount of entities used, especially for
+  images where lots of repetitive colors are used, like, a color selection
+  thing, which is exactly what I used as a test bench for canvases:
+</p>
+
+<iframe style="width: 100%; height: 300px;" src="https://www.youtube.com/embed/he3oTKRLJo8?si=_InmhytwFPZn_zfP" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+<i>
+  (Note that the video was made before the pixel grouping was implemented, so
+  the entity count of 3997 has since been cut down a lot.)
+</i>
+
+<p>
+  You may also notice a bit of a flicker between the pixels of the canvas, I
+  have since fixed this by implementing the absolutely genius solution of just
+  increasing the size of the pixels by a very tiny amount so they overlap.
+</p>
+
+<h3>Other Canvas features</h3>
+<p>
+  I also added support for the alpha channel, so you can have parts of the
+  canvas with opacity, or just straight up not be visible.
+</p>
+
+<h2>Moving from Arcadius to my personal account</h2>
+<p>
+  Yeah, ArcadiusMC, that server I tried to set up with my friends, failed
+  miserably around a year ago now. And I decided that it's not worth it keeping
+  things on the ArcadiusMC domain or packages, as such, I've moved over a lot
+  of things to my own personal GitHub account.
+</p>
+
+<h2>A new scripting library!</h2>
+<p>
+  I'm writing a scripting library for PaperMC, and I've moved a lot of the
+  annotation-based script interop system over to that. For now, the repository
+  for that project is private while I work on getting it to a usable state.
+</p>
+<p>
+  And of course, continuing in my fangirling of Ancient Greek things, the
+  library will be called <i>"Hephaestus"</i>.
+</p>
+
+<h2>A new XML parser!</h2>
+<p>
+  I moved from the default SAX parser implemention to TagSoup's SAX XML Parser.
+  This was because I wanted a more lax parser (And also because I wanted
+  attributes without needing to specify a value for them).
+</p>
+
+<h2>Other small things</h2>
+<ul>
+  <li>
+    Fixed plugin messages being broken after I switched to using the
+    MiniMessage Translator
+  </li>
+  <li>
+    Fixed a visual error that happened when changing an element's text content.
+    <i>
+      (This was fixed by forcing a re-render of the DOM, instead of just
+      re-rerendering one entity. This worked because the method call I replaced
+      was right after a <code>triggerRealign</code> call, the realignment is
+      applied later, so it's better to also respawn the element later)
+    </i>
+  </li>
+  <li>
+    Fixed a dumb issue that originates from me trying to prevent unnecessary
+    array construction when calling event listeners.
+  </li>
+  <li>Add support for the <code>defer</code> attribute on script elements</li>
+  <li>
+    Fix another stupid mistake that existed because I didn't test anything in
+    the API module.
+    <i>(Calling <code>Color.hsv</code> would always return black)</i>
+  </li>
+  <li>
+    Update to 1.21.7
+  </li>
+  <li>
+    Fixed an issue where background colors on elements didn't change correctly.
+  </li>
+  <li>
+    Created an official logo for the project :D
+    <i>(It's an edited version of the HTML5 Logo)</i>
+  </li>
+  <li>
+    Added <code>/delphi devtools</code> for opening devtools for the menu
+    you're currently looking at and
+    <code>/delphi devtools &lt;instance name&gt;</code> for opening devtools
+    for a specific page.
+  </li>
+</ul>
+
+<h2>Future plans</h2>
+<p>
+  At present, I feel like I should focus on getting a better layout system set
+  up, fix up the issues with the Flow layout and then implement FlexBox layout.
+</p>
+<p>
+  But good lord, reading the FlexBox W3C Specification is nigh on impossible,
+  it's so verbose and unreadable. Luckily I have another website that speaks
+  about the FlexBox algorithm more clearly <a href="https://www.quirksmode.org/css/flexbox-algorithm.html" target="_blank">here</a>.
+</p>
+
+<p>
+  Besides the layout and rendering side, I'd also like to focus on finishing
+  the devtools and making it possible to debug and screw around with page
+  elements using it. <i>(Maybe integrate a web based version that lets you see
+  the Delphi XML code in a browser and apply changes in game when you make
+  changes in the browser)</i>
+</p>
