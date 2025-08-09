@@ -4,10 +4,18 @@
   {{$anc := (collections.Reverse .Ancestors)}}
   
   {{if (gt ($anc | len) 0)}}
-    {{range $anc}}
-      <a class="ppath-element" href="{{.RelPermalink}}">{{.Title}}</a>
-      <span class="ppath-comma">/</span>
+    {{range $idx, $el := $anc}}
+      <div class="ppath-line">
+        {{if (gt $idx 0)}}
+          <span class="ppath-comma">&gt;</span>
+        {{end}}
+        <a class="ppath-element" href="{{.RelPermalink}}">{{$el.Title}}</a>
+      </div>
     {{end}}
-    <span class="ppath-current">{{.Title}}</span>
+
+    <div class="ppath-line">
+      <span class="ppath-comma">&gt;</span>
+      <span class="ppath-current">{{.Title}}</span>
+    </div>
   {{end}}
 </div>
