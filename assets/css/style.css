@@ -108,7 +108,7 @@ sup a {
 .section-num {
   display: inline-block;
   color: gray;
-  min-width: 12.5mm;
+  min-width: 20mm;
 }
 
 .list-img {
@@ -184,7 +184,7 @@ sup a {
     margin-inline-start: 5mm;
   }
 
-  :is(h1,h2,h3,h4,h5)+p {
+  :is(h1,h2,h3,h4,h5,h6)+p {
     margin-block-start: 2em;
   }
 
@@ -296,6 +296,12 @@ sup a {
   &:hover {
     /* text-decoration: underline; */
     background-color: var(--lighter);
+  }
+
+  .section-num {
+    width: auto;
+    min-width: unset;
+    margin-inline-end: 2mm;
   }
 }
 .notes-hr {
@@ -436,4 +442,8 @@ a:active {
 
 li:not(:first-child) {
   margin-top: 3mm;
+}
+
+h5, h6 {
+  font-size: 100%;
 }
