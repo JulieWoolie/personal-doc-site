@@ -1,6 +1,7 @@
 baseURL = 'https://juliewoolie.com/'
 languageCode = 'en-us'
 title = 'My New Hugo Site'
+enableGitInfo = true
 
 [markup.highlight]
 noClasses = false
