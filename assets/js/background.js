@@ -1,24 +1,20 @@
 const BACKGROUNDS = [
-  // {
-  //   "imageUrl": "bgs/greeks.jpg",
-  //   "info": "Greeks worshipping (idk the full title)"
-  // },
   {
-    "imageUrl": "bgs/pandemonium.jpg",
+    "imageUrl": "backgrounds/pandemonium.jpg",
     "info": "Satan's palace, Pandemonium, from 'Paradise Lost'"
   },
-  // {
-  //   "imageUrl": "bgs/reception.png",
-  //   "info": "Reception of the Grand Condé at Versailles, by Jean-Léon Gérôme"
-  // },
-  // {
-  //   "imageUrl": "bgs/villa.jpg",
-  //   "info": "Ancient Roman Villa Scene"
-  // },
-  // {
-  //   "imageUrl": "bgs/village.jpg",
-  //   "info": "Medieval town painting"
-  // }
+  {
+    "imageUrl": "backgrounds/reception.png",
+    "info": "Reception of the Grand Condé at Versailles, by Jean-Léon Gérôme"
+  },
+  {
+    "imageUrl": "backgrounds/villa.jpg",
+    "info": "Ancient Roman Villa Scene"
+  },
+  {
+    "imageUrl": "backgrounds/village.jpg",
+    "info": "Medieval town painting"
+  }
 ]
 
 backgroundMain()
@@ -62,6 +58,7 @@ function onBgStateChange(state) {
   let bg = BACKGROUNDS[idx]
 
   s.backgroundImage = `url("/${bg.imageUrl}")`
+  s.backdropFilter = "blur(2px)"
 
   if (!bgInfoEl) {
     return
