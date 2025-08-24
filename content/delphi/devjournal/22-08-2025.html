@@ -1,0 +1,177 @@
+---
+title: "Flexbox finally!"
+subtitle: "22-08-2025"
+header_img: "/delphi/temple.jpg"
+header_size: "large"
+author: "Julie"
+publish_date: '2025-08-22 19:45:00 +0200 UTC'
+weight: 100
+toc: true
+---
+
+<h2>FLEXBOX</h2>
+<p>
+  FINALLY!!! I finally got around to implementing FlexBox. It took me chugging
+  an entire pitcher of black coffee <i>(Don't judge me, I like doing that.)</i>
+  Granted, it's not fully functional, or maybe it is, I don't know, my unit
+  tests are comprehensive enough to say yet.
+</p>
+<p>
+  To accomplish this, I knew I'd need to layout algorithm in a place that didn't
+  require me to have a server running, so I moved all the layout code into its
+  own module, named <code>nlayout</code>. And instead of it meaning
+  <i>"New Layout"</i>, the name now means <i>"Narcissine Layout Engine"</i>,
+  because to believe I can competently mimic web layout standards has got to be
+  narcissistic.
+</p>
+<p>
+  When I transferred all the code over to the new module, I ditched whatever
+  the hell code structure I had before and instead adopted a tree structure made
+  out of <code>LayoutNode</code>s and <code>LayoutBox</code>es. I had to do a
+  quick bit of messing around with the Flow algorithm's previous implementation
+  to get it to adapt.
+</p>
+<p>
+  But it worked, then, I implemented FlexBox. I had written pieces of the
+  algorithm beforehand, adding a couple lines once a week here and there. But
+  now, loaded up on a literal pitcher of black coffee, I wrote the entire
+  algorithm in one afternoon and IT RAN, I AM THE GOAT
+</p>
+<p>
+  It worked in game as well, as you can see here:
+</p>
+<iframe
+    style="width: 100%; height: 300px;"
+    src="https://www.youtube.com/embed/-7bjVY7K57k?si=CNrUqhdkLucniMnh"
+    title="YouTube video player"
+    frameborder="0"
+    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+    referrerpolicy="strict-origin-when-cross-origin"
+    allowfullscreen
+></iframe>
+
+<h2>Major hiccups</h2>
+<p>
+  I soon however encountered an issue. I attempted to open the <i>"Meta"</i>
+  page on Devtools, just to see if it rendered correctly. The server soon
+  crashed because my ported-over Flow algorithm began looping infinitely. At
+  this point it was late and I went to sleep.
+</p>
+<p>
+  The next day, after an hour or two of wrangling I managed to recreate the
+  circumstance of the infinite loop in a Layout test file. It turns out the
+  issue was caused by a <code>width: auto;</code> element having a
+  <code>width: 100%</code> element as a child. During first time layout, the
+  auto element's size is set to the screen's size, and then, after its child
+  element's sizes are measured, the size of the auto element is adjusted.
+</p>
+<p>
+  The issue with this, is that the child element's size is set to the screen's
+  size, then the parent element grows to adapt, then during the next measurement
+  stabilization run, the child element grows again, and this repeats until the
+  server stalls and crashes.
+</p>
+<p>
+  It took me an entire day to figure out how to handle and prevent this. I have
+  to thank the W3C standards for coming in clutch, after about 8 hours I busted
+  open the specs and found this section:
+  <a href="https://www.w3.org/TR/css-sizing-3/#cyclic-percentage-contribution" target="_blank">
+    Intrinsic Contributions of Percentage-Sized Boxes
+  </a>.
+  Of course, just handle the percent values as <code>auto</code> if the
+  parent's size isn't explicitly set. I don't know why or how, but yeah... this
+  fixed it.
+</p>
+
+<h2>Thoughts</h2>
+<p>
+  When I initially started writing the layout engine, I felt like I was in the
+  dark, I didn't know what I was doing and everything I read either in the spec
+  or from other people's own implementations or guides seemed to confuse me
+  more.
+</p>
+<p>
+  One big thing that confused me was how you can perform layout without knowing
+  the state of everything, the parent size may be auto, but the size you're
+  trying to figure out is percentage based. How do you operate in that area of
+  uncertainty?
+</p>
+<p>
+  Now though, I just write the layout code with the assumption of <i>"I know
+  everything about the state of the layout at this moment :)"</i> And it works,
+  and I'm much more familiar with the concepts and algorithms.
+</p>
+<p>
+  That being said, I still have a ways to go, Delphi at the moment does not
+  support any kind of writing system other than left-to-write. I assume this
+  already means this plugin cannot be used for languages like Arabic, which
+  write right-to-left, or Japanese, which can be either left-to-right or
+  vertical.
+</p>
+<p>
+  I wouldn't even know where to start with those languages, I only speak my own
+  native language and English.
+</p>
+
+<h2>Other stuff</h2>
+<p>
+  I also updated the <a href="/delphi/layout">NLayout</a> documentation itself
+  to reflect the new engine.
+</p>
+<p>
+  If you want to get the latest version of the plugin (at time of writing), the
+  download link is
+  <a href="https://modrinth.com/plugin/delphi/version/0.5.0" target="_blank">
+    here (Modrinth)!
+  </a>
+</p>
+
+<h2>Future stuff</h2>
+<p>
+  I'm starting to feel the plugin is almost at a stage where I can call it
+  ready for release. <i>(That's a lie.)</i>
+</p>
+<p>
+  I want to implement 2 more major features before it: Positioned Layout, and
+  non-module based menus.
+</p>
+
+<h3>Positioned Layout</h3>
+<p>
+  It feels like such a vital part for menus, that final touch, on top of Flow
+  and Flexbox. Being able to position elements as you want on the page without
+  it really affecting the current layout engine feels crucial for any release
+  version of this plugin.
+</p>
+<p>
+  That being said. When it came to Flexbox and Flow, I started out with some
+  knowledge of how they worked and their basics. I know almost nothing about
+  Positioned layout. I've rarely used it, but each time I have used it, it has
+  been powerful and provided features Flow and Flex cannot.
+</p>
+
+<h3>Non-module based menus</h3>
+<p>
+  Currently, in order to create a menu, even programmatically, you need to
+  register either a <code>IoModule</code> or a <code>ApiModule</code> that
+  opens menus from a provided <code>ResourcePath</code>.
+</p>
+<p>
+  This system feels cumbersome and sometimes like it could get in the way. The
+  big <b>+</b> it provides however, is the ability to open a menu anywhere, as
+  long as you know the command, path and any optional query params that the
+  menu might require. In fact, that's how I opened the Devtools before I added
+  the <code>/delphi devtools</code> command. I used <code>/delphi open @s devtools?:target=delphi-page-0</code>.
+  It's a bit cumbersome, but I could it anywhere and for whatever page.
+</p>
+<p>
+  The reason I feel non-module based should be added is because I think it'll
+  be easier for developers to work with. If you can just create a
+  <code>Document</code> anywhere and just open it, no need for a registered
+  <code>Module</code> instance.
+</p>
+<p>
+  For now, as well, I think the creation of non-module based menus, or rather,
+  pure programmatic menus would only be possible only through the Delphi
+  plugin's API.
+</p>
