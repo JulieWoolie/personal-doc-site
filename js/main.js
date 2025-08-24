@@ -13,6 +13,26 @@ processFootnotes()
 processFigures()
 processFigureRefs()
 
+scrollToTaggedElement()
+
+// Yeah, sometimes the # in the URL doesn't work, because the ID
+// processing happens after the elements are loaded,
+// So we just do it ourselves, bad solution ngl
+function scrollToTaggedElement() {
+  const url = window.location.hash
+  if (url === "") {
+    return
+  }
+
+  const elementId = url.substring(1)
+  const element = document.getElementById(elementId)
+  if (!element) {
+    return
+  }
+
+  element.scrollIntoView({behavior: "instant"})
+}
+
 function numberHeaders() {
   let content = document.getElementById("content")
   if (content == null) {
