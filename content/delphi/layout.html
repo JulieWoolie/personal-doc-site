@@ -1,6 +1,6 @@
 ---
 title: "NLayout Engine"
-subtitle: "The biggest nightmare in this project."
+subtitle: "Narcissine Layout Engine v4.0"
 header_img: "/delphi/temple.jpg"
 header_size: "large"
 weight: 20
@@ -19,79 +19,709 @@ author: Julie
   many different ways depending on layout context and such.
 </p>
 <p>
-  The layout engine is part of the <code>delphirender</code> module which
-  handles DOM rendering and Minecraft entity management.
+  The layout engine is in the <code>nlayout</code> module, which, obviously,
+  handles the layout execution.
 </p>
 
 <h3>The Name</h3>
 <p>
-  <i>NLayout</i> just means <i>"New Layout"</i>, after the Java class I started
-  writing it in, which was the 2nd version of the layout engine. The first being
-  very primitive, just taking in a <code>layout-direction</code> (Either X or Y)
-  and tiling elements in that direction.
+  <i>NLayout</i> originally meant <i>"New Layout"</i>, after the Java class I
+  started writing it in, which was the 2nd version of the layout engine. The
+  first being very primitive, just taking in a <code>layout-direction</code>
+  (Either X or Y) and tiling elements in that direction.
 </p>
+<p>
+  Now, it means <i>"Narcissine Layout"</i>, coming from the name <i>Narcissus</i>,
+  because only a narcissist would believe they could mimic web layout standards
+  competently. And clearly, that is what I am.
+</p>
+<p>
+  On top of that, this document describes the 4th version of the engine.
+</p>
+
+<h2>Terminology</h2>
+<p>
+  Many of the terms here are borrowed from various W3C specifications (Listed
+  in the sources section)
+</p>
+<dl>
+  <dt>finite/definite size</dt>
+  <dd>
+    A size, such as a width, or a height, that is set to an explicit value, such
+    as <code>14px</code>.
+  </dd>
+
+  <dt>indefinite size</dt>
+  <dd>
+    A size that is dependent on an element's child elements. In Delphi, this
+    means any width or height set to <code>auto</code>.
+  </dd>
+
+  <dt><code>UNSET</code></dt>
+  <dd>
+    A numeric constant with a value of <code>-1.0</code>.
+  </dd>
+
+  <dt>Screen</dt>
+  <dd>
+    Delphi elements are displayed on a screen with a set size, think of this
+    like a window on a computer.
+  </dd>
+
+  <dt>Inner size</dt>
+  <dd>
+    The content area of an element. Effectively, it's the size of an element,
+    minus the border, padding and outline.
+  </dd>
+
+  <dt>Main axis</dt>
+  <dd>
+    The primary axis/direction along which flex items are laid out.
+  </dd>
+
+  <dt>Cross axis</dt>
+  <dd>
+    The axis that sits perpendicular to a flexbox container's main axis.
+  </dd>
+
+  <dt>Starting content position</dt>
+  <dd>
+    <p>
+      The position of a container where it's layout begins. This position is the
+      container's position, offset by the border, outline and padding, using this
+      formula:
+    </p>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+      <msub><mi>c</mi><mi>x</mi></msub>
+      <mo>=</mo>
+      <msub><mi>p</mi><mi>x</mi></msub>
+      <mo>+</mo>
+      <msub><mi>o</mi><mi>l</mi></msub>
+      <mo>+</mo>
+      <msub><mi>b</mi><mi>l</mi></msub>
+      <mo>+</mo>
+      <msub><mi>d</mi><mi>l</mi></msub>
+    </math>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+      <msub><mi>c</mi><mi>y</mi></msub>
+      <mo>=</mo>
+      <msub><mi>p</mi><mi>y</mi></msub>
+      <mo>-</mo>
+      <msub><mi>o</mi><mi>t</mi></msub>
+      <mo>-</mo>
+      <msub><mi>b</mi><mi>t</mi></msub>
+      <mo>-</mo>
+      <msub><mi>d</mi><mi>t</mi></msub>
+    </math>
+    Where the main variables are
+    <i>c</i> = content starting position,
+    <i>p</i> = element position,
+    <i>o</i> = element outline,
+    <i>b</i> = element border,
+    <i>d</i> = element padding; and the subscripts are:
+    <i>x</i> = Y Axis,
+    <i>y</i> = X Axis,
+    <i>l</i> = left side,
+    <i>t</i> = top side
+  </dd>
+</dl>
 
 <h2>Layout passes</h2>
 <p>
-  Layout is divided into passes, and this section describes the initial concept
-  for the engine and the passes it executed.
+  Layout is divided into 2 parts: Measurement (or rather, Setup) and Layout.
 </p>
 
 <h3>Measurement</h3>
 <p>
-  Iterate over each element, and measure it, calculate style properties, 
-  padding, margins, etc.
+  This part involves measurement of items, but, because of how it's implemented,
+  and how the functions perform, it may be more accurate to call this
+  the <i>"Setup"</i> pass.
 </p>
 <p>
-  This pass uses a stack of vector2s called <code>parentSizes</code>, as 
-  elements are measured and we move onto their child elements, we push the 
-  element's content size onto the stack. And pop after we finish
+  Before measurement can begin, we need a <code>LayoutContext</code>, this keeps
+  track of a stack of <code>Vector2f</code>s (2D vectors, an X and a Y). This is
+  a stack <code>parentSizes</code>. On top of this we also need 2 boolean stacks,
+  a stack for determining if the width of an element is finite, and a stack for
+  determining if the height of an element is finite. These 2 stacks will be used
+  when calculating <code>%</code> lengths, as those can only resolve against
+  finite sizes.
 </p>
 <p>
-  If an element's size is set, then we use that as the element's size, 
-  otherwise, we calculate the size based off of it's child elements and layout 
-  algorithm.
+  Once measurement begins, we start at the root element of the Layout tree and
+  continue through in a depth first iteration.
 </p>
 <p>
-  Firstly, if an element's size is based off of it's child elements, we assume
-  the element's initial size to be the screen's size and then calculate its 
-  child elements. We then adjust the element's size to be the measured result.
-  Then, the whole process is executed over and over until the child elements 
-  stop changing their size, aka, until the layout stabilizes.
+  At each element, we perform the following steps.
+</p>
+<dl>
+  <dt>Style Calculation</dt>
+  <dd>
+    This is a straight forward process of taking all the CSS values and
+    computing them to actual numerical values. There isn't a lot to say about
+    this step, so here's a link to where the style calculation happens (at
+    time of writing):
+    <a target="_blank" href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/LayoutBox.java#L47">
+      Link
+    </a>
+  </dd>
+
+  <dt>Determine the current width and height of the layout box</dt>
+  <dd>
+    This is done by checking if the node's size is equal to <code>UNSET</code>.
+    If it is, we check if the current element's size is indefinite,
+    if it is, set the node's size to be the size of the screen. If the size
+    is definite, then we use that as the node's size.
+  </dd>
+
+  <dt>Push current element state to <code>LayoutContext</code></dt>
+  <dd>
+    Take the inner size of the current box, and push it to the
+    <code>parentSizes</code> stack. Then push the current width and height's
+    definite vs indefinite state to the two boolean stacks.
+  </dd>
+
+  <dt>Layout mode-dependent measurement</dt>
+  <dd>
+    <p>
+      Here, the measurement process is handed over to either the Flow or Flexbox
+      algorithm to complete the measurement and iterate over child nodes.
+    </p>
+    <p>
+      The processes these modes perform are documented in the following
+      sections.
+    </p>
+    <p>
+      This, and the following step will repeat until the size of the element
+      and/or it's child nodes stops changing, i.e. when the layout stabilizes.
+    </p>
+  </dd>
+
+  <dt>Box size adjustment</dt>
+  <dd>
+    If the node's width is set to an indefinite value, then use the width
+    returned by the previous step. The same goes for the height of the element.
+  </dd>
+
+  <dt>End</dt>
+  <dd>
+    Pop the element's state from the <code>parentSizes</code> stack and the 2
+    boolean stacks, and return if the element's size changed from before the
+    measurement call.
+  </dd>
+</dl>
+
+<h4>Regular Flow</h4>
+<p>
+  Conceptually, Flow layout breaks the elements it has to lay out into lines of
+  elements and displays all elements along each line. This section breaks down
+  the steps of how elements are measured in Flow Layout.
+</p>
+<h5>Line Division</h5>
+<p>
+  This step divides elements into lines. Iterate over all elements in the
+  Flow container, if an element has <code>display: block;</code>, place it onto
+  its own line. If the element has <code>display: inline-block;</code>,
+  move to the next line. If the current element can not fit onto the current
+  line, and the current line is not empty, move to the next line.
+</p>
+<p>
+  Note that, when checking if an element can fit on a line, the horizontal
+  left and right margins are included in the check. Depending on the
+  <code>display</code> value, the margins used may differ. For
+  <code>inline</code> elements, only <code>margin-inline-start</code> and
+  <code>margin-inline-end</code> values are used. For others, normal margins
+  are used.
+</p>
+
+<h5>Vertical Margins calculation</h5>
+<p>
+  Each line has its own top and bottom margins, these margins are created
+  out of the margins of all elements on that line.
+</p>
+<p>
+  Iterate over each item in each line. If vertical margins apply to that item
+  (non <code>display: inline;</code> items). Then use those as the base top
+  and bottom margins.
+</p>
+<p>
+  Next, we determine the actual top and bottom margins of that item. To do
+  that, we get the <code>vertical-align</code> value of the item, and we
+  calculate the amount of free room that item has to move. This is a simply
+  done by subtracting the item's height from the line's height.
+</p>
+<p>
+  To get the actual effective top and bottom margins, we perform the
+  following operation, depending on the aforementioned
+  <code>vertical-align</code> value:
+</p>
+<dl>
+  <dt><code>super</code></dt>
+  <dd>
+    <p>
+      Super means item should be displayed as if it was <sup>Super text.</sup>
+      Meaning it needs to be halfway above the line's top edge. In order for this
+      to also look halfway decent, we need to increase the top margin by half of
+      the element's height. <i>(The same amount that's poking over the top)</i>
+    </p>
+    <p>
+      The bottom margin is calculated by subtracting half the element's height from
+      the base bottom margin, and subtracting the free vertical space from it
+      as well.
+    </p>
+  </dd>
+
+  <dt><code>top</code></dt>
+  <dd>
+    <p>
+      Effective top margin is just the base top margin, while the bottom margin
+      has the free vertical space subtracted from it.
+    </p>
+    <p>
+      The reasoning for this is because the bottom of the element won't touch
+      the bottom of the line, so the effective margin has to compensate for how
+      much free space is between the bottom of the line, and the bottom of the
+      element.
+    </p>
+  </dd>
+
+  <dt><code>middle</code></dt>
+  <dd>
+    Both top and bottom margins have half the free vertical space subtracted
+    from them.
+  </dd>
+
+  <dt><code>bottom</code></dt>
+  <dd>
+    <p>
+      This is the inverse of the <code>top</code> one. In this one, the bottom
+      margin remains unchanged, and the top margin has the free vertical height
+      subtracted from it.
+    </p>
+  </dd>
+
+  <dt><code>sub</code></dt>
+  <dd>
+    <p>
+      The inverse of <code>super</code>, the top margin has both the free
+      vertical space subtracted from it and half the element's height,
+      while the bottom margin has half the item's height added to it.
+    </p>
+  </dd>
+</dl>
+<p>
+  With these effective top and bottom margins available, we change the line's
+  top and bottom margins if and only if, the effective margins are greater than
+  the existing margins.
+</p>
+
+<h5>Auto margin calculation</h5>
+<p>
+  This section is a simple one, we apply <code>margin-left: auto</code> and
+  <code>margin-right: auto</code> values.
+</p>
+<p>
+  This is done, by again, iterating over each line. Auto margin calculation is
+  only done on lines with 1 item with <code>display: block;</code>.
+</p>
+<p>
+  First, set the element's left margin to the difference between the
+  available width and the item's width. Then, if both left and right
+  margins are set to auto, halve the left margin.
+</p>
+
+<h4>FlexBox</h4>
+
+<h5>Gather Flex Items</h5>
+<p>
+  Very simple step where all child nodes of the flexbox container are gathered
+  into <code>FlexItem</code>s. Children that have <code>display: none;</code>
+  are skipped.
+</p>
+<p>
+  During gathering, we also store the CSS <code>order</code> value, if it's set.
+  If not, use the node's <code>domIndex</code> as the order. We also store the
+  <code>flex-grow</code> and <code>flex-shrink</code> values. If the node has a
+  set <code>align-self</code>, store that, otherwise, use the container's
+  <code>align-items</code> as the item's self alignment value.
+</p>
+<p>
+  Finally, after all items have been collected, sort them by their stored
+  <code>order</code> value.
+</p>
+
+<h5>Calculate base sizes</h5>
+<p>
+  This step iterates over all flex items, as such, this section describes
+  operations performed on all flex items.
+</p>
+<p>
+  <i>
+    Sidenote: I don't know if this step actually follows the W3C spec, but
+    who cares.
+  </i>
+</p>
+<p>
+  Measure the current item (This is done mostly to cause a recursive measurement
+  call to all the flex item's descendants.) Then, if a <code>flex-basis</code>
+  is set on the item, we use that as the base main size, otherwise use the
+  measured or set size of the item as it's base size.
+</p>
+
+<h5>Calculate main sizes</h5>
+<i>Oh boy...</i>
+<p>
+  First, sum up the main sizes of all flex items and include the relevant
+  <code>gap</code> in the sum (For <code>row</code>, this is
+  <code>column-gap</code>, otherwise use <code>row-gap</code>.)
+</p>
+<p>
+  If the summed size is greater than the available main size, then either
+  wrapping has to occur, or items have to be shrunk, depending on if wrapping
+  is allowed (Set by the <code>flex-wrap</code> CSS property)
+</p>
+<dl>
+  <dt>If wrapping is not allowed</dt>
+  <dd>
+    <p>
+      Since wrapping is not allowed, elements must be shrunk. To find out which
+      elements need to be shrunk, and how much, we do the following:
+    </p>
+    <ul>
+      <li>Sum up all the positive <code>flex-shrink</code> values of all flex items</li>
+      <li>
+        If the sum is positive, shrink the items with a positive shrink value,
+        using this formula:
+        <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+          <mrow>
+            <msup>
+              <mi>M</mi>
+            </msup>
+            <mo>=</mo>
+            <mi>B</mi>
+            <mo>&#x2212;</mo>
+            <mrow>
+              <mo>(</mo>
+              <mfrac>
+                <mrow>
+                  <mi>S</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>A</mi>
+                </mrow>
+                <mi>F</mi>
+              </mfrac>
+              <mo>)</mo>
+              <mo>&#x22C5;</mo>
+              <mi>f</mi>
+            </mrow>
+          </mrow>
+        </math>
+        <p>
+          In that formula: <b><i>M</i></b> = item's main size,
+          <b><i>B</i></b> = item's base size,
+          <b><i>S</i></b> = summed size of all items,
+          <b><i>A</i></b> = available main size,
+          <b><i>F</i></b> summed flex shrink value,
+          <b><i>f</i></b> is the item's own flex shrink value
+        </p>
+        <p>
+          That looks complex, but it literally just means, shrink it by how much it's configured to
+          be shrunk
+          <a href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L394" target="_blank">
+            (It's also simpler in the code)
+          </a>
+        </p>
+      </li>
+      <li>
+        <p>
+          If the sum is not positive, all elements must be shrunk equally, so
+          we use this formula:
+        </p>
+        <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+          <mrow>
+            <msup>
+              <mi>M</mi>
+            </msup>
+            <mo>=</mo>
+            <mi>B</mi>
+            <mo>&#x2212;</mo>
+            <mrow>
+              <mo>(</mo>
+              <mfrac>
+                <mrow>
+                  <mi>S</mi>
+                  <mo>&#x2212;</mo>
+                  <mi>A</mi>
+                </mrow>
+                <mi>I</mi>
+              </mfrac>
+              <mo>)</mo>
+            </mrow>
+          </mrow>
+        </math>
+        <p>
+          For the most part, the variables are the same as in the formula before
+          this one, except for <b><i>I</i></b> = amount of flex items in the
+          container.
+        </p>
+      </li>
+      <li>
+        Finally, regardless of how the shrinking was performed, all the items
+        are collected into a single <code>FlexLine</code>.
+      </li>
+    </ul>
+  </dd>
+
+  <dt>If wrapping is allowed</dt>
+  <dd>
+    <p>
+      Divide the Flex items into lines, this is simply done by summing up the
+      main size of the items as you go and checking when it becomes greater than
+      the available main size. When it does become greater, move to the next line.
+    </p>
+    <p>
+      At the end, if <code>flex-wrap</code> is set to <code>wrap-reverse</code>,
+      invert the order of the lines.
+    </p>
+    <p>
+      After this, <code>flex-grow</code> is applied to all lines (See the Flex
+      Growth Application section)
+    </p>
+  </dd>
+
+  <dt>If the sum of all item's is less than the available main size</dt>
+  <dd>
+    Place all flex items onto one line, and then apply flex growth (See the Flex
+    Growth Application section)
+  </dd>
+</dl>
+
+<h6>Flex Growth Application</h6>
+<p>This isn't a step, more of a function that can be called.</p>
+<p>
+  The handling of flex growth is similar to how <code>flex-shrink</code> is
+  handled, described in the previous section. This function is also only ran
+  if the available main size is greater than the sum of the main sizes of the
+  items passed to it.
+</p>
+<ul>
+  <li>First, all positive <code>flex-grow</code> values are summed up.</li>
+  <li>If the summed value is not greater than <code>0</code>, the function stops.</li>
+  <li>
+    <p>
+      Otherwise, the following formula is applied to all flex items that were
+      passed to the function with a positive flex growth value:
+    </p>
+    <math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
+      <mrow>
+        <msup>
+          <mi>M</mi>
+        </msup>
+        <mo>=</mo>
+        <mi>B</mi>
+        <mo>+</mo>
+        <mrow>
+          <mo>(</mo>
+          <mfrac>
+            <mrow>
+              <mi>A</mi>
+              <mo>&#x2212;</mo>
+              <mi>S</mi>
+            </mrow>
+            <mi>G</mi>
+          </mfrac>
+          <mo>)</mo>
+          <mo>&#x22C5;</mo>
+          <mi>g</mi>
+        </mrow>
+      </mrow>
+    </math>
+    <p>
+      In that formula:
+      <b><i>M</i></b> = item's main size,
+      <b><i>B</i></b> = item's base size,
+      <b><i>S</i></b> = summed size of all items,
+      <b><i>A</i></b> = available main size,
+      <b><i>G</i></b> = summed flex grow value,
+      <b><i>g</i></b> = the item's own flex grow value
+    </p>
+  </li>
+</ul>
+
+<h5>Calculate cross sizes</h5>
+<p>
+  Cross size calculation begins by getting the value of the <code>gap</code>
+  that is applied along the cross axis of the container. For <code>row</code>
+  flex containers, this is <code>row-gap</code>, otherwise, it's
+  <code>column-gap</code>.
+</p>
+<p>
+  Then we iterate over each item in each line, and take that item's cross size
+  and compare it to the line's cross size. If the item's cross size is larger,
+  the line's cross size becomes the item's cross size.
+</p>
+<p>
+  After this, the line's items are iterated over again, to apply
+  <code>stretch</code> item alignment. This is simply done by checking if the
+  effective alignment value is <code>stretch</code> for an item, and if it is,
+  set the item's cross size to the line's cross size.
+</p>
+<p>
+  Finally add up all the lines cross sizes (+ the cross gap) to get the flex box
+  container's used cross size.
+</p>
+
+<h5>Apply sizes</h5>
+<p>
+  This is simply iterating over each item in each line, and calling the item's
+  algorithm-specific measurement function.
+</p>
+<p>
+  This step is done, because after the previous 2 steps, the element's size may
+  have changed from when it was originally measured, meaning any child nodes of
+  the item may now be incorrectly sized or laid out.
 </p>
 
 <h3>Layout</h3>
 <p>
   Layout is performed by Layout algorithms, each executing it differently. At 
-  time of writing only Flow is supported.
+  time of writing only Flow and FlexBox are supported.
 </p>
 
-<h4>Flow layout</h4>
+<h4>Regular Flow</h4>
 <p>
-  Take the child elements of the element we're laying out and break them into 
-  lines. To do that, we iterate over each one, skipping ones with 
-  <code>display: hide;</code>. If an element is not <code>display: inline</code> 
-  or its too big for the current line, a line break is triggered. If the 
-  element is <code>display: block</code> another line break is triggered after 
-  the element.
+  First, we create 2 <code>Vector2f</code> variables: <code>pos</code> and
+  <code>offset</code>. The former is the content starting position of the
+  container element. The offset is initialized to <code>0, 0</code>.
 </p>
 <p>
-  Then all the elements are laid out. Elements on the same line are stacked 
-  horizontally, while lines are stacked vertically.
+  Iterate over each line. First, add the line's top margin to the
+  <code>offset</code>'s <i>y</i>-axis. Then begin iterating over each item in the line.
 </p>
 <p>
-  After layout has finished, iterate over all child elements with 
-  <code>display: block</code>. And check if they have any horizontal auto 
-  margins. If they do, properly move the element according to those margins: Do
-  nothing if only right margin is set to auto. Move element to the ride side of 
-  the parent's content if only left margin is set, and center element if both 
-  are set.
+  If the item has any left-side margin's, add it to the <code>offset</code>'s
+  <i>x</i>-axis. Now we set the item's <i>x</i> position to
+  <math>
+    <msub><mi>p</mi><mi>x</mi></msub>
+    <mo>+</mo>
+    <msub><mi>o</mi><mi>x</mi></msub>
+  </math>
+  and the <i>y</i> position to
+  <math>
+    <msub><mi>p</mi><mi>y</mi></msub>
+    <mo>-</mo>
+    <msub><mi>o</mi><mi>y</mi></msub>
+  </math>
+</p>
+<p>
+  And here we have to also account for a <code>vertical-align</code> value.
+  We get the amount of free vertical space in the line, by subtracting the
+  item's height from the line's height, we'll store this in <i>f</i>. And
+  finally, we store the item's height in <i>h</i>. In the following expressions,
+  <math><msub><mi>i</mi><mi>y</mi></msub></math> is the item's <i>y</i> position
+</p>
+<dl>
+  <dt><code>super</code></dt>
+  <dd>
+    The item has already been moved to the top of the line, so we need to move
+    it up by half the size of the item.
+    <br>
+    <math>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>=</mo>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>+</mo>
+      <mrow>
+        <mo>(</mo>
+        <mfrac>
+          <mi>h</mi>
+          <mi>2</mi>
+        </mfrac>
+        <mo>)</mo>
+      </mrow>
+    </math>
+  </dd>
+
+  <dt><code>top</code></dt>
+  <dd>
+    Since, we've already aligned the item to the line's top line, so nothing
+    is done.
+  </dd>
+
+  <dt><code>middle</code></dt>
+  <dd>
+    To move the element to the middle, we need to offset it by half the amount
+    of free space left on the line.
+    <br>
+    <math>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>=</mo>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>&#x2212;</mo>
+      <mfrac>
+        <mi>f</mi>
+        <mi>2</mi>
+      </mfrac>
+    </math>
+  </dd>
+
+  <dt><code>bottom</code></dt>
+  <dd>
+    To move to the bottom of the line, we move the element down by the
+    amount of free space available.
+    <br>
+    <math>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>=</mo>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>&#x2212;</mo>
+      <mi>f</mi>
+    </math>
+  </dd>
+
+  <dt><code>sub</code></dt>
+  <dd>
+    Sub alignment means it has to be below the line, so we move it down by the
+    amount of available vertical space and by half the item's own height.
+    <br>
+    <math>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>=</mo>
+      <msub><mi>i</mi><mi>y</mi></msub>
+      <mo>&#x2212;</mo>
+      <mo>(</mo>
+      <mi>f</mi>
+      <mi>+</mi>
+      <mrow>
+        <mfrac>
+          <mi>h</mi>
+          <mi>2</mi>
+        </mfrac>
+      </mrow>
+      <mo>)</mo>
+    </math>
+  </dd>
+</dl>
+<p>
+  Finally, you add the item's width and it's right-side margin to the offset's
+  <i>x</i>-axis. And after all items in a line have been laid out, we add the
+  line's own height and bottom margin to the offset's <i>y</i>-margin. Also, on
+  line breaks, we zero the offset's <i>x</i>-axis.
+</p>
+
+<h4>FlexBox</h4>
+<p>
+  With all due respect, I'm not describing this. This is way too messy, so
+  here's a link to the implementation (Correct at time of writing):
+  <a href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L94" target="_blank">
+    <code>FlexLayoutBox.layout()</code>
+  </a>
 </p>
 
 <h2>Sources / Docs / Tutorials</h2>
 <ul>
   <li><a href="https://www.quirksmode.org/css/flexbox-algorithm.html">www.quirksmode.org - Flexbox Algorithm</a></li>
-  <li><a href="https://www.w3.org/TR/css-flexbox-1/">W3.org - CSS Flexbox Spec</a></li>
   <li><a href="https://tchayen.com/how-to-write-a-flexbox-layout-engine">tchayen.com - How to Write a Flexbox Layout Engine</a></li>
   <li><a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/">css-tricks.com - A Guide To Flexbox/</a></li>
+  <li><a href="https://www.w3.org/TR/css-sizing-3/">W3.org - CSS Box Sizing Module Level 3</a></li>
+  <li><a href="https://www.w3.org/TR/css-flexbox-1/">W3.org - CSS Flexible Box Layout Module Level 1</a></li>
 </ul>
