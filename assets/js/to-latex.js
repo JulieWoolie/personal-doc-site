@@ -140,6 +140,12 @@ const latexTagHandlers = [
     handler(c) {
       return `\\href{${c.href}}{${toLateXString(c.childNodes)}}`
     }
+  },
+  {
+    tagName: "section",
+    handler(c) {
+      return toLateXString(c.childNodes)
+    }
   }
 ]
 
