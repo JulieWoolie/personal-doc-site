@@ -58,7 +58,7 @@ function onBgStateChange(state) {
   let bg = BACKGROUNDS[idx]
 
   s.backgroundImage = `url("/${bg.imageUrl}")`
-  s.backdropFilter = "blur(2px)"
+  // s.backdropFilter = "blur(2px)"
 
   if (!bgInfoEl) {
     return
