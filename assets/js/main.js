@@ -50,6 +50,8 @@ function applyHeaderNumbers(element) {
   let numbers = []
   let currentLevel = -1
 
+  let usingArabic = document.head.querySelector(`meta[name="chapter-numbering"][content="arabic"]`) != null
+
   for (let child of children) {
     if (child.nodeType != Node.ELEMENT_NODE) {
       continue
@@ -80,11 +82,38 @@ function applyHeaderNumbers(element) {
 
     let span = document.createElement("span")
     span.setAttribute("latex-ignore", "")
-    span.textContent = numbers.join(".") + " "
+
+    if (usingArabic) {
+      span.textContent = numbers.join(".") + " "
+    } else {
+      span.textContent = numbers.map(toRoman).join(".") + " "
+    }
+
     span.className = "section-num"
 
     child.insertBefore(span, child.firstChild)
   }
+}
+
+function toRoman(number) {
+  if (isNaN(number)) {
+    return "NaN"
+  }
+  if (number === 0) {
+    return "0"
+  }
+  if (number < 0) {
+    return `-${toRoman(-number)}`
+  }
+  let digits = String(number).split(""),
+    key = ["","C","CC","CCC","CD","D","DC","DCC","DCCC","CM",
+      "","X","XX","XXX","XL","L","LX","LXX","LXXX","XC",
+      "","I","II","III","IV","V","VI","VII","VIII","IX"],
+    roman = "",
+    i = 3;
+  while (i--)
+    roman = (key[+digits.pop() + (i * 10)] || "") + roman;
+  return Array(+digits.join("") + 1).join("M") + roman;
 }
 
 function processFigureRefs() {
