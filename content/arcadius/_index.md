@@ -2,6 +2,7 @@
 title: 'Arcadius Universe'
 header_img: "/arcadius/icon3-scaled.png"
 subtitle: "Documents relating to the ArcadiusMC server"
+weight: 100
 ---
 
 ArcadiusMC was a project between me, and two of my friends to make a server 
