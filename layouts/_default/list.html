@@ -23,6 +23,7 @@
     {{end}}
 
     {{range $pageArr}}
+      {{if not .Params.hidden}}
       <a class="link-card" href="{{.RelPermalink}}">
         <h3 class="card-title">{{.Title}}</h3>
 
@@ -42,6 +43,7 @@
           {{.Plain | truncate 250}}
         </div>
       </a>
+      {{end}}
     {{end}}
   </div>
 {{end}}
