@@ -180,7 +180,7 @@ sup a {
   p[big-letter]::first-letter {
     font-size: 200%;
   }
-  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p)::first-letter {
+  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p, [no-indent])::first-letter {
     margin-inline-start: 5mm;
   }
 
@@ -469,4 +469,8 @@ h5, h6 {
       background-color: #3d3d3d;
     }
   }
+}
+
+.text-centered {
+  text-align: center;
 }
