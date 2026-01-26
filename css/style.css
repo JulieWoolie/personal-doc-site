@@ -67,8 +67,8 @@ sup a {
 
 .content-sizing {
   padding-top: 1cm;
-  padding-right: 1cm;
-  padding-left: 1cm;
+  padding-right: 5mm;
+  padding-left: 5mm;
 }
 
 .footer {
@@ -177,10 +177,10 @@ sup a {
   p:first-child {
     margin-top: 0;
   }
-  p[big-letter]::first-letter {
+  p[bigletter]::first-letter, p[big-letter]::first-letter {
     font-size: 200%;
   }
-  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p, [no-indent])::first-letter {
+  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p, [no-indent], [noindent])::first-letter {
     margin-inline-start: 5mm;
   }
 
