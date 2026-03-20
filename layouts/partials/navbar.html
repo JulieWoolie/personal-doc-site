@@ -1,10 +1,17 @@
-<nav class="content-sizing navbar cborder navbar-visible">
-  <a class="navbar-link" href="/">Home</a>
-  <a class="navbar-link" href="/#content-el">About me</a>
-  <a class="navbar-link" href="/sun">
-    <img height="33" src="/sun.png" style="filter: invert();">
-  </a>
-  <a class="navbar-link" href="/delphi">Delphi</a>
-  <a class="navbar-link" href="/writings">Writings</a>
+<nav class="navbar cborder navbar-visible bg-dark">
+  <div class="navbar-side left">
+    <a class="navbar-link" href="/">Home</a>
+    <a class="navbar-link" href="/aboutme">About me</a>
+  </div>
+  <div class="navbar-middle">
+    <a class="navbar-link" href="/sun">
+      <img height="33" src="/sun.png" style="filter: invert();">
+    </a>
+  </div>
+  <div class="navbar-side right">
+    <a class="navbar-link" href="/delphi">Delphi</a>
+    <a class="navbar-link" href="/blog">Blog</a>
+    <a class="navbar-link" href="/arcadius">Arcadius</a>
+  </div>
 </nav>
-{{partial "palmblock.html" . }}
+{{partial "palmette.html" . }}
