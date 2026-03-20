@@ -3,6 +3,7 @@
 {{end}}
 
 {{$custom_css := resources.Get "css/style.css"}}
+{{$custom_css = $custom_css | fingerprint "sha384"}}
 <link rel="stylesheet" href="{{$custom_css.RelPermalink}}">
 
 {{$custom_css = resources.Get "css/highlighting.css"}}
