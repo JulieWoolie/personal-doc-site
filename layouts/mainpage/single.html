@@ -1,7 +1,5 @@
 {{define "main"}}
 <main class="content content-sizing bg-dark cborder" id="content-el">
-  {{partial "title.html" .}}
-
   {{$toc_setting := .Params.toc | default true}}
   {{if $toc_setting}}
     <h2 toc-ignore>Table Of Contents</h2>

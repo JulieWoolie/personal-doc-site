@@ -3,11 +3,13 @@
   <head>
     {{ partial "head.html" . }}
   </head>
-  <body class="bg-lighter body">
-    <main class="content content-sizing bg-dark" {{if (default false .Params.wide_page)}}wide="true"{{end}} id="content-el">
-      {{ partial "page-path.html" .}}
-      {{ block "main" . }} {{end}}
-    </main>
+
+  {{$bg_url := .Params.bg | default "/backgrounds/statue-repeat.png"}}
+
+  <body class="bg-lighter body" style="background-image: url('{{$bg_url}}')">
+    {{ partial "navbar" . }}
+
+    {{ block "main" . }} {{end}}
 
     {{ partial "footer.html" . }}
     {{ partial "scripts.html" . }}

@@ -1,0 +1,53 @@
+{{define "main"}}
+<main class="content content-sizing bg-dark cborder" id="content-el">
+  {{$has_content := (strings.ContainsNonSpace .Content)}}
+  {{if $has_content}}
+  <div class="list-content">
+    {{.Content}}
+  </div>
+  {{end}}
+
+</main>
+
+{{partial "palmblock.html" . }}
+
+<div class="content content-sizing bg-dark">
+  <div class="booklist">
+    {{if $has_content}}
+    <h2>Pages</h2>
+    {{end}}
+
+    {{ $pageArr := .Pages.ByWeight}}
+    {{ $reversed := .Params.reversedOrder | default false}}
+    {{ $includeheader := .Params.include_header | default false}}
+
+    {{if $reversed}}
+    {{ $pageArr = $pageArr.Reverse}}
+    {{end}}
+
+    {{range $pageArr}}
+    {{if not .Params.hidden}}
+    <a class="link-card" href="{{.RelPermalink}}">
+      <h3 class="card-title">{{.Title}}</h3>
+
+      {{$pheader := .Params.header_img | default ""}}
+      {{$pheader_inc := .Params.header_img_show | default true}}
+      {{$showheader := (and $includeheader $pheader_inc (ne $pheader ""))}}
+
+      {{if $showheader}}
+      <img class="list-img" src="{{$pheader}}">
+      {{end}}
+
+      {{if (strings.ContainsNonSpace .Params.subtitle)}}
+      <p class="card-subtitle">{{.Params.subtitle}}</p>
+      {{end}}
+
+      <div>
+        {{.Plain | truncate 250}}
+      </div>
+    </a>
+    {{end}}
+    {{end}}
+  </div>
+</div>
+{{end}}

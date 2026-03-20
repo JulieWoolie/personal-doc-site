@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="{{.Language.Lang}}">
+
+<head>
+  {{ partial "head.html" . }}
+</head>
+
+<body class="bg-lighter body" style="background-image: url('/backgrounds/statue.png')">
+  {{ partial "navbar" . }}
+
+  <div class="cultstuff content-sizing">
+    <img alt="Divine Sun" src="/divine-sun.png">
+  </div>
+
+  {{partial "palmblock.html" . }}
+
+  {{ block "main" . }} {{end}}
+
+  {{ partial "footer.html" . }}
+  {{ partial "scripts.html" . }}
+</body>
+
+</html>
