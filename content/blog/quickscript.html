@@ -1,0 +1,781 @@
+---
+title: "quickscript"
+subtitle: "little spec for a programming language I made while on vacation"
+weight: 40
+publish_date: '2026-07-17 21:00:00 +0200 UTC'
+author: Julie
+toc: true
+---
+
+<h2>Intro</h2>
+<p>
+  This post will just serve as me rambling about a project I'm working on, aka,
+  trying to plan it and setting stuff up for when I actually implement it so I
+  can reason through it before I realize I fucked up about 5 hours into writing
+  an interpreter.
+</p>
+<p>
+  I want to start with some base ideas that I'm going to try to keep in mind
+  when designing the internal structure of the language's interpreter.
+</p>
+<dl>
+  <dt>All data exists on the stack.</dt>
+  <dd>
+    No heap, no allocations, no freeing memory, <i>no nulls</i>. That's the
+    base idea for everything. Structs are always passed by value.
+  </dd>
+
+  <dt>No memory interaction</dt>
+  <dd>
+    You should never be able to interact with raw pointers, random memory or
+    anything like C allows you to. It's a scripting language, not C 2.0.
+  </dd>
+
+  <dt>Type safety and basically compiled</dt>
+  <dd>
+    quickscript is a statically typed language and my hope is a type system will
+    allow me to make the most out of what I'm doing. Static typing means that
+    the compiler basically knows where everything will be, how big it will be
+    and how it'll be used.
+  </dd>
+
+  <dt>No garbage collector</dt>
+  <dd>
+    Memory handling should be done as it executes, the hope is that with a
+    simple stack-memory-based language data will be freed as scopes are exited
+    and so there's no requirement for automatic garbage collection.
+  </dd>
+
+  <dt>Single threaded</dt>
+  <dd>
+    I'm not managing that shit, at least not right now. This is called
+    <i>quickscript</i> because it's intended to be a quickly (ish) made
+    scripting language.
+  </dd>
+</dl>
+
+<h2>Syntax</h2>
+<p>
+  I'm not defining the grammar, so here's an example of the source code:
+</p>
+{{<highlight txt>}}
+int32 main(string[] args) {
+  println("Hello, world!")
+  return 0
+}
+{{</highlight>}}
+
+<h2>Internals</h2>
+
+<h3>Strings / Arrays</h3>
+<p>
+  Arrays and Strings are largely handled the same as they are in effect, the
+  same, an array of some data type.
+</p>
+<p>
+  quickscript Strings are UTF-8 encoded arrays of single byte characters.
+</p>
+<p>
+  quickscript Arrays are length-prefixed. Meaning the data of an array consists
+  of 4 bytes to determine the length of the array, with the rest of the bits
+  consisting of the array's data. Arrays, despite the first point in the above
+  section, are heap allocated.
+</p>
+<p>
+  Array data is allocated and freed as required by an internal memory allocator,
+  scripts only ever interact with a pointer to said data. That being said, every
+  other rule still applies in regard to how and when arrays are allocated and
+  freed.
+</p>
+<p>
+  Where arrays and strings differ is that Strings are readonly and cannot be
+  modified with anything other than methods that cause new strings to be
+  allocated.
+</p>
+<p>
+  Concatenating, or swapping out characters in a string causes a new duplicate
+  string to be allocated.
+</p>
+
+<h3>Lookups and stack vs heap usage</h3>
+<p>
+  While almost all user generated code and the data from it will exist on the
+  stack, there are objects or arrays (strings) that must by necessity exist
+  on the heap.
+</p>
+<p>
+  For example, native functions cannot exist in the same space as user-written
+  functions or variables. So a difference must be established for how local
+  functions and native functions are compiled and interpreted.
+</p>
+
+<h3>Pass by value vs by reference</h3>
+<p>
+  quickscript will follow Java's lead when it comes to how data is passed.
+  Primitive values such as numbers, booleans and characters is passed by value.
+  But structs, strings, arrays and potentially functions will be passed by
+  pointer reference.
+</p>
+<p>
+  While functions can't be assigned to variables or currently passed to
+  functions as an argument, they do still somehow need to be referenced.
+</p>
+
+<h2>Interpreter</h2>
+<p>
+  quickscript's internal compiler will compile source files into an internal
+  bytecode that is then executed by the interpreter, that bytecode will be
+  referred to as the IR.
+</p>
+<p>
+  The process of that compilation I will uhh, one day figure out :3 I just
+  wanna figure out how the interpreter itself will function.
+</p>
+<p>
+  The IR data produced by the compiler will be split into multiple parts:
+</p>
+<dl>
+  <dt>Const String Pool</dt>
+  <dd>
+    A buffer of utf-8 strings. The strings here are all the identifiers used
+    for function and potentially variable names as well as all the string
+    literals defined in the code itself. As mentioned before, these are
+    length-prefixed UTF-8 strings.
+  </dd>
+  <dt>Function data array</dt>
+  <dd>
+    Each function's instructions are defined within this array, so it's a large
+    buffer of OP Codes and instructions.
+  </dd>
+</dl>
+
+<h3>Data layout of instructions</h3>
+<p>
+  an Instruction is an opcode and all of its arguments. Each instruction is
+  made up of a 16-bit opcode followed by 72 bits of arguments. Each
+  instruction is fixed length.
+</p>
+
+<h3>Function invocation</h3>
+<p>
+  To invoke a function in quickscript, it's function pointer must be called
+  with the <code>INVOKE</code> instruction.
+</p>
+<p>
+  Further, the interpreter stores all function arguments in an array along with
+  the return value.
+</p>
+
+<h3>IR OP Codes</h3>
+<p>
+  A lot of the following opcodes will refer to some arguments as "<i>registers.</i>"
+  This means the argument is an unsigned 8bit integer index for one of the
+  interpreter's registers.
+</p>
+<p>
+  Any operation listed here which is based on a certain memory size
+  (suffixed with 8, 16, 32 and 64) is also used for pointer types and
+  floating point types, as for those the numeric type doesn't really matter,
+  they're still just numeric values stored in bits.
+</p>
+<p>
+  OP Codes are generally divided into multiple categories: general, unary,
+  conversion and binary. The following sections specify what OP Codes exist and
+  what they do.
+</p>
+
+<h4>General purpose OP Codes</h4>
+<dl>
+  <dt><code>NOP</code></dt>
+  <dd>
+    A no-operation operation that does nothing. This isn't intended to be used
+    or even appear in the outputted IR, but exists as a placeholder for an
+    opcode with a <code>0</code> value.
+  </dd>
+
+  <dt><code>PUSHLINE</code></dt>
+  <dd>
+    Pushes a line number to the interpreters tracker telling it what line of
+    the source it is currently executing, used for when stuff goes wrong or for
+    inspecting the IR and easily comparing it with the source code.
+  </dd>
+
+  <dt><code>RET</code></dt>
+  <dd>
+    <p>
+      Each function's data is suffxed with this instruction regardless of if a
+      <code>return</code> statement was actually added in the source. It tells the
+      interpreter when to return to the caller up the call the stack.
+    </p>
+    <p>
+      If there is no call frame to return to after a <code>RET</code>
+      instruction, the program has reached the end of execution and should
+      exit.
+    </p>
+  </dd>
+
+  <dt><code>JMP</code>, <code>JMPI0</code> and <code>JMPN0</code></dt>
+  <dd>
+    <p>
+      Are all jump instructions. The first one simply jumps to a different
+      instruction. The other two are conditional jumps. <code>JMPI0</code> means
+      jump if zero and <code>JMPN0</code> means jump if not zero.
+    </p>
+    <p>
+      All instructions take a 32bit unsigned integer as their first argument,
+      which is the next instruction to jump to. The 2nd and 3rd instructions
+      take in a 2nd argument as well: the register value to evaluate is inside.
+    </p>
+  </dd>
+
+  <dt><code>STACKALLOC</code></dt>
+  <dd>
+    <p>
+      Allocates room in the stack for the current function to use. The idea,
+      hopefully is that in most cases you can predict how much space a specific
+      function will use on the stack and from that you can allocate all that
+      space at the beginning of a function's execution.
+    </p>
+    <p>
+      The amount of room to allocate is specified as an unsigned 64-bit integer
+      argument in the instruction
+    </p>
+  </dd>
+
+  <dt><code>STACKFREE</code></dt>
+  <dd>
+    The counter part to <code>STACKALLOC</code>, this one retracts the stack
+    pointer, thus freeing all the memory acquired at the start of a function's
+    execution.
+    <p>
+      The amount of room to allocate is specified as an unsigned 64-bit integer
+      argument in the instruction
+    </p>
+  </dd>
+
+  <dt><code>SREAD</code> (has byte-dependent codes)</dt>
+  <dd>
+    Reads a value of a corresponding bit-size from the stack memory. Takes in
+    two arguments:
+    <ul>
+      <li>The register to store the read value.</li>
+      <li>
+        The memory offset to read from. Offsets relative to stack address at
+        the start of the function execution.
+      </li>
+    </ul>
+  </dd>
+
+  <dt><code>SWRITE</code> (has byte-dependent codes)</dt>
+  <dd>
+    Writes a value of a corresponding bit-size to the stack memory. Takes in
+    two arguments:
+    <ul>
+      <li>The register to read the value from.</li>
+      <li>The memory offset to write to.</li>
+    </ul>
+  </dd>
+
+  <dt><code>LOADCONST</code> (has byte-dependent codes)</dt>
+  <dd>
+    <p>
+      These are all instructions which take as arguments a register to store a
+      constant value inside and a 2nd argument which is the constant value
+      itself.
+    </p>
+  </dd>
+
+  <dt><code>READOBJ</code> (has byte-dependent codes)</dt>
+  <dd>
+    These are all instructions for reading from an object (struct or array or
+    string) The instruction takes in three arguments.
+    <ul>
+      <li>Register containing the "object" to read from (a pointer)</li>
+      <li>Register to store the output of the read value.</li>
+      <li>The byte offset of the object's data to read from (<code>uint32</code>)</li>
+    </ul>
+  </dd>
+
+  <dt><code>WRITEOBJ</code> (has byte-dependent codes)</dt>
+  <dd>
+    These are all instructions for writing to an object.
+    The instruction takes in three arguments.
+    <ul>
+      <li>Register containing the "object" to write to.</li>
+      <li>Register to read the value from.</li>
+      <li>The byte offset of the object's data to write to (<code>uint32</code>)</li>
+    </ul>
+  </dd>
+
+  <dt><code>HEAPALLOC</code></dt>
+  <dd>
+    Allocate an object on the heap. This should only be used for allocating
+    space for objects, arrays and strings. Takes in the following arguments:
+    <ul>
+      <li>Register to store the pointer address of the allocated memory in.</li>
+      <li>Unsigned 64bit integer indicating how many bytes to allocate.</li>
+    </ul>
+  </dd>
+
+  <dt><code>HEAPFREE</code></dt>
+  <dd>
+    <p>
+      Free an object allocated on the heap. This must only ever be called at the
+      end of the scope that initially allocated the object. That is except when
+      the allocated object is a return value or is part of a returned value.
+    </p>
+    <p>
+      For example, a struct allocated and then returned should not be freed when
+      the function returns. And a struct allocated and then used as the value in
+      a different struct or array should also not be freed when returned.
+    </p>
+    Arguments:
+    <ul>
+      <li>Register the pointer to the object is stored in.</li>
+    </ul>
+  </dd>
+</dl>
+
+<h4>Function Call Instructions</h4>
+<dl>
+  <dt><code>PUSHARG</code> (has byte-dependent codes)</dt>
+  <dd>
+    <p>
+      Push a value in a register into the interpreter's function arguments
+      array.
+    </p>
+    Arguments:
+    <ul>
+      <li>The register containing the value to push.</li>
+    </ul>
+  </dd>
+
+  <dt><code>SETRV</code></dt>
+  <dd>
+    Set the return value. Arguments:
+    <ul>
+      <li>Register the return value is in.</li>
+    </ul>
+  </dd>
+
+  <dt><code>INVOKE</code></dt>
+  <dd>
+    <p>
+      Two instructions for invoking functions, the 2nd one is used for
+      invoking functions with a void return type.
+    </p>
+    Arguments:
+    <ul>
+      <li>The register containing the function pointer</li>
+      <li>The register to store the returned value in (ignored when using the void invoke.)</li>
+    </ul>
+  </dd>
+</dl>
+
+<h4>Conversion Instructions</h4>
+<p>
+  These are instructions that convert from one number type to another.
+</p>
+Instructions included in this set:
+<ul class="multicol">
+  <li><code>I8TU8</code></li>
+  <li><code>I8TI16</code></li>
+  <li><code>I8TU16</code></li>
+  <li><code>I8TI32</code></li>
+  <li><code>I8TU32</code></li>
+  <li><code>I8TI64</code></li>
+  <li><code>I8TU64</code></li>
+  <li><code>I8TF32</code></li>
+  <li><code>I8TF64</code></li>
+  <li><code>U8TI8</code></li>
+  <li><code>U8TI16</code></li>
+  <li><code>U8TU16</code></li>
+  <li><code>U8TI32</code></li>
+  <li><code>U8TU32</code></li>
+  <li><code>U8TI64</code></li>
+  <li><code>U8TU64</code></li>
+  <li><code>U8TF32</code></li>
+  <li><code>U8TF64</code></li>
+  <li><code>I16TI8</code></li>
+  <li><code>I16TU8</code></li>
+  <li><code>I16TU16</code></li>
+  <li><code>I16TI32</code></li>
+  <li><code>I16TU32</code></li>
+  <li><code>I16TI64</code></li>
+  <li><code>I16TU64</code></li>
+  <li><code>I16TF32</code></li>
+  <li><code>I16TF64</code></li>
+  <li><code>U16TI8</code></li>
+  <li><code>U16TU8</code></li>
+  <li><code>U16TI16</code></li>
+  <li><code>U16TI32</code></li>
+  <li><code>U16TU32</code></li>
+  <li><code>U16TI64</code></li>
+  <li><code>U16TU64</code></li>
+  <li><code>U16TF32</code></li>
+  <li><code>U16TF64</code></li>
+  <li><code>I32TI8</code></li>
+  <li><code>I32TU8</code></li>
+  <li><code>I32TI16</code></li>
+  <li><code>I32TU16</code></li>
+  <li><code>I32TU32</code></li>
+  <li><code>I32TI64</code></li>
+  <li><code>I32TU64</code></li>
+  <li><code>I32TF32</code></li>
+  <li><code>I32TF64</code></li>
+  <li><code>U32TI8</code></li>
+  <li><code>U32TU8</code></li>
+  <li><code>U32TI16</code></li>
+  <li><code>U32TU16</code></li>
+  <li><code>U32TI32</code></li>
+  <li><code>U32TI64</code></li>
+  <li><code>U32TU64</code></li>
+  <li><code>U32TF32</code></li>
+  <li><code>U32TF64</code></li>
+  <li><code>I64TI8</code></li>
+  <li><code>I64TU8</code></li>
+  <li><code>I64TI16</code></li>
+  <li><code>I64TU16</code></li>
+  <li><code>I64TI32</code></li>
+  <li><code>I64TU32</code></li>
+  <li><code>I64TU64</code></li>
+  <li><code>I64TF32</code></li>
+  <li><code>I64TF64</code></li>
+  <li><code>U64TI8</code></li>
+  <li><code>U64TU8</code></li>
+  <li><code>U64TI16</code></li>
+  <li><code>U64TU16</code></li>
+  <li><code>U64TI32</code></li>
+  <li><code>U64TU32</code></li>
+  <li><code>U64TI64</code></li>
+  <li><code>U64TF32</code></li>
+  <li><code>U64TF64</code></li>
+  <li><code>F32TI8</code></li>
+  <li><code>F32TU8</code></li>
+  <li><code>F32TI16</code></li>
+  <li><code>F32TU16</code></li>
+  <li><code>F32TI32</code></li>
+  <li><code>F32TU32</code></li>
+  <li><code>F32TI64</code></li>
+  <li><code>F32TU64</code></li>
+  <li><code>F32TF64</code></li>
+  <li><code>F64TI8</code></li>
+  <li><code>F64TU8</code></li>
+  <li><code>F64TI16</code></li>
+  <li><code>F64TU16</code></li>
+  <li><code>F64TI32</code></li>
+  <li><code>F64TU32</code></li>
+  <li><code>F64TI64</code></li>
+  <li><code>F64TU64</code></li>
+  <li><code>F64TF32</code></li>
+</ul>
+
+<h4>Unary instructions</h4>
+<p>
+  These instructions take in 2 arguments, an input and an output register.
+  Each instruction then performs some operation and places the result in the
+  output register.
+</p>
+
+Instructions included in this section:
+<dl>
+  <dt><code>BNEGATE</code></dt>
+  <dd>Bitwise negate operation</dd>
+  <dt><code>LNEGATE</code></dt>
+  <dd>Logical negate operation</dd>
+</dl>
+
+<h4>Binary operations</h4>
+<p>
+  Binary instructions take in 3 arguments, a left-hand-side register argument,
+  a right-hand-side register argument and an output register argument. The
+  instruction then performs an operation on the arguments and places the
+  result in the return register.
+</p>
+<p>
+  I'm not listing all the opcodes in this section as there's many
+  variations of each one. But I will list the types of opcodes.
+</p>
+<p>
+  In the following sections, some instructions are marked as bitwise operations
+  and some as bitwise. The difference is in how the bits are handled. Logical
+  operations are intended for boolean operations, so they function slightly
+  differently. For example, the bitwise OR operation combines the bits in two
+  integers, where as the boolean OR operation outputs a <code>1</code> or
+  <code>0</code> depending on the value of both operands.
+</p>
+<p>
+  Given the sheer number of binary operations that exist, it would be advisable
+  to use some kind of script to auto generate the C code for each one rather
+  than trying to write that shit by hand.
+</p>
+
+<h5>Integer-only Binary Operations</h5>
+<p>
+  These are instructions that are only supported for the integer types,
+  signed and unsigned, and mostly includes bitwise operations
+</p>
+Instruction types:
+<ul>
+  <li><code>LSHIFT</code>: Left Shift</li>
+  <li><code>RSHIFT</code>: Right Shift</li>
+  <li><code>URSHIFT</code>: Unsigned right shift</li>
+  <li><code>BAND</code>: Bitwise AND operation (<code>&</code>)</li>
+  <li><code>BOR</code>: Bitwise OR operation (<code>|</code>)</li>
+  <li><code>BXOR</code>: Bitwise XOR operation (<code>^</code>)</li>
+</ul>
+
+<h5>Boolean-only Binary Operations</h5>
+<p>
+  Some overlap in this category with the previous, but these operations
+  function slightly differently.
+</p>
+Instruction types:
+<ul>
+  <li><code>LAND</code>: Logical AND operation (<code>&&</code>)</li>
+  <li><code>LOR</code>: Logical OR operation (<code>||</code>)</li>
+  <li><code>LXOR</code>: Logical XOR operation (<code>^</code>)</li>
+</ul>
+
+<p>
+  <b>Note</b>: The use of <code>LXOR</code> or <code>BXOR</code> has to be
+  decided by the compiler depending on the type of the operands involved. This
+  is because they use the same operator (<code>^</code>) in the source code.
+</p>
+
+<h5>General Number Binary Operations</h5>
+<p>
+  This category encompasses mostly mathematical operations for each number type
+  supported by quickscript.
+</p>
+<dl>
+  <dt><code>ADD</code></dt>
+  <dd>These operations add two numbers.</dd>
+  <dt><code>SUB</code></dt>
+  <dd>These operations subtract the right argument from the left.</dd>
+  <dt><code>MUL</code></dt>
+  <dd>These operations multiply the left argument with the right.</dd>
+  <dt><code>DIV</code></dt>
+  <dd>These operations divide the left argument by the right.</dd>
+  <dt><code>MOD</code></dt>
+  <dd>Modulo instruction.</dd>
+  <dt><code>POW</code></dt>
+  <dd>These operations raise the left argument to the power of the right</dd>
+</dl>
+
+<h2>Pseudo Code</h2>
+{{<highlight ts>}}
+interface QsString {
+  length: uint32
+  data: utf8char[]
+}
+
+interface QsArray {
+  length: uint32
+  data: uint8[]
+}
+
+interface QsObject {
+  data: uint8[]
+
+  getI8Property(uint64 offset);
+  getU8Property(uint64 offset);
+  getI16Property(uint64 offset);
+  getU16Property(uint64 offset);
+  getI32Property(uint64 offset);
+  getU32Property(uint64 offset);
+  getI64Property(uint64 offset);
+  getU64Property(uint64 offset);
+  getF32Property(uint64 offset);
+  getF64Property(uint64 offset);
+}
+
+struct StackFrame {
+  name: QsString
+  callLine: uint32
+};
+
+interface InterpreterData {
+  registers: uint64[8]
+
+  returnValue: uint64
+  funcArgs: uint64[64]
+  funcArgsLen: uint32
+
+  frames: Stack<StackFrame>
+}
+
+enum TypeKind {
+  PRIMITIVE,
+  FUNCTION,
+  ARRAY,
+  STRING,
+  OBJECT
+}
+
+interface QsType {
+  kind: TypeKind
+}
+
+interface QsArrayType {
+  componentType: QsType
+}
+
+interface QsObjectType {
+  properties: QsType[]
+}
+
+enum OsPrimitive: QsType {
+  BOOL,
+  INT8,
+  UINT8,
+  INT16,
+  UINT16,
+  INT32,
+  UINT32,
+  INT64,
+  UINT64,
+  FLOAT32,
+  FLOAT64,
+}
+
+interface ArgumentSignature {
+  type: QsType
+  varargs: bool
+}
+
+interface FunctionType {
+  returnType: QsType
+  argumentTypes: ArgumentSignature[]
+}
+
+interface NativeCall {
+  setReturnValue(uint64 value);
+
+  getArgumentType(uint32 idx): QsType;
+
+  getBoolArgument(uint32: idx): bool
+
+  getI8Argument(uint32: idx): int8
+  getU8Argument(uint32: idx): uint8
+  getI16Argument(uint32: idx): int16
+  getU16Argument(uint32: idx): uint16
+  getI32Argument(uint32: idx): int32
+  getU32Argument(uint32: idx): uint32
+  getI64Argument(uint32: idx): int64
+  getU64Argument(uint32: idx): uint64
+  getF32Argument(uint32: idx): float32
+  getF64Argument(uint32: idx): float64
+
+  getStrArgument(uint32: idx): QsString
+
+  getArrayArgument(uint32: idx): QsArray
+  getObjectArgument(uint32: idx): QsObject
+
+  getScriptString(heapAddr: uint64): QsString
+
+  allocHeap(size: uint64): uint64
+  heapFree(addr: uint64): void
+}
+
+interface NativeFunction {
+  signature: FunctionType
+  invoke(n: NativeCall): void
+}
+{{</highlight>}}
+
+<h2>Standard Library</h2>
+<p>
+  This section will just describe all the functions and constants I can think
+  of that should be part of the standard library.
+</p>
+
+<h3>Constants</h3>
+<dl>
+  <dt><code>PI</code></dt><dd>3.1415, you know, pi</dd>
+  <dt><code>E</code></dt><dd>Euler's number</dd>
+  <dt><code>LN10</code></dt><dd>Natural logarithm of 10</dd>
+  <dt><code>LN2</code></dt><dd>Natural logarithm of 2</dd>
+  <dt><code>LOG10E</code></dt><dd>Base-10 logarithm of E</dd>
+  <dt><code>LOG2E</code></dt><dd>Base-2 logarithm of E</dd>
+  <dt><code>SQRT1_2</code></dt><dd>Square root of <code>1 / 2</code></dd>
+  <dt><code>SQRT2</code></dt><dd>square root of <code>2</code></dd>
+</dl>
+
+<h3>Functions</h3>
+<p>
+  Some functions are defined multiple types for several number types, in those
+  cases the following placeholders will be used:
+</p>
+<dl>
+  <dt><code>float</code></dt><dd><code>float32</code> and <code>float64</code></dd>
+  <dt><code>num</code></dt><dd>All numeric types</dd>
+  <dt><code>int</code></dt><dd>Any integer types</dd>
+</dl>
+<p>
+  I will also omit descriptions from some functions because of how common they
+  are that you can look up the same function in basically any other language and
+  find its definition.
+</p>
+
+<h4>General functions</h4>
+<dl>
+  <dt><code>void printf(string format, args...);</code></dt>
+  <dd>
+    Prints to the standard output, effectively identical to C's printf, except
+    for the ability of quickscript to automatically discern what the argument
+    types are.
+  </dd>
+
+  <dt><code>println(string format, args...)</code></dt>
+  <dd>
+    Same as <code>printf</code>, but appends a new line character to the end of
+    the print string.
+  </dd>
+
+  <dt><code>string sformat(string format, args...);</code></dt>
+  <dd>Formats a string in the same way as <code>printf</code>.</dd>
+</dl>
+
+<h4>Time and date functions</h4>
+<dl>
+  <dt><code>currentTimeMillis()</code></dt>
+  <dd>Returns the current UNIX timestamp.</dd>
+</dl>
+
+<h4>Math functions</h4>
+<dl>
+  <dt><code>float sqrt(float x);</code></dt>
+  <dd>Square root function</dd>
+
+  <dt><code>float cbrt(float x);</code></dt>
+  <dd>Cube root function</dd>
+
+  <dt><code>num abs(num x);</code></dt>
+  <dt><code>float acos(float x);</code></dt>
+  <dt><code>float acosh(float x);</code></dt>
+  <dt><code>float asin(float x);</code></dt>
+  <dt><code>float asinh(float x);</code></dt>
+  <dt><code>float atan(float x);</code></dt>
+  <dt><code>float atan2(float x, float y);</code></dt>
+  <dt><code>float atanh(float x);</code></dt>
+  <dt><code>float ceil(float x);</code></dt>
+  <dt><code>int clz(int x);</code></dt>
+  <dt><code>float cos(float x);</code></dt>
+  <dt><code>float cosh(float x);</code></dt>
+  <dt><code>float hypot(float... values);</code></dt>
+  <dt><code>float log(float x);</code></dt>
+  <dt><code>float log1-(float x);</code></dt>
+  <dt><code>float log1p(float x);</code></dt>
+  <dt><code>float log2(float x);</code></dt>
+  <dt><code>num max(num... values);</code></dt>
+  <dt><code>num min(num... values);</code></dt>
+  <dt><code>float round(float x);</code></dt>
+  <dt><code>float round(float x, uint32 precision);</code></dt>
+  <dt><code>int8 sign(num x);</code></dt>
+  <dt><code>float sin(float x);</code></dt>
+  <dt><code>float sinh(float x);</code></dt>
+  <dt><code>float tan(float x);</code></dt>
+</dl>
+
+<h3>Structs</h3>
