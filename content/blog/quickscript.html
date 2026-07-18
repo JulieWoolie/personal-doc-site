@@ -18,6 +18,9 @@ toc: true
   I want to start with some base ideas that I'm going to try to keep in mind
   when designing the internal structure of the language's interpreter.
 </p>
+<p>
+  Link to the interpreter source code: <a href="https://github.com/JulieWoolie/quickscript">github.com/juliewoolie/quickscript</a>
+</p>
 <dl>
   <dt>All data exists on the stack.</dt>
   <dd>
@@ -765,7 +768,7 @@ interface NativeFunction {
   <dt><code>float cosh(float x);</code></dt>
   <dt><code>float hypot(float... values);</code></dt>
   <dt><code>float log(float x);</code></dt>
-  <dt><code>float log1-(float x);</code></dt>
+  <dt><code>float log10(float x);</code></dt>
   <dt><code>float log1p(float x);</code></dt>
   <dt><code>float log2(float x);</code></dt>
   <dt><code>num max(num... values);</code></dt>
