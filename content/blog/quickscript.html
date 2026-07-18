@@ -24,8 +24,9 @@ toc: true
 <dl>
   <dt>All data exists on the stack.</dt>
   <dd>
-    No heap, no allocations, no freeing memory, <i>no nulls</i>. That's the
-    base idea for everything. Structs are always passed by value.
+    That tagline is a bit hyperbolic. I've since discovered that there are
+    some things where its easier for me to pass by reference (arrays, strings,
+    structs) so this mantra exists as a general guideline now.
   </dd>
 
   <dt>No memory interaction</dt>
