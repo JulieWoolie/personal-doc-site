@@ -12,8 +12,44 @@ processTableOfContents()
 processFootnotes()
 processFigures()
 processFigureRefs()
+processChapterRefs()
 
 scrollToTaggedElement()
+
+// <chapter-ref> elements are elements used to point to a chapter reference easily
+function processChapterRefs() {
+  const content = document.getElementById("content")
+  if (content == null) {
+    return
+  }
+
+  const references = content.querySelectorAll("chapter-ref")
+
+  for (const ref of references) {
+    const target = ref.getAttribute("target");
+    if (!target || target === "") {
+      continue
+    }
+
+    const h = document.getElementById(target);
+    let hContent = ""
+
+    if (h.classList.contains("section-num")) {
+      hContent = h.parentElement.textContent
+    } else {
+      hContent = h.textContent
+    }
+
+    hContent = hContent.replaceAll("🔗", "")
+
+    const href = document.createElement("a")
+    href.href = `#${target}`
+    href.textContent = hContent
+
+    ref.before(href)
+    ref.remove()
+  }
+}
 
 // Yeah, sometimes the # in the URL doesn't work, because the ID
 // processing happens after the elements are loaded,
@@ -82,6 +118,7 @@ function applyHeaderNumbers(element) {
 
     let span = document.createElement("span")
     span.setAttribute("latex-ignore", "")
+    span.id = child.id
 
     if (usingArabic) {
       span.textContent = numbers.join(".") + " "
@@ -201,13 +238,12 @@ function processHeadingElement(heading) {
     heading.textContent.toLowerCase()
       .replaceAll(" ", "-")
       .replaceAll(",", "")
-      .replaceAll(".", "")
       .replaceAll("'", "")
       .replaceAll("/", "")
       .replaceAll("\"", "")
   )
-  
-  let linkAnchor = document.createElement("a")
+
+  const linkAnchor = document.createElement("a")
   linkAnchor.href = `#${txt}`
   linkAnchor.className = "copy-header-ref"
   linkAnchor.textContent = "\uD83D\uDD17"
@@ -255,7 +291,7 @@ function processTableOfContents() {
       a.style.paddingLeft = `${leftPad}mm`
     }
     a.classList.add("toc-element")
-    a.innerHTML = c.innerHTML
+    a.innerHTML = c.innerHTML.replaceAll(/id="[^"]*"/gi, "")
     a.href = `#${txt}`
 
     tocOut.appendChild(a)
