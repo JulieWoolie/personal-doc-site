@@ -232,6 +232,24 @@ int32 main(string[] args) {
     </p>
   </dd>
 
+  <dt><code>LOADCONST</code> (has byte-dependent codes)</dt>
+  <dd>
+    <p>
+      These are all instructions which take as arguments a register to store a
+      constant value inside and a 2nd argument which is the constant value
+      itself.
+    </p>
+  </dd>
+</dl>
+
+<h4>Stack Memory OP Codes</h4>
+<p>
+  Stack read and write operations come in two different flavors: Relative and
+  Global. Global reads and writes read from the global scope of the current
+  script file, while relative instructions read from the stack relative to the
+  current function's scope.
+</p>
+<dl>
   <dt><code>STACKALLOC</code></dt>
   <dd>
     <p>
@@ -259,7 +277,7 @@ int32 main(string[] args) {
 
   <dt><code>SREAD</code> (has byte-dependent codes)</dt>
   <dd>
-    Reads a value of a corresponding bit-size from the stack memory. Takes in
+    Relative stack read of a corresponding bit-size from the stack memory. Takes in
     two arguments:
     <ul>
       <li>The register to store the read value.</li>
@@ -272,7 +290,7 @@ int32 main(string[] args) {
 
   <dt><code>SWRITE</code> (has byte-dependent codes)</dt>
   <dd>
-    Writes a value of a corresponding bit-size to the stack memory. Takes in
+    Relative stack write of a corresponding bit-size to the stack memory. Takes in
     two arguments:
     <ul>
       <li>The register to read the value from.</li>
@@ -280,15 +298,32 @@ int32 main(string[] args) {
     </ul>
   </dd>
 
-  <dt><code>LOADCONST</code> (has byte-dependent codes)</dt>
+  <dt><code>GREAD</code> (has byte-dependent codes)</dt>
   <dd>
-    <p>
-      These are all instructions which take as arguments a register to store a
-      constant value inside and a 2nd argument which is the constant value
-      itself.
-    </p>
+    Global read of a corresponding bit-size from the stack memory. Takes in
+    two arguments:
+    <ul>
+      <li>The register to store the read value.</li>
+      <li>
+        The memory offset to read from. Offsets relative to stack address in
+        the global scope
+      </li>
+    </ul>
   </dd>
 
+  <dt><code>GWRITE</code> (has byte-dependent codes)</dt>
+  <dd>
+    Global write of a corresponding bit-size to the stack memory. Takes in
+    two arguments:
+    <ul>
+      <li>The register to read the value from.</li>
+      <li>The memory offset to write to.</li>
+    </ul>
+  </dd>
+</dl>
+
+<h4>Heap Memory OP Codes</h4>
+<dl>
   <dt><code>READOBJ</code> (has byte-dependent codes)</dt>
   <dd>
     These are all instructions for reading from an object (struct or array or
