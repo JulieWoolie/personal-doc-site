@@ -240,6 +240,12 @@ int32 main(string[] args) {
       itself.
     </p>
   </dd>
+
+  <dt><code>MOV</code></dt>
+  <dd>
+    Copy the value in the first register argument into the second register
+    argument.
+  </dd>
 </dl>
 
 <h4>Stack Memory OP Codes</h4>
@@ -344,6 +350,29 @@ int32 main(string[] args) {
       <li>Register to read the value from.</li>
       <li>The byte offset of the object's data to write to (<code>uint32</code>)</li>
     </ul>
+  </dd>
+
+  <dt><code>READIDX</code> (has byte-dependent codes)</dt>
+  <dd>
+    These are all instructions for reading from an array or string (struct or array or
+    string) The instruction takes in three arguments.
+    <ul>
+      <li>Register containing the "object" to read from (a pointer)</li>
+      <li>Register to store the output of the read value.</li>
+      <li>Register containing the index to read from</li>
+    </ul>
+  </dd>
+
+  <dt><code>WRITEIDX</code> (has byte-dependent codes)</dt>
+  <dd>
+    These are all instructions for writing to an array or string.
+    The instruction takes in three arguments.
+    <ul>
+      <li>Register containing the "object" to write to.</li>
+      <li>Register to read the value from.</li>
+      <li>Register containing the index to write to</li>
+    </ul>
+    <i>(Note: Strings should <b>never</b> be written to)</i>
   </dd>
 
   <dt><code>HEAPALLOC</code></dt>
@@ -522,6 +551,21 @@ Instructions included in this section:
   <dd>Bitwise negate operation</dd>
   <dt><code>LNEGATE</code></dt>
   <dd>Logical negate operation</dd>
+
+  <dt><code>NEG</code> (has number type dependent operations)</dt>
+  <dd>
+    Numeric sign flip operation.
+    <p>
+      Note that for operations like <code>NEGU8</code> (Unsigned 8 bit
+      negative op code) the result becomes a signed 8 bit integer.
+    </p>
+  </dd>
+
+  <dt><code>INC</code> (has number type dependent operations)</dt>
+  <dd>Increment a number by <code>1</code></dd>
+
+  <dt><code>DEC</code> (has number type dependent operations)</dt>
+  <dd>Decrement a number by <code>1</code></dd>
 </dl>
 
 <h4>Binary operations</h4>
