@@ -568,7 +568,7 @@ Instructions included in this section:
   <dd>Decrement a number by <code>1</code></dd>
 </dl>
 
-<h4>Binary operations</h4>
+<h4>Binary Operations</h4>
 <p>
   Binary instructions take in 3 arguments, a left-hand-side register argument,
   a right-hand-side register argument and an output register argument. The
@@ -644,6 +644,55 @@ Instruction types:
   <dd>Modulo instruction.</dd>
   <dt><code>POW</code></dt>
   <dd>These operations raise the left argument to the power of the right</dd>
+</dl>
+
+<h5>Comparison Operations</h5>
+<p>These are operations that in some way compare the left and right operands</p>
+<dl>
+  <dt><code>EQ</code></dt>
+  <dd>Equals operator, compares the byte values</dd>
+  <dt><code>EQARR</code></dt>
+  <dd>Equals operator for arrays</dd>
+  <dt><code>EQSTRUCT</code></dt>
+  <dd>Equals operator for structs</dd>
+
+  <dt><code>NEQ</code></dt>
+  <dd>Not-Equals operator, compares the byte values</dd>
+  <dt><code>NEQARR</code></dt>
+  <dd>Not-Equals operator for arrays</dd>
+  <dt><code>NEQSTRUCT</code></dt>
+  <dd>Not-Equals operator for structs</dd>
+
+  <dt><code>GT</code></dt>
+  <dd>Greater-Than operator</dd>
+  <dt><code>GTARR</code></dt>
+  <dd>Greater-Than operator, for arrays</dd>
+
+  <dt><code>GTE</code> (has number-type-depdendent codes)</dt>
+  <dd>Greater-Than-or-Equal-to operator</dd>
+  <dt><code>GTEARR</code></dt>
+  <dd>Greater-Than-or-Equal-to operator, for arrays</dd>
+
+  <dt><code>LT</code> (has number-type-depdendent codes)</dt>
+  <dd>Less-Than operator</dd>
+  <dt><code>LTARR</code></dt>
+  <dd>Less-Than operator, for arrays</dd>
+
+  <dt><code>LTE</code> (has number-type-depdendent codes)</dt>
+  <dd>Less-Than-or-Equal-to operator</dd>
+
+  <dt><code>LTEARR</code></dt>
+  <dd>Less-Than-or-Equal-to operator, for arrays</dd>
+</dl>
+<h5>String/Array Operations</h5>
+<p>
+  Special binary operation cases carved out for string and array operations.
+</p>
+<dl>
+  <dt><code>STRCONCAT</code></dt>
+  <dd>Concatenate two strings</dd>
+  <dt><code>STRREP</code></dt>
+  <dd>String repeat</dd>
 </dl>
 
 <h2>Pseudo Code</h2>
@@ -862,3 +911,328 @@ interface NativeFunction {
 </dl>
 
 <h3>Structs</h3>
+
+<h2>OP Code table</h2>
+<table>
+  <caption>OP Codes</captions>
+    <thead><tr>
+      <th>OP Code</th>
+      <th>Padding</th>
+      <th>Arguments</th>
+    </tr></thead>
+    <tbody>
+    <tr><td><code>NOP</code></td><td>9</td><td><code></code></td></tr>
+    <tr><td><code>PUSHLINE</code></td><td>5</td><td><code>lineno: uint32</code></td></tr>
+    <tr><td><code>RET</code></td><td>9</td><td><code></code></td></tr>
+    <tr><td><code>JMP</code></td><td>5</td><td><code>to: uint32</code></td></tr>
+    <tr><td><code>JMPI0</code></td><td>4</td><td><code>to: uint32, condition: register</code></td></tr>
+    <tr><td><code>JMPN0</code></td><td>4</td><td><code>to: uint32, condition: register</code></td></tr>
+    <tr><td><code>MOV</code></td><td>7</td><td><code>from: register, to: register</code></td></tr>
+    <tr><td><code>LOADCONST8</code></td><td>7</td><td><code>out: register, val: uint8</code></td></tr>
+    <tr><td><code>LOADCONST16</code></td><td>6</td><td><code>out: register, val: uint16</code></td></tr>
+    <tr><td><code>LOADCONST32</code></td><td>4</td><td><code>out: register, val: uint32</code></td></tr>
+    <tr><td><code>LOADCONST64</code></td><td>2</td><td><code>out: register, val: uint64</code></td></tr>
+    <tr><td><code>LOADCONSTSTR</code></td><td>0</td><td><code>out: register, straddr: uint64</code></td></tr>
+    <tr><td><code>STACKALLOC</code></td><td>1</td><td><code>bytes: uint64</code></td></tr>
+    <tr><td><code>STACKFREE</code></td><td>1</td><td><code>bytes: uint64</code></td></tr>
+    <tr><td><code>RSREAD8</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSREAD16</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSREAD32</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSREAD64</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSWRITE8</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSWRITE16</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSWRITE32</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>RSWRITE64</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASREAD8</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASREAD16</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASREAD32</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASREAD64</code></td><td>0</td><td><code>out: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASWRITE8</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASWRITE16</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASWRITE32</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>ASWRITE64</code></td><td>0</td><td><code>val: register, offset: uint64</code></td></tr>
+    <tr><td><code>HEAPALLOC</code></td><td>0</td><td><code>out: register, bytes: uint64</code></td></tr>
+    <tr><td><code>HEAPFREE</code></td><td>0</td><td><code>addr: register, bytes: uint64</code></td></tr>
+    <tr><td><code>READOBJ8</code></td><td>3</td><td><code>obj: register, out: register, off: uint32</code></td></tr>
+    <tr><td><code>READOBJ16</code></td><td>3</td><td><code>obj: register, out: register, off: uint32</code></td></tr>
+    <tr><td><code>READOBJ32</code></td><td>3</td><td><code>obj: register, out: register, off: uint32</code></td></tr>
+    <tr><td><code>READOBJ64</code></td><td>3</td><td><code>obj: register, out: register, off: uint32</code></td></tr>
+    <tr><td><code>WRITEOBJ8</code></td><td>3</td><td><code>obj: register, val: register, off: uint32</code></td></tr>
+    <tr><td><code>WRITEOBJ16</code></td><td>3</td><td><code>obj: register, val: register, off: uint32</code></td></tr>
+    <tr><td><code>WRITEOBJ32</code></td><td>3</td><td><code>obj: register, val: register, off: uint32</code></td></tr>
+    <tr><td><code>WRITEOBJ64</code></td><td>3</td><td><code>obj: register, val: register, off: uint32</code></td></tr>
+    <tr><td><code>READIDX8</code></td><td>6</td><td><code>obj: register, out: register, idx: register</code></td></tr>
+    <tr><td><code>READIDX16</code></td><td>6</td><td><code>obj: register, out: register, idx: register</code></td></tr>
+    <tr><td><code>READIDX32</code></td><td>6</td><td><code>obj: register, out: register, idx: register</code></td></tr>
+    <tr><td><code>READIDX64</code></td><td>6</td><td><code>obj: register, out: register, idx: register</code></td></tr>
+    <tr><td><code>WRITEIDX8</code></td><td>6</td><td><code>obj: register, val: register, idx: register</code></td></tr>
+    <tr><td><code>WRITEIDX16</code></td><td>6</td><td><code>obj: register, val: register, idx: register</code></td></tr>
+    <tr><td><code>WRITEIDX32</code></td><td>6</td><td><code>obj: register, val: register, idx: register</code></td></tr>
+    <tr><td><code>WRITEIDX64</code></td><td>6</td><td><code>obj: register, val: register, idx: register</code></td></tr>
+    <tr><td><code>PUSHARG</code></td><td>8</td><td><code>val: register</code></td></tr>
+    <tr><td><code>SETRV</code></td><td>8</td><td><code>val: register</code></td></tr>
+    <tr><td><code>INVOKE</code></td><td>7</td><td><code>val: register, out: register</code></td></tr>
+    <tr><td><code>VINVOKE</code></td><td>8</td><td><code>val: register</code></td></tr>
+    <tr><td><code>I8TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I8TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U8TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I16TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U16TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I32TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U32TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>I64TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>U64TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F32TF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>F64TF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>BNEGATE</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>LNEGATE</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>NEGF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>INCF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECI8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECU8</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECI16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECU16</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECI32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECU32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECI64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECU64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECF32</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>DECF64</code></td><td>7</td><td><code>in: register, out: register</code></td></tr>
+    <tr><td><code>LSHIFT8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LSHIFT16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LSHIFT32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LSHIFT64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>RSHIFT8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>RSHIFT16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>RSHIFT32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>RSHIFT64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>URSHIFT8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>URSHIFT16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>URSHIFT32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>URSHIFT64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>BAND</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>BOR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>BXOR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LAND</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LOR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LXOR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>ADDF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>SUBF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>DIVF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MULF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>MODF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>POWF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQ8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQ16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQ32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQ64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>EQSTRUCT</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQ8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQ16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQ32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQ64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>NEQSTRUCT</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>GTEARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEI8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEU8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEI16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEU16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEI32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEU32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEI64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEU64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEF32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEF64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>LTEARR</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>STRCONCAT</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>STRREP8</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>STRREP16</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>STRREP32</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    <tr><td><code>STRREP64</code></td><td>6</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+    </tbody>
+</table>
