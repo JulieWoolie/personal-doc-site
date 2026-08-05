@@ -1,56 +1,167 @@
 ---
-title: "Time Loss Calculator"
+title: "Work Tools"
 author: "Julie"
 publish_date: '2026-06-04 12:00:00 +0200 UTC'
 hidden: true
 toc: false
 ---
 
-<form>
-  <div class="fgroup radio">
-    <div class="label">Shift type:</div>
-    <div class="value">
-      <input id="regular" type="radio" name="shift" checked>
-      <label for="regular">Regular</label>
-      <input id="night" type="radio" name="shift">
-      <label for="night">Night</label>
-    </div>
-  </div>
-
-  <div class="fgroup num">
-    <input type="number" name="lrun" id="ilrun">
-    <label for="ilrun">Labor run mach</label>
-  </div>
-
-  <div class="fgroup num">
-    <input name="prod" id="iprod">
-    <label for="iprod">Produced + broken (eg: 13+7)</label>
-  </div>
+<form style="text-align: left;">
+  <table>
+    <tbody>
+    <tr>
+      <th colspan="2">Inputs</th>
+    </tr>
+    <tr>
+      <td>Shift</td>
+      <td>
+        <div>
+          <input id="regular" type="radio" name="shift" checked>
+          <label for="regular">Regular</label>
+        </div>
+        <div>
+          <input id="night" type="radio" name="shift">
+          <label for="night">Night</label>
+        </div>
+      </td>
+    </tr>
+    <tr>
+      <td>Labor Run Mach</td>
+      <td><input name="lrun" id="ilrun" style="width: auto;"></td>
+    </tr>
+    <tr>
+      <td>Produced + broken (eg: 13+7)</td>
+      <td><input name="prod" id="iprod" style="width: auto;"></td>
+    </tr>
+    <tr>
+      <td>Machine Cavities</td>
+      <td>
+        <div style="display: flex;">
+          <span id="cavities-num" style="width: 10%;">1</span>
+          <input
+              name="cavities" id="icavities"
+              type="range" min="1" max="5" step="1" value="1"
+              style="padding: 0; outline: unset; flex-grow: 1;"
+          >
+        </div>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <table>
+    <tbody>
+    <tr>
+      <th colspan="2" style="padding-top: 20px;">Results</th>
+    </tr>
+    <tr>
+      <td>Target Quantity</td>
+      <td id="target"></td>
+    </tr>
+    <tr>
+      <td>Time loss</td>
+      <td id="timeloss"></td>
+    </tr>
+    <tr>
+      <td>Rounded Time loss</td>
+      <td id="timeloss-rounded"></td>
+    </tr>
+    <tr>
+      <td>Ideal Cycle Time</td>
+      <td id="runtime"></td>
+    </tr>
+    <tr>
+      <td>Compensated Cycle Time</td>
+      <td id="runtime-smart"></td>
+    </tr>
+    </tbody>
+  </table>
 </form>
-
-<section>
-  <dl>
-    <dt>Time loss</dt>
-    <dd id="timeloss">0.0</dd>
-    <dt>Target quantity</dt>
-    <dd id="target">0.0</dd>
-  </dl>
-</section>
 
 <script>
   const timeloss = document.getElementById("timeloss")
+  const timelossRounded = document.getElementById("timeloss-rounded")
   const targetq = document.getElementById("target")
   const prod = document.getElementById("iprod")
   const lrun = document.getElementById("ilrun")
   const regularShift = document.getElementById("regular")
   const nightShift = document.getElementById("night")
 
+  const cavitiesIn = document.getElementById("icavities")
+  const cavitiesNum = document.getElementById("cavities-num")
+  const runtime1 = document.getElementById("runtime")
+  const runtime2 = document.getElementById("runtime-smart")
+
   lrun.oninput = updateResult
   prod.oninput = updateResult
   regularShift.oninput = updateResult
   nightShift.oninput = updateResult
 
+  cavitiesIn.oninput = () => {
+    cavitiesNum.textContent = cavitiesIn.value
+    updateResult()
+  }
+
+  loadParams()
+
+  function loadParams() {
+    const lr = localStorage.getItem("lrun-calc::labor_run")
+    const produced = localStorage.getItem("lrun-calc::produced")
+    const type = localStorage.getItem("lrun-calc::shift_type")
+    const cavs = localStorage.getItem("lrun-calc::cavities")
+
+    let callUpdate = false
+
+    if (cavs) {
+      cavitiesIn.value = cavs
+      cavitiesNum.textContent = cavs
+    }
+    if (lr) {
+      lrun.value = lr
+      callUpdate = true
+    }
+    if (produced) {
+      prod.value = produced
+      callUpdate = true
+    }
+    if (type) {
+      if (type === "night") {
+        nightShift.checked = true
+        regularShift.checked = false
+      } else {
+        nightShift.checked = false
+        regularShift.checked = true
+      }
+    }
+
+    if (callUpdate) {
+      updateResult()
+    }
+  }
+
+  function calculateRuntimes(laborRun, shiftTime, cavs) {
+    const totalBreaksTime = 50
+    const compensation = 50
+
+    const target = (laborRun / cavs) * shiftTime
+    const lengthMins = (shiftTime * 60) - (totalBreaksTime + compensation)
+
+    const cycleTimeSeconds = 3600 / (laborRun / cavs)
+    const cycleTimeSmart = (lengthMins * 60) / target
+
+    runtime1.textContent = `${Math.ceil(cycleTimeSeconds)} seconds`
+    runtime2.textContent = `${Math.ceil(cycleTimeSmart)} seconds`
+  }
+
+  function saveParams() {
+    localStorage.setItem("lrun-calc::labor_run", lrun.value)
+    localStorage.setItem("lrun-calc::produced", prod.value)
+    localStorage.setItem("lrun-calc::cavities", cavitiesIn.value)
+    localStorage.setItem("lrun-calc::shift_type", nightShift.checked ? "night" : "regular")
+  }
+
   function updateResult() {
+    saveParams()
+
     let hours = 8
     let prodRun = 0
     let laborRun = 0
@@ -62,9 +173,6 @@ toc: false
     let prVal = trim(prod.value)
     let lrVal = trim(lrun.value)
 
-    console.log(`prVal=${prVal}`)
-    console.log(`lrVal=${lrVal}`)
-
     try {
       prodRun = parseNum(prVal)
       laborRun = parseNum(lrVal)
@@ -72,18 +180,30 @@ toc: false
       return
     }
 
+    calculateRuntimes(laborRun, hours, parseFloat(cavitiesIn.value))
+
     const targetQ = hours * laborRun
     const missed = targetQ - prodRun
 
-    targetq.textContent = targetQ.toFixed(2)
+    targetq.textContent = `${targetQ.toFixed(2)} pcs`
 
     if (missed <= 0) {
-      timeloss.textContent = `None! (${missed} missed quantity)`
+      timeloss.textContent = `None! (${-missed} extra)`
+      timelossRounded.textContent = ""
       return
     }
 
     const timeLossMins = (missed / laborRun) * 60
-    timeloss.textContent = `${timeLossMins.toFixed(2)}`
+    timeloss.textContent = `${timeLossMins.toFixed(2)} minutes`
+    timelossRounded.textContent = `${roundLoss(timeLossMins)} minutes`
+  }
+
+  function roundLoss(num) {
+    return Math.ceil(num / 5) * 5
+  }
+
+  function isOmittedChar(ch) {
+    return ch === " " || ch === "+"
   }
 
   function trim(val) {
@@ -91,7 +211,7 @@ toc: false
     let end = val.length
 
     for (let i = 0; i < val.length; i++) {
-      if (val[i] !== " ") {
+      if (!isOmittedChar(val[i])) {
         break
       }
       start++
@@ -102,7 +222,7 @@ toc: false
     }
 
     for (let i = val.length - 1; i >= 0; i--) {
-      if (val[i] !== " ") {
+      if (!isOmittedChar(val[i])) {
         break
       }
       end--
@@ -125,52 +245,3 @@ toc: false
     return parseFloat(trim(val))
   }
 </script>
-
-<style>
-.fgroup {
-    display: flex;
-    flex-direction: row;
-
-    margin-top: 5mm;
-
-    input, .value {
-        flex-grow: 1;
-        order: 1;
-    }
-    label, .label {
-        width: 65%;
-        order: 0;
-    }
-}
-@media(max-width: 1000px) {
-    .fgroup {
-        display: flex;
-        flex-direction: row;
-
-        margin-top: 5mm;
-        text-align: left;
-
-        input, .value {
-            flex-grow: 1;
-            order: 1;
-            flex-basis: 20%;
-        }
-        label, .label {
-            flex-basis: 80%;
-            order: 0;
-        }
-    }
-    .fgroup.radio {
-        input, .value {
-            flex-grow: 1;
-            order: 1;
-            flex-basis: 80%;
-            text-align: right;
-        }
-        label, .label {
-            flex-basis: 20%;
-            order: 0;
-        }
-    }
-}
-</style>
