@@ -121,9 +121,9 @@ function applyHeaderNumbers(element) {
     span.id = child.id
 
     if (usingArabic) {
-      span.textContent = numbers.join(".") + " "
+      span.textContent = numbers.join(".") + ". "
     } else {
-      span.textContent = numbers.map(toRoman).join(".") + " "
+      span.textContent = numbers.map(toRoman).join(".") + ". "
     }
 
     span.className = "section-num"
