@@ -1,6 +1,6 @@
 ---
 title: "quickscript"
-subtitle: "little spec for a programming language I made while on vacation"
+subtitle: "little spec for a programming language I made while on vacation... this is no longer little"
 weight: 40
 publish_date: '2026-07-17 21:00:00 +0200 UTC'
 author: Julie
@@ -56,6 +56,24 @@ toc: true
     <i>quickscript</i> because it's intended to be a quickly (ish) made
     scripting language.
   </dd>
+
+  <dt>No nulls</dt>
+  <dd>
+    <p>
+      This doesn't mean every value has to have a non-zero value, rather, there
+      can't be anything which can be null, everything has to have a value, even if
+      it's a zero value.
+    </p>
+    <p>
+      This also doesn't mean every array and string has to be allocated to an
+      empty value, rather it means the user should never be able to tell
+      something is null.
+    </p>
+    <p>
+      Calling <code>.length</code> on a null string or array? Return
+      <code>0</code> instead of throwing a null reference error.
+    </p>
+  </dd>
 </dl>
 
 <h2>Interpreter</h2>
@@ -77,41 +95,58 @@ toc: true
   there are no special registers which are reserved for special purposes.
 </p>
 
-<h3>Function invocation</h3>
+
+<h3 id="funcinvoke">Function Invocation</h3>
 <p>
-  Function call specifics change based on whether a native or script function is
-  called.
+  Function invocation requires 2 things, a function pointer, and knowledge of
+  what kind of function is being invoked. There should exist at least 2 types
+  of functions:
+</p>
+<dl>
+  <dt>Local Functions</dt>
+  <dd>
+    Local functions are functions declared in the same file as the caller, and
+    as such all they do is index into the file's local function table to find
+    the function. The benefit of this, is that the VM can replace lookup calls
+    with the literal value, or index, or whatever of the function its looking
+    for.
+  </dd>
+  <dt>Native Functions</dt>
+  <dd>
+    Native functions require a lookup through the VM's function lookup table,
+    which is then given a name and a function signature to look for.
+  </dd>
+</dl>
+<p>
+  In both cases, a function pointer is returned and the invocation can begin.
 </p>
 <p>
-  The common point however is the use of function addresses. When calling a
-  function that's been declared in the file, a function table lookup will be
-  executed to find the address of the function.
-</p>
-<h4>Script Function Calls</h4>
-<p>
-  A new stack frame and call frame is created, the arguments of the function are
-  then stored in the correct locations on that stack. Effectively this means
-  that function arguments are treated like regular stack variables that are set
-  when the function is called.
+  Invocation itself begins with a stack frame allocation. The first <i>n</i>
+  bytes being for the returned value (<i>n</i> standing for the stack memory
+  size of the returned type.) The following allocated bytes are for each
+  argument, which are then written to, to initialise the values.
 </p>
 <p>
-  The current instruction counter is then pushed to an internal stack of return
-  addresses and execution is then moved to the target function's beginning
-  instruction.
+  What happens next is dependent on the type of function being invoked.
+</p>
+<h4>Local functions</h4>
+<p>
+  The instruction counter is set to the local function's first instruction and
+  a new stack frame allocated for all the memory of the target function. Note
+  that this stack frame overlaps with the previous frame at the point where the
+  function return type begins.
 </p>
 <p>
-  Once the target function's execution ends, the return address is popped off
-  the stack and the instruction counter set to the popped value. The created
-  stack and call frames are also popped and execution carries on as normal.
+  The function is then interpreted and its return value written to memory
+  offset 0 of its stack frame, if there is a non-void return type. The returned
+  value is then loaded into the register specified in the invoke instruction.
 </p>
-<h4>Native Function Calls</h4>
+<h4>Native functions</h4>
 <p>
-  Internally, the interpreter will store 2 arrays, one for argument values and
-  one for argument value types. The type array will be useful for functions with
-  open-ended type arguments. For this same reason, the argument arrays will be
-  similar to the register buffer: An array of unsigned 64bit integers that will
-  be treated differently depending on the corresponding type value in the type
-  array.
+  Although the way the return value and arguments are handled are similar, what
+  happens immediately after the invocation instruction is interpreted is that
+  the native function is called, and after its execution finishes, the returned
+  value is written to where the return type's value is meant to go.
 </p>
 
 <h3>IR OP Codes</h3>
@@ -350,31 +385,39 @@ toc: true
 
 <h4>Function Call Instructions</h4>
 <dl>
-  <dt><code>PUSHARG</code> (has byte-dependent codes)</dt>
+  <dt><code>LFUNCLOOKUP</code></dt>
   <dd>
     <p>
-      Push a value in a register into the interpreter's function arguments
-      array.
+      Stands for <i>"Local Function Lookup."</i>
     </p>
+
     Arguments:
     <ul>
-      <li>The register containing the value to push.</li>
+      <li>(<code>uint32</code>) Local function table index.</li>
+      <li>(<code>register</code>) Output register to store the result in.</li>
     </ul>
   </dd>
 
-  <dt><code>SETRV</code></dt>
+  <dt><code>NFUNCLOOKUP</code></dt>
   <dd>
-    Set the return value. Arguments:
+    <p>
+      Stands for <i>"Native Function Lookup."</i>
+    </p>
+
+    Arguments:
     <ul>
-      <li>Register the return value is in.</li>
+      <li>(<code>uint32</code>) The type index of the function signature to look for.</li>
+      <li>(<code>uint64</code>) The offset of the function's name in the const string pool.</li>
+      <li>(<code>register</code>) Output register to store the result in.</li>
     </ul>
   </dd>
 
   <dt><code>INVOKE</code></dt>
   <dd>
     <p>
-      Two instructions for invoking functions, the 2nd one is used for
-      invoking functions with a void return type.
+      Function invocation opcode. See section
+      <chapter-ref target="funcinvoke"></chapter-ref> for how functions are
+      invoked.
     </p>
     Arguments:
     <ul>
@@ -387,8 +430,8 @@ toc: true
 <h4>Conversion Instructions</h4>
 <p>
   These are instructions that convert from one number type to another. I will
-  not be listing them here, but they are shown below in the
-  <chapter-ref target="opcodes-spec"></chapter-ref> section.
+  not be listing them here, but they are shown below in section
+  <chapter-ref target="opcodes-spec"></chapter-ref>.
 </p>
 
 <h4>Unary instructions</h4>
@@ -642,6 +685,349 @@ Instruction types:
 </dl>
 
 <h3>Structs</h3>
+
+<h2>Type Checker And Semantic Analysis</h2>
+<p>
+  After a source file is parsed into a syntax tree <i>(Abstract Syntax Tree,
+  which I'll be calling the AST)</i> the types referenced and declared in the
+  code must be resolved for the compilation step to take place. This is so the
+  compiler knows how to handle variables and how much space they take up.
+</p>
+<p>
+  Type resolution is the process of resolving referenced type names into
+  their actual types and resolving what type an expression returns. The
+  validation process involving checking that those types are used correctly,
+  for example making sure that a variable declaration's value type can be
+  assigned to the declared variable's type.
+</p>
+<p>
+  The beginning of this process is the most difficult, as it requires somehow
+  simultaneously knowing both the functions available in a file, and all the
+  declared types (structs.) Which obviously isn't possible all the time. As a
+  general rule, types tend to be declared at the tops of files and functions
+  take up the rest of the space, but this shouldn't be enforced. Stylistic
+  decisions shouldn't determine behavior.
+</p>
+<p>
+  To further complicate matters, structs can have properties which reference
+  other structs. Types have to somehow know every other type that exists at all
+  times without actually knowing it. What...
+</p>
+<h3>Type Resolution</h3>
+<p>
+  Type resolution will run in a couple passes, specified here:
+</p>
+<dl>
+  <dt>Initial Struct Pass</dt>
+  <dd>
+    Iterate over all declared structs and create a <code>ScriptStructType</code>
+    with the names of each property added to the type, but the types of each
+    property left null.
+  </dd>
+  <dt>Second Struct Pass</dt>
+  <dd>
+    Iterate over all declared structs and now initialize the types of their
+    properties. These two struct passes should ensure that the declaration order
+    of the structs is irrelevant.
+  </dd>
+  <dt>Function Signature pass</dt>
+  <dd>
+    Iterate over every declared top level function and create a <code>FunctionSignature</code>
+    object to represent its signature and then place the function into the
+    global scope's symbol table so it can be referenced later.
+    <p>
+      With these initial steps completed, the script file should be able to
+      resolve every type and function without issue, provided all the symbols
+      referenced in the script's code are valid.
+    </p>
+  </dd>
+  <dt>Code Pass</dt>
+  <dd>
+    This is the pass which finally involves iterating over the individual
+    expressions and statements that actually make up the code that is executed
+    and resolving types and checking that the code is valid. More on this in
+    the next section.
+  </dd>
+</dl>
+<h3>Semantic Analysis</h3>
+<p>
+  This step just involves going through the code and going "yeah na chief, u
+  did it wrong." It's a programmatic nitpicker.
+</p>
+<p>
+  Basically go through the statements and expressions and make sure the
+  operations are valid, the functions being called actually exist, the
+  properties on structs, arrays and strings being accessed exist and check for
+  attempted writes to const values.
+</p>
+<p>
+  As this step is being executed, the type table needs to be filled out with
+  declared types, function signatures of nested functions and symbols created
+  for local variables and functions.
+</p>
+
+<h2>Semantic Transformation</h2>
+<p>
+  This is the step right before IR compilation. Generally, this prepares the
+  parsed code for compilation.
+</p>
+
+<h3>Inlining</h3>
+<p>
+  Mostly this is just literal value inlining. Basically turn <code>2 + 2</code>
+  into <code>4</code>, literally. It also involves taking constant variables
+  expressions and inlining their values since using a value is easier than
+  loading one from the stack or from heap memory.
+</p>
+<p>
+  Additionally, any <i>"constexpr"</i> functions (Functions which can be
+  evaluated during compilation time) are inlined and their calls replaced with
+  the result of their values.
+</p>
+<p>
+  Note that this step is intended to be recursive, meaning that, for example,
+  after a function is inlined, any expressions it was used in should be
+  optimized after the inlining. Potentially turning the following code:
+</p>
+<code><pre>
+uint32 f() {
+  return 3
+}
+void main() {
+  const uint32 x = 2 * f()
+}
+</pre></code>
+Into
+<code><pre>
+void main() {
+  const uint32 x = 6
+}
+</pre></code>
+<p>
+  In the future, there might be a possibility of exporting functions or types or
+  global variables. If the language does get that far, then under no
+  circumstance can exported functions or constants be omitted from the compiled
+  IR. Non-exported, however, can be dropped if either no calls exist or all
+  calls were inlined.
+</p>
+<p>
+  The same inlining applies to constant variables with an inline-able value.
+  Note that in the future, if imported constants become a thing, they cannot be
+  inlined as their type may be known at compile time, but their value should not
+  be assumed to be the same during run time. This may be because of differences
+  in versions between compilation and run time, or whatever.
+</p>
+<p>
+  The following sections describe the specifics of inlining.
+</p>
+<h4>Binary operation evaluation</h4>
+<p>
+  Simple, turn math operations into their values: <code>2 * 2</code> becomes
+  <code>4</code>.
+</p>
+<p>
+  Note that this needs to follow the rules of binary expression combining...
+  which I haven't specified here. Of course. Well I can't be bothered either,
+  so here's a link to the source code comment I wrote (Valid at time of
+  writing):
+  <a target="_blank" href="https://github.com/JulieWoolie/quickscript/blob/main/src/analysis/analyzer.cc#L637">
+    <code>src/analysis/analyzer.cc#getOpResultType</code>
+  </a>
+</p>
+
+<h4>String operation evaluation</h4>
+<p>
+  Two operators can be used with strings: The concatenation operator
+  (<code>+</code>) and the repetition operator (<code>*</code>)
+</p>
+<p>
+  If there are any instances of a string being concatenated with any primitive
+  literal value or another string, then the expression should be inlined, for example:
+  <code>"value: " + 12</code> becomes <code>"value: 12"</code>
+</p>
+<p>
+  The same applies to the repetition operator. <code>"-" * 3</code> becomes
+  <code>"---"</code>, for example.
+</p>
+
+<h4>Unary operation evaluation</h4>
+<p>
+  Turn unary operations into their literal values. In the case of the
+  unary positive operator <code>+&lt;expression&gt;</code> Just get rid of the
+  unary operation and return the target expression lmao, useless operator.
+</p>
+<p>
+  Depending on the context of the unary operation, the expression can be
+  changed even if the value is not a literal. Mostly this means flipping
+  postfix operations to be prefix operations.
+</p>
+<p>For example:</p>
+<code><pre>for (uint32 i = 0; i < 10; i++) {/* code */}</pre></code>
+Should become
+<code><pre>for (uint32 i = 0; i < 10; ++i) {/* code */}</pre></code>
+<p>This is because prefix operators save ONE WHOLE instruction, oh my gods.</p>
+
+<h4>Drop <i>"pointless"</i> statements</h4>
+Any statement which results in nothing changing should be dropped,
+some examples:
+{{<highlight cpp>}}
+void main() {
+  int a = 0
+  a + 1 // Drop this
+  -a // Drop this
+  ++a // Do NOT drop this
+  return a
+}
+{{</highlight>}}
+<p>
+  The definition of pointless here goes beyond just expression statements,
+  <i>"pointless"</i> here also refers to variables and functions are unused,
+  they should be dropped, again, unless it's an exported symbol, then it
+  can't be dropped.
+</p>
+<p>
+  Loops with empty bodies, or bodies made up entirely of <i>"pointless"</i>
+  statements should be dropped as well.
+</p>
+
+<h4>Drop zero values</h4>
+<p>
+  This means things like
+</p>
+<code><pre>uint32 a = 0</pre></code>
+Should become
+<code><pre>uint32 a</pre></code>
+<p>
+  This is because the stack allocator will, after a stack frame has
+  been allocated, zero all allocated bytes, so writing a <code>0</code> to
+  the stack after allocation is pointless.
+</p>
+<p>
+  This also applies to struct member default values, 0 values should be dropped
+  there too, as the heap allocator should zero all bytes when a heap allocation
+  is performed.
+</p>
+
+<h4>Inline conditional statements with literal conditions</h4>
+This sounds complicated but basically this means that if an
+<code>IfStatement</code>'s condition's value is known at compile time,
+replace the if statement with the correct branch.
+<p>
+  This inlining also applies to while loops, but only if the constant is
+  known to be <code>false</code>.
+</p>
+
+<h4>Advanced inlining</h4>
+<p>
+  This is in its own section mostly because I can see the logic behind the
+  inlining, but I don't know how to implement it personally yet.
+</p>
+<h5>Function inlining</h5>
+<p>
+  This is simpler for some functions than others, for example, all of these
+  functions can be considered inline-able:
+</p>
+<code><pre>
+uint32 f() { return 0 }
+
+uint32 f(uint32 a) { return a }
+
+uint32 f(uint32 a) { return a * 2 }
+
+uint32 f(uint32 a) {
+  for (uint32 i = 0; i < 10; i++) { a += i }
+  return a
+}
+
+uint32 f() {
+  uint32 a
+  for (uint32 i = 0; i < 10; i++) { a += i }
+  return a
+}
+
+uint32 f() {
+  uint32 y() {
+    return 0
+  }
+  uint32 a = y()
+  for (uint32 i = 0; i < 10; i++) { a += i }
+  return a
+}
+</pre></code>
+<p>
+  Mostly this inlining happens recursively, as stated before, meaning if every
+  statement inside a function is inlined away or dropped, it should make
+  determining if a function can be inlined easier.
+</p>
+
+<h5>Constant inlining</h5>
+<p>
+  As I might've mentioned before, only locally declared constants can be
+  inlined. Locally in this case meaning either declared within a function's
+  body or locally inside the file.
+</p>
+<p>
+  This step should be easier than function inlining: If a constant has a
+  literal value, replace references to that constant with its literal value.
+</p>
+
+<h3>Function flattening</h3>
+<p>
+  Take all nested functions and flatten them so they are all top level
+  functions.
+</p>
+<p>
+  Function names should be flattened by appending their nesting function(s)
+  name(s) to the function name, separated by a <code>#</code> symbol, since
+  that symbol cannot appear in regular identifiers. Additionally, the name
+  should be prefixed with a single <code>%</code> character to prevent potential
+  future conflicts with flattened struct methods.
+</p>
+<p>
+  Function flattening will apply to struct methods, if the language ever gets
+  that far.
+</p>
+
+<h3>Constructor creation</h3>
+<p>
+  Each struct will have an implicitly created constructor whose job is to
+  allocate the memory for the struct and initialize its members' default values.
+</p>
+<p>
+  For constructor creation, the first statement will be a lexical declaration
+  statement with a special expression as a value: <code>MallocExpr</code>. This
+  expression can only be inserted by the semantic transformer. The rest of the
+  <i>"function"</i> is just the non-zero default property initializers.
+</p>
+
+<h3>Global Scope Init Function Creation</h3>
+<p>
+  When a script file's execution begins, a stack frame is allocated for its
+  global scope variables, but as mentioned before, stack frames are zeroed on
+  allocation, meaning the actual values of global scope variables have to be
+  initialised.
+</p>
+<p>
+  This is where the generated <code>&lt;finit&gt;</code> function comes in. It
+  initializes all global scope variables to their values and then calls the
+  <code>main</code> function written by the user, if there is one.
+</p>
+<p>
+  The generated function will take in a string array (the program's command
+  line arguments) and return a 32bit integer, the program return code.
+</p>
+<p>
+  Depending on the signature of the declared <code>main</code> function, the
+  program arguments may or may not be passed to the main function. Similarly, if
+  the main function returns void, instead of a 32bit integer, then code
+  <code>0</code> is always returned. Otherwise, the main function's return
+  value is returned.
+</p>
+<p>
+  The <code>&lt;finit&gt;</code> function will exist for all compiled
+  quickscript files that have global variables, even those without a main
+  function.
+</p>
 
 <h2>Structure of the Bytecode file</h2>
 <p>
