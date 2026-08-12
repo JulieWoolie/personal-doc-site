@@ -14,7 +14,7 @@ toc: false
     </tr>
     <tr>
       <td>Shift</td>
-      <td>
+      <td class="shift-inputs">
         <div>
           <input id="regular" type="radio" name="shift" checked>
           <label for="regular">Regular</label>
@@ -22,6 +22,10 @@ toc: false
         <div>
           <input id="night" type="radio" name="shift">
           <label for="night">Night</label>
+        </div>
+        <div>
+          <input id="customshift" type="radio" name="shift">
+          <input id="customshift-length" style="display: inline; width: 25%;" placeholder="hh:mm">
         </div>
       </td>
     </tr>
@@ -40,7 +44,7 @@ toc: false
           <span id="cavities-num" style="width: 10%;">1</span>
           <input
               name="cavities" id="icavities"
-              type="range" min="1" max="5" step="1" value="1"
+              type="range" min="1" max="10" step="1" value="1"
               style="padding: 0; outline: unset; flex-grow: 1;"
           >
         </div>
@@ -55,7 +59,7 @@ toc: false
     </tr>
     <tr>
       <td>Target Quantity</td>
-      <td id="target"></td>
+      <td id="target" display="pcs"></td>
     </tr>
     <tr>
       <td>Time loss</td>
@@ -67,11 +71,11 @@ toc: false
     </tr>
     <tr>
       <td>Ideal Cycle Time</td>
-      <td id="runtime"></td>
+      <td id="runtime" display="seconds"></td>
     </tr>
     <tr>
       <td>Compensated Cycle Time</td>
-      <td id="runtime-smart"></td>
+      <td id="runtime-smart" display="seconds"></td>
     </tr>
     </tbody>
   </table>
@@ -85,6 +89,8 @@ toc: false
   const lrun = document.getElementById("ilrun")
   const regularShift = document.getElementById("regular")
   const nightShift = document.getElementById("night")
+  const customShift = document.getElementById("customshift")
+  const customShiftLen = document.getElementById("customshift-length")
 
   const cavitiesIn = document.getElementById("icavities")
   const cavitiesNum = document.getElementById("cavities-num")
@@ -95,9 +101,60 @@ toc: false
   prod.oninput = updateResult
   regularShift.oninput = updateResult
   nightShift.oninput = updateResult
+  customShift.oninput = () => {
+    if (customShiftLen.value.length === 0) {
+      saveParams()
+      return
+    }
+    updateResult()
+  }
+  customShiftLen.oninput = () => {
+    if (!customShift.checked) {
+      saveParams()
+      return
+    }
+    updateResult()
+  }
+  customShiftLen.onclick = () => {
+    nightShift.checked = false
+    regularShift.checked = false
+    customShift.checked = true
+
+    if (customShiftLen.value.length === 0) {
+      saveParams()
+      return
+    }
+
+    updateResult()
+  }
 
   cavitiesIn.oninput = () => {
     cavitiesNum.textContent = cavitiesIn.value
+    updateResult()
+  }
+  targetq.onclick = () => {
+    let display = targetq.getAttribute("display")
+    if (display === "pcs") {
+      display = "cycles"
+    } else {
+      display = "pcs"
+    }
+    targetq.setAttribute("display", display)
+    updateResult()
+  }
+
+  runtime1.onclick = () => { switchTimeFormat(runtime1) }
+  runtime2.onclick = () => { switchTimeFormat(runtime2) }
+
+  function switchTimeFormat(el) {
+    let format = el.getAttribute("display")
+    if (format === "minutes") {
+      format = "seconds"
+    } else {
+      format = "minutes"
+    }
+
+    el.setAttribute("display", format)
     updateResult()
   }
 
@@ -108,8 +165,16 @@ toc: false
     const produced = localStorage.getItem("lrun-calc::produced")
     const type = localStorage.getItem("lrun-calc::shift_type")
     const cavs = localStorage.getItem("lrun-calc::cavities")
+    const r1Display = localStorage.getItem("lrun::r1display")
+    const r2Display = localStorage.getItem("lrun::r2display")
+    const cshiftLen = localStorage.getItem("lrun::customlength")
+    const targetQuantDisplay = localStorage.getItem("lrun::targetdisplay")
 
     let callUpdate = false
+
+    if (targetQuantDisplay) {
+      targetq.setAttribute("display", targetQuantDisplay)
+    }
 
     if (cavs) {
       cavitiesIn.value = cavs
@@ -127,10 +192,30 @@ toc: false
       if (type === "night") {
         nightShift.checked = true
         regularShift.checked = false
+        customShift.checked = false
+      } else if (type === "custom") {
+        nightShift.checked = false
+        regularShift.checked = false
+        customShift.checked = true
       } else {
         nightShift.checked = false
         regularShift.checked = true
+        customShift.checked = false
       }
+    }
+    if (cshiftLen) {
+      customShiftLen.value = cshiftLen
+
+      if (type === "custom") {
+        callUpdate = true
+      }
+    }
+
+    if (r1Display) {
+      runtime1.setAttribute("display", r1Display)
+    }
+    if (r2Display) {
+      runtime2.setAttribute("display", r2Display)
     }
 
     if (callUpdate) {
@@ -148,27 +233,77 @@ toc: false
     const cycleTimeSeconds = 3600 / (laborRun / cavs)
     const cycleTimeSmart = (lengthMins * 60) / target
 
-    runtime1.textContent = `${Math.ceil(cycleTimeSeconds)} seconds`
-    runtime2.textContent = `${Math.ceil(cycleTimeSmart)} seconds`
+    setRuntimeText(runtime1, Math.ceil(cycleTimeSeconds))
+    setRuntimeText(runtime2, Math.ceil(cycleTimeSmart))
+  }
+
+  function setRuntimeText(el, valueSeconds) {
+    let format = el.getAttribute("display")
+
+    if (format === "minutes") {
+      let secs = valueSeconds
+
+      let hours = Math.floor(valueSeconds / 3600)
+      secs -= hours * 3600
+
+      let mins = Math.floor(secs / 60)
+      secs -= mins * 60
+
+      console.log("valueSeconds:", valueSeconds, "secs:", secs, "mins:", mins, "hours:", hours)
+
+      el.textContent = `${hours.toString().padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+      return
+    }
+
+    el.textContent = `${Math.ceil(valueSeconds)} seconds`
   }
 
   function saveParams() {
     localStorage.setItem("lrun-calc::labor_run", lrun.value)
     localStorage.setItem("lrun-calc::produced", prod.value)
     localStorage.setItem("lrun-calc::cavities", cavitiesIn.value)
-    localStorage.setItem("lrun-calc::shift_type", nightShift.checked ? "night" : "regular")
+    localStorage.setItem("lrun::customlength", customShiftLen.value)
+    localStorage.setItem("lrun::r1display", runtime1.getAttribute("display"))
+    localStorage.setItem("lrun::r2display", runtime2.getAttribute("display"))
+    localStorage.setItem("lrun::targetdisplay", targetq.getAttribute("display"))
+
+    let shiftType
+    if (nightShift.checked) {
+      shiftType = "night"
+    } else if (regularShift.checked) {
+      shiftType = "regular"
+    } else {
+      shiftType = "custom"
+    }
+
+    localStorage.setItem("lrun-calc::shift_type", shiftType)
+  }
+
+  function getShiftLength() {
+    if (regularShift.checked) {
+      return 8
+    } else if (nightShift.checked) {
+      return 7
+    }
+
+    let hhmmStr = customShiftLen.value
+    let split = hhmmStr.split(":");
+
+    if (split.length === 1) {
+      return parseFloat(split[0])
+    }
+
+    const h = parseFloat(split[0])
+    const m = parseFloat(split[1])
+    return h + (m / 60)
   }
 
   function updateResult() {
     saveParams()
 
-    let hours = 8
+    let hours = getShiftLength()
     let prodRun = 0
     let laborRun = 0
-
-    if (nightShift.checked) {
-      hours = 7
-    }
 
     let prVal = trim(prod.value)
     let lrVal = trim(lrun.value)
@@ -180,12 +315,18 @@ toc: false
       return
     }
 
-    calculateRuntimes(laborRun, hours, parseFloat(cavitiesIn.value))
+    const cavities = parseFloat(cavitiesIn.value)
+    calculateRuntimes(laborRun, hours, cavities)
 
     const targetQ = hours * laborRun
     const missed = targetQ - prodRun
 
-    targetq.textContent = `${targetQ.toFixed(2)} pcs`
+    const targetFormat = targetq.getAttribute("display")
+    if (targetFormat === "pcs") {
+      targetq.textContent = `${targetQ.toFixed(2)} pcs`
+    } else {
+      targetq.textContent = `${(targetQ / cavities).toFixed(2)} cycles`
+    }
 
     if (missed <= 0) {
       timeloss.textContent = `None! (${-missed} extra)`
@@ -245,3 +386,14 @@ toc: false
     return parseFloat(trim(val))
   }
 </script>
+
+<style>
+#customshift:not(:checked) + #customshift-length {
+  color: gray;
+}
+.shift-inputs {
+  input:not(:checked) + label {
+    color: gray;
+  }
+}
+</style>
