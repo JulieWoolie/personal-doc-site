@@ -29,6 +29,7 @@ toc: false
       outline: 0 !important;
       border: 0 !important;
       width: 3cm !important;
+      background-color: var(--lighter) !important;
   }
   .tallyamount {
       width: 2.0cm !important;
@@ -177,7 +178,7 @@ class TallyCategory {
 
   onTotalChanged() {
     let tv = this.#totalInput.value
-    
+
     if (tv.length === 0) {
       this.#amount = 0
     } else {
@@ -311,7 +312,7 @@ class TallyCategory {
     multiplierSpan.append("x", multInput)
 
     const totalSpan = document.createElement("span")
-    totalSpan.append("(", totalInput, ")")
+    totalSpan.append("(Total:", totalInput, ")")
 
     const boxSizeSpan = document.createElement("span")
     boxSizeSpan.append("Box Size:", boxSizeInput)
@@ -796,21 +797,33 @@ function splitBoxes(amount, multiplier, boxSize, startAmount = 0) {
     setRuntimeText(runtime2, Math.ceil(cycleTimeSmart))
   }
 
+  function formatTime(valueSeconds, useHours = true) {
+    let secs = valueSeconds
+
+    let hours
+
+    if (useHours) {
+      hours = Math.floor(valueSeconds / 3600)
+      secs -= hours * 3600
+    } else {
+      hours = 0
+    }
+
+    let mins = Math.floor(secs / 60)
+    secs -= mins * 60
+
+    if (useHours) {
+      return `${hours.toString().padStart(2, '0')}:${String(mins).padStart(2, '0')}:${Math.floor(secs).toString().padStart(2, '0')}`
+    } else {
+      return `${String(mins).padStart(2, '0')}:${Math.floor(secs).toString().padStart(2, '0')}`
+    }
+  }
+
   function setRuntimeText(el, valueSeconds) {
     let format = el.getAttribute("display")
 
     if (format === "minutes") {
-      let secs = valueSeconds
-
-      let hours = Math.floor(valueSeconds / 3600)
-      secs -= hours * 3600
-
-      let mins = Math.floor(secs / 60)
-      secs -= mins * 60
-
-      console.log("valueSeconds:", valueSeconds, "secs:", secs, "mins:", mins, "hours:", hours)
-
-      el.textContent = `${hours.toString().padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`
+      el.textContent = formatTime(valueSeconds)
       return
     }
 
@@ -888,7 +901,7 @@ function splitBoxes(amount, multiplier, boxSize, startAmount = 0) {
     }
 
     if (missed <= 0) {
-      timeloss.textContent = `None! (${-missed} extra)`
+      timeloss.textContent = `None! (${-Math.floor(missed)} extra)`
       timelossRounded.textContent = ""
       return
     }
