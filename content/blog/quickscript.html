@@ -95,6 +95,48 @@ toc: true
   there are no special registers which are reserved for special purposes.
 </p>
 
+<h3>Management</h3>
+<p>
+  The interpreter, although the most basic purpose is to load a single compiled
+  script file and execute it needs to perform other functions such as loading
+  multiple files, linking them and allowing them to intercommunicate.
+</p>
+<p>
+  To this end, the interpreter will maintain a large array of instructions which
+  will be grown and then written to when loading additional files.
+</p>
+<p>
+  Every file that's loaded is then scanned, its types added to the global type
+  table, if indexes in the file don't line up with global type indexes, then
+  rewrites to the types referenced in the file will be done. The same goes for
+  the const string pool.
+</p>
+<p>
+  In essence, the interpreter functions like a single script file, that performs
+  rewrites to the loaded instructions and actively merges other files into one.
+</p>
+
+<h4>Global Const String Pool</h4>
+<p>
+  The interpreter will maintain a global const string pool that is written to
+  anytime a new file is loaded. If offsets from the loaded file don't match the
+  emplaced global offsets, then rewrites to the instructions in the file
+  referencing the strings will be done.
+</p>
+
+<h4>Global Memory Space</h4>
+<p>
+  The interpreter will maintain a resize-able stack frame for all global
+  variables in a project. As with the global type table and global const string
+  pool, whenever this is expanded with a new file being loaded, the loaded file
+  will have rewrites performed to update any references made to global
+  variables.
+</p>
+<p>
+  This should also make referencing exported constants or global variables in
+  other files easier, as all that's needed to do, is to point instructions that
+  reference the global variable to the correct global memory offset.
+</p>
 
 <h3 id="funcinvoke">Function Invocation</h3>
 <p>
@@ -260,9 +302,9 @@ toc: true
     </p>
   </dd>
 
-  <dt><code>RSREAD</code> (has byte-dependent codes)</dt>
+  <dt><code>SREAD</code> (has byte-dependent codes)</dt>
   <dd>
-    Relative stack read of a corresponding bit-size from the stack memory. Takes in
+    Stack read of a corresponding bit-size from the stack memory. Takes in
     two arguments:
     <ul>
       <li>The register to store the read value.</li>
@@ -273,9 +315,9 @@ toc: true
     </ul>
   </dd>
 
-  <dt><code>RSWRITE</code> (has byte-dependent codes)</dt>
+  <dt><code>SWRITE</code> (has byte-dependent codes)</dt>
   <dd>
-    Relative stack write of a corresponding bit-size to the stack memory. Takes in
+    Stack write of a corresponding bit-size to the stack memory. Takes in
     two arguments:
     <ul>
       <li>The register to read the value from.</li>
@@ -283,9 +325,9 @@ toc: true
     </ul>
   </dd>
 
-  <dt><code>ASREAD</code> (has byte-dependent codes)</dt>
+  <dt><code>GREAD</code> (has byte-dependent codes)</dt>
   <dd>
-    Absolute read of a corresponding bit-size from the stack memory. Takes in
+    Global read of a corresponding bit-size from memory. Takes in
     two arguments:
     <ul>
       <li>The register to store the read value.</li>
@@ -296,9 +338,9 @@ toc: true
     </ul>
   </dd>
 
-  <dt><code>ASWRITE</code> (has byte-dependent codes)</dt>
+  <dt><code>GWRITE</code> (has byte-dependent codes)</dt>
   <dd>
-    Absolute write of a corresponding bit-size to the stack memory. Takes in
+    Global variable write of a corresponding bit-size to memory. Takes in
     two arguments:
     <ul>
       <li>The register to read the value from.</li>
@@ -1037,10 +1079,50 @@ uint32 f() {
 
 <h3>Header</h3>
 <p>
-  This is a set of <code>uint64</code> pairs. Each one specifies the starting
-  point of one of the following sections of the file and the section's length
-  in bytes.
+  The following is a list of what the bytes of the bytecode file mean,
+  in order.
 </p>
+
+<dl>
+  <dt>File Prefix (ASCII String)</dt>
+  <dd>ASCII string with value "<i>quickscript</i>"</dd>
+
+  <dt>File Version (unsigned 16bit integer)</dt>
+  <dd>
+    <p>
+      Version counter for tracking which compiler version compiled this file.
+      Older interpreters cannot run files compiled by newer versions of the
+      compiler.
+    </p>
+    <p>
+      Currently, before the first version of the interpreter has even been
+      finished, this will be <code>0</code>.
+    </p>
+  </dd>
+
+  <dt>String Const Pool Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the string const pool from the start of the file, and its size
+    in bytes.
+  </dd>
+
+  <dt>Type Table Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the file's type table from the start of the file and its size
+    in bytes.
+  </dd>
+
+  <dt>Function Table Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the file's function table from the start of the file and its size
+    in bytes.
+  </dd>
+
+  <dt>Instruction Buffer Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the instructions from the start of the file and its size in bytes.
+  </dd>
+</dl>
 
 <h3>Const String Pool</h3>
 <p>
