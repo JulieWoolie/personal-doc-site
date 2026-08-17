@@ -10,7 +10,7 @@ function imagesMain() {
     let target = ev.target
     let tag = target.tagName.toLowerCase()
 
-    if (tag != "img") {
+    if (tag != "img" || target.hasAttribute("ignore")) {
       return
     }
 
