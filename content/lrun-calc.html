@@ -87,18 +87,20 @@ toc: false
 </form>
 
 <script>
-  const timeloss = document.getElementById("timeloss")
-  const timelossRounded = document.getElementById("timeloss-rounded")
-  const targetq = document.getElementById("target")
+  // Inputs
+  const cavitiesIn = document.getElementById("icavities")
+  const customShift = document.getElementById("customshift")
+  const customShiftLen = document.getElementById("customshift-length")
   const produced = document.getElementById("iprod")
   const laborRunMach = document.getElementById("ilrun")
   const regularShift = document.getElementById("regular")
   const nightShift = document.getElementById("night")
-  const customShift = document.getElementById("customshift")
-  const customShiftLen = document.getElementById("customshift-length")
-  const avgCycleTime = document.getElementById("avg-cycle-time")
 
-  const cavitiesIn = document.getElementById("icavities")
+  // Outputs
+  const timeloss = document.getElementById("timeloss")
+  const timelossRounded = document.getElementById("timeloss-rounded")
+  const targetq = document.getElementById("target")
+  const avgCycleTime = document.getElementById("avg-cycle-time")
   const cavitiesNum = document.getElementById("cavities-num")
   const runtime1 = document.getElementById("runtime")
   const runtime2 = document.getElementById("runtime-smart")
