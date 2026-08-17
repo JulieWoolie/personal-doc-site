@@ -59,16 +59,20 @@ toc: false
       <th colspan="2" style="padding-top: 20px;">Results</th>
     </tr>
     <tr>
-      <td>Target Quantity</td>
-      <td id="target" display="pcs"></td>
+      <td><b>Target Quantity</b></td>
+      <td><b id="target" display="pcs"></b></td>
     </tr>
     <tr>
       <td>Time loss</td>
       <td id="timeloss"></td>
     </tr>
     <tr>
-      <td>Rounded Time loss</td>
-      <td id="timeloss-rounded"></td>
+      <td><b>Rounded Time loss</b></td>
+      <td><b id="timeloss-rounded"></b></td>
+    </tr>
+    <tr>
+      <td>Average Cycle Time</td>
+      <td id="avg-cycle-time" display="seconds"></td>
     </tr>
     <tr>
       <td>Ideal Cycle Time</td>
@@ -86,20 +90,21 @@ toc: false
   const timeloss = document.getElementById("timeloss")
   const timelossRounded = document.getElementById("timeloss-rounded")
   const targetq = document.getElementById("target")
-  const prod = document.getElementById("iprod")
-  const lrun = document.getElementById("ilrun")
+  const produced = document.getElementById("iprod")
+  const laborRunMach = document.getElementById("ilrun")
   const regularShift = document.getElementById("regular")
   const nightShift = document.getElementById("night")
   const customShift = document.getElementById("customshift")
   const customShiftLen = document.getElementById("customshift-length")
+  const avgCycleTime = document.getElementById("avg-cycle-time")
 
   const cavitiesIn = document.getElementById("icavities")
   const cavitiesNum = document.getElementById("cavities-num")
   const runtime1 = document.getElementById("runtime")
   const runtime2 = document.getElementById("runtime-smart")
 
-  lrun.oninput = updateResult
-  prod.oninput = updateResult
+  laborRunMach.oninput = updateResult
+  produced.oninput = updateResult
   regularShift.oninput = updateResult
   nightShift.oninput = updateResult
   customShift.oninput = () => {
@@ -144,10 +149,12 @@ toc: false
     updateResult()
   }
 
-  runtime1.onclick = () => { switchTimeFormat(runtime1) }
-  runtime2.onclick = () => { switchTimeFormat(runtime2) }
+  runtime1.onclick = switchTimeFormat
+  runtime2.onclick = switchTimeFormat
+  avgCycleTime.onclick = switchTimeFormat
 
-  function switchTimeFormat(el) {
+  function switchTimeFormat(ev) {
+    const el = ev.target
     let format = el.getAttribute("display")
     if (format === "minutes") {
       format = "seconds"
@@ -163,11 +170,12 @@ toc: false
 
   function loadParams() {
     const lr = localStorage.getItem("lrun-calc::labor_run")
-    const produced = localStorage.getItem("lrun-calc::produced")
+    const producedVal = localStorage.getItem("lrun-calc::produced")
     const type = localStorage.getItem("lrun-calc::shift_type")
     const cavs = localStorage.getItem("lrun-calc::cavities")
     const r1Display = localStorage.getItem("lrun::r1display")
     const r2Display = localStorage.getItem("lrun::r2display")
+    const avgTimeDisplay = localStorage.getItem("lrun::avgdisplay")
     const cshiftLen = localStorage.getItem("lrun::customlength")
     const targetQuantDisplay = localStorage.getItem("lrun::targetdisplay")
 
@@ -182,11 +190,11 @@ toc: false
       cavitiesNum.textContent = cavs
     }
     if (lr) {
-      lrun.value = lr
+      laborRunMach.value = lr
       callUpdate = true
     }
-    if (produced) {
-      prod.value = produced
+    if (producedVal) {
+      produced.value = producedVal
       callUpdate = true
     }
     if (type) {
@@ -218,29 +226,34 @@ toc: false
     if (r2Display) {
       runtime2.setAttribute("display", r2Display)
     }
+    if (avgTimeDisplay) {
+      avgCycleTime.setAttribute("display", avgTimeDisplay)
+    }
 
     if (callUpdate) {
       updateResult()
     }
   }
 
-  function calculateRuntimes(laborRun, shiftTime, cavs) {
-    const totalBreaksTime = 50
+  function calculateRuntimes(laborRun, made, shiftTime, cavities, breakMins) {
     const compensation = 50
 
-    const target = (laborRun / cavs) * shiftTime
-    const lengthMins = (shiftTime * 60) - (totalBreaksTime + compensation)
+    const target = (laborRun / cavities) * shiftTime
+    const lengthMins = (shiftTime * 60) - (breakMins + compensation)
 
-    const cycleTimeSeconds = 3600 / (laborRun / cavs)
+    const cycleTimeSeconds = 3600 / (laborRun / cavities)
     const cycleTimeSmart = (lengthMins * 60) / target
 
+    const totalWorkedHours = (shiftTime * 3600) - (breakMins * 60)
+    const avgCycleTimeNum = totalWorkedHours / (made / cavities)
+
+    setRuntimeText(avgCycleTime, Math.floor(avgCycleTimeNum))
     setRuntimeText(runtime1, Math.ceil(cycleTimeSeconds))
     setRuntimeText(runtime2, Math.ceil(cycleTimeSmart))
   }
 
   function formatTime(valueSeconds, useHours = true) {
     let secs = valueSeconds
-
     let hours
 
     if (useHours) {
@@ -272,12 +285,13 @@ toc: false
   }
 
   function saveParams() {
-    localStorage.setItem("lrun-calc::labor_run", lrun.value)
-    localStorage.setItem("lrun-calc::produced", prod.value)
+    localStorage.setItem("lrun-calc::labor_run", laborRunMach.value)
+    localStorage.setItem("lrun-calc::produced", produced.value)
     localStorage.setItem("lrun-calc::cavities", cavitiesIn.value)
     localStorage.setItem("lrun::customlength", customShiftLen.value)
     localStorage.setItem("lrun::r1display", runtime1.getAttribute("display"))
     localStorage.setItem("lrun::r2display", runtime2.getAttribute("display"))
+    localStorage.setItem("lrun::avgdisplay", avgCycleTime.getAttribute("display"))
     localStorage.setItem("lrun::targetdisplay", targetq.getAttribute("display"))
 
     let shiftType
@@ -294,45 +308,46 @@ toc: false
 
   function getShiftLength() {
     if (regularShift.checked) {
-      return 8
+      return {hours: 8, breakMins: 50}
     } else if (nightShift.checked) {
-      return 7
+      return {hours: 7, breakMins: 50}
     }
 
     let hhmmStr = customShiftLen.value
     let split = hhmmStr.split(":");
 
     if (split.length === 1) {
-      return parseFloat(split[0])
+      return {hours: parseFloat(split[0]), breakMins: 0}
     }
 
     const h = parseFloat(split[0])
     const m = parseFloat(split[1])
-    return h + (m / 60)
+
+    return {hours: h + (m / 60), breakMins: 0}
   }
 
   function updateResult() {
     saveParams()
 
-    let hours = getShiftLength()
-    let prodRun = 0
-    let laborRun = 0
+    let shiftLength = getShiftLength()
+    let producedNum = 0
+    let laborMach = 0
 
-    let prVal = trim(prod.value)
-    let lrVal = trim(lrun.value)
+    let prVal = trim(produced.value)
+    let lrVal = trim(laborRunMach.value)
 
     try {
-      prodRun = parseNum(prVal)
-      laborRun = parseNum(lrVal)
+      producedNum = parseNum(prVal)
+      laborMach = parseNum(lrVal)
     } catch (e) {
       return
     }
 
     const cavities = parseFloat(cavitiesIn.value)
-    calculateRuntimes(laborRun, hours, cavities)
+    calculateRuntimes(laborMach, producedNum, shiftLength.hours, cavities, shiftLength.breakMins)
 
-    const targetQ = hours * laborRun
-    const missed = targetQ - prodRun
+    const targetQ = shiftLength.hours * laborMach
+    const missed = targetQ - producedNum
 
     const targetFormat = targetq.getAttribute("display")
     if (targetFormat === "pcs") {
@@ -347,7 +362,7 @@ toc: false
       return
     }
 
-    const timeLossMins = (missed / laborRun) * 60
+    const timeLossMins = (missed / laborMach) * 60
     timeloss.textContent = `${timeLossMins.toFixed(2)} minutes`
     timelossRounded.textContent = `${roundLoss(timeLossMins)} minutes`
   }
