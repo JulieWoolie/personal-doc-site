@@ -28,6 +28,12 @@ const latexTagHandlers = [
     }
   },
   {
+    tagName: "h5",
+    handler(c) {
+      return `\n\\subsubsection{${toLateXString(c.childNodes)}}\\label{${normalizeId(c.id)}}\n`
+    }
+  },
+  {
     tagName: "p",
     handler(c) {
       let prefix
@@ -56,6 +62,11 @@ const latexTagHandlers = [
   {
     tagName: "code",
     handler(c) {
+      let fec = c.firstElementChild
+      if (fec != null && fec.tagName === "PRE") {
+        return `\\begin{lstlisting}\n${c.firstElementChild.textContent}\n\\end{lstlisting}`
+      }
+
       return ` \\texttt{${toLateXString(c.childNodes)}} `
     }
   },
@@ -138,13 +149,53 @@ const latexTagHandlers = [
   {
     tagName: "a",
     handler(c) {
-      return `\\href{${c.href}}{${toLateXString(c.childNodes)}}`
+      if (c.parentElement.matches("h1, h2, h3, h4, h5")) {
+        return ""
+      }
+
+      return `\\href{${c.href.replaceAll("#", "\\#")}}{${toLateXString(c.childNodes)}}`
     }
   },
   {
     tagName: "section",
     handler(c) {
       return toLateXString(c.childNodes)
+    }
+  },
+  {
+    tagName: "div.highlight",
+    handler(c) {
+      const lines = c.querySelectorAll("span.line")
+      const htmlLang = c.querySelector("code[data-lang]").getAttribute("data-lang")
+      let lang = ""
+
+      switch (htmlLang.toLowerCase()) {
+        case "cpp":
+        case "c++":
+        case "cplusplus":
+          lang = "C++"
+          break
+        case "c":
+          lang = "C"
+          break
+        default:
+          if (htmlLang.length === 1) {
+            lang = htmlLang.toUpperCase()
+          } else {
+            lang = `${htmlLang[0].toUpperCase()}${htmlLang.substring(1)}`
+          }
+          break
+      }
+
+      let out = `\\begin{lstlisting}[language=${lang}]\n`
+
+      for (const line of lines) {
+        out += `${line.textContent}`
+      }
+
+      out += `\\end{lstlisting}`
+
+      return out
     }
   }
 ]
@@ -198,6 +249,7 @@ function convertContentToLaTeX() {
 \\usepackage{tcolorbox}
 \\usepackage{longtable}
 \\usepackage{multirow}
+\\usepackage{listings}
 
 \\colorlet{LightGray}{White!90!Periwinkle}
 \\colorlet{LightOrange}{Orange!15}
@@ -262,7 +314,7 @@ function toLateXString(nodes) {
 }
 
 /**
- * @param {ChildNode} c 
+ * @param {HTMLElement} c
  * @returns {string}
  */
 function nodeToLatex(c) {
@@ -281,14 +333,14 @@ function nodeToLatex(c) {
   let matching = null
 
   for (let h of latexTagHandlers) {
-    if (h.tagName == tagName) {
+    if (c.matches(h.tagName)) {
       matching = h.handler
       break
     }
   }
 
   if (matching == null) {
-    console.log(`Tag ${tagName} is not supported :(`)
+    console.log(`Tag ${tagName} is not supported :(`, c)
     return ""
   }
 
@@ -475,6 +527,9 @@ function normalizeText(text) {
     .replaceAll("}", "\\}")
     .replaceAll("/", "\\/")
     .replaceAll("%", "\\%")
+    .replaceAll("&", "\\&")
+    .replaceAll("|", "\\|")
+    .replaceAll("^", "\\^")
     .trim()
 
   return filtered

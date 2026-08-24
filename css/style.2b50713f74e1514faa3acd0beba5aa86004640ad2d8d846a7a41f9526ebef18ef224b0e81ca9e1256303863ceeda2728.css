@@ -162,7 +162,6 @@ sup a {
     }
 
     code {
-      font-size: larger;
       color: white;
     }
   }
@@ -190,7 +189,7 @@ sup a {
   p[bigletter]::first-letter, p[big-letter]::first-letter {
     font-size: 200%;
   }
-  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p, [no-indent], [noindent])::first-letter {
+  p:not(h1+p, h2+p, h3+p, h4+p, h5+p, dd p, [no-indent], [noindent], .content[noindent] p)::first-letter {
     margin-inline-start: 5mm;
   }
 
