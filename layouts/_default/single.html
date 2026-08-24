@@ -1,5 +1,5 @@
 {{define "main"}}
-<main class="content content-sizing bg-dark cborder" id="content-el">
+<main class="content content-sizing bg-dark cborder" id="content-el" {{if .Params.noindent | default false}}noindent{{end}}>
   {{partial "title.html" .}}
 
   {{$toc_setting := .Params.toc | default true}}
