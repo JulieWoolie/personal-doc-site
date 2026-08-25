@@ -21,6 +21,8 @@ async function main() {
   console.log(`Postprocessor found ${filePaths.length} HTML files to process`)
 
   for (const path of filePaths) {
+    console.log(`Processing ${path}`)
+
     const text = await Deno.readTextFile(path)
     const processed = processHtml(text, "text/html")
     await Deno.writeTextFile(path, processed)
