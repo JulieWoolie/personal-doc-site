@@ -23,8 +23,14 @@ jobs:
           hugo-version: '0.119.0'
           # extended: true
 
-      - name: Build
+      - name: Setup Deno
+        uses: denoland/setup-deno@v2
+
+      - name: Hugo Build
         run: hugo --minify
+
+      - name: Post Processor
+        run: deno task --cwd postprocessor hugo-build
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
