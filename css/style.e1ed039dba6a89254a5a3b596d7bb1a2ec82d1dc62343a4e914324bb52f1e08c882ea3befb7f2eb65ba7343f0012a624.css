@@ -567,3 +567,17 @@ h5, h6 {
   column-count: 4;
   column-gap: 20px;
 }
+
+pre {
+  overflow: auto;
+}
+
+a code {
+  text-wrap: wrap;
+  word-break: break-all;
+}
+
+.footnote-ref {
+  vertical-align: super;
+  font-size: smaller;
+}
