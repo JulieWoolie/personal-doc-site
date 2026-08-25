@@ -1,5 +1,5 @@
 import { Document, Element } from "@b-fuze/deno-dom";
-import { CollectedHeader, createNumbersSpan } from "../common.ts";
+import { CollectedHeader, headerNumbersToString } from "../common.ts";
 
 function findReferenced(headers: CollectedHeader[], id: string): CollectedHeader | null {
   for (const h of headers) {
@@ -25,7 +25,7 @@ export function processChapterRefs(document: Document, content: Element, headers
 
     const a = document.createElement("a")
     a.setAttribute("href", `#${target.element.id}`)
-    a.innerHTML = `${createNumbersSpan(target.numbers)}${target.element.innerHTML}`
+    a.innerHTML = `${headerNumbersToString(target.numbers)} ${target.element.innerHTML}`
 
     ref.before(a)
     ref.remove()
