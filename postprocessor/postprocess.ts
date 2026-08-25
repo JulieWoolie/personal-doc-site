@@ -24,14 +24,14 @@ function collectHeaders(content: Element): CollectedHeader[] {
 }
 
 export function processHtml(htmlString: string, mimeType: string): string {
-  if (!htmlString.includes(`id="content"`)) {
-    return htmlString
-  }
-
   const parser = new DOMParser()
   const document = parser.parseFromString(htmlString, mimeType as DOMParserMimeType)
 
-  const content: Element = document.getElementById("content")!
+  const content: Element | null = document.getElementById("content")
+  if (content == null) {
+    return htmlString
+  }
+
   const headings = collectHeaders(content)
 
   giveHeadersIds(headings)
