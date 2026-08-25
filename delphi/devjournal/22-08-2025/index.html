@@ -1,7 +1,7 @@
-<!doctype html><html lang=en><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel=stylesheet href=/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Flexbox finally!</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=chapter-numbering content="arabic"></head><body class="bg-lighter body" style=background-image:url(/backgrounds/statue-repeat.png)><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class=navbar-link href=/>Home</a>
-<a class=navbar-link href=/blog>Blog</a></div><div class=navbar-middle><a class=navbar-link href=/sun><img height=33 src=/sun.png style=filter:invert()></a></div><div class="navbar-side right"><a class=navbar-link href=/delphi>Delphi</a>
-<a class=navbar-link href=/arcadius>Arcadius</a></div></nav><hr class=palmette><main class="content content-sizing bg-dark cborder" id=content-el><header class=title-container><img class="headerimg large" src=/delphi/only-logo.png><h1 toc-ignore class=pagetitle>Flexbox finally!</h1><div class=subtitle>22-08-2025</div></header><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><article id=content><h2>FLEXBOX</h2><p>FINALLY!!! I finally got around to implementing FlexBox. It took me chugging
+<html lang="en"><head><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel="stylesheet" href="/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css"><link rel="stylesheet" href="/css/highlighting.css"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="manifest" href="/favicon/site.webmanifest"><title>Flexbox finally!</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="chapter-numbering" content="arabic"></head><body class="bg-lighter body" style="background-image:url(/backgrounds/statue-repeat.png)"><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class="navbar-link" href="/">Home</a>
+<a class="navbar-link" href="/blog">Blog</a></div><div class="navbar-middle"><a class="navbar-link" href="/sun"><img height="33" src="/sun.png" style="filter:invert()"></a></div><div class="navbar-side right"><a class="navbar-link" href="/delphi">Delphi</a>
+<a class="navbar-link" href="/arcadius">Arcadius</a></div></nav><hr class="palmette"><main class="content content-sizing bg-dark cborder" id="content-el"><header class="title-container"><img class="headerimg large" src="/delphi/only-logo.png"><h1 toc-ignore="" class="pagetitle">Flexbox finally!</h1><div class="subtitle">22-08-2025</div></header><h2 toc-ignore="">Table Of Contents</h2><div id="toc-out"><a href="#flexbox" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">1.</span>FLEXBOX</a><a href="#major-hiccups" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">2.</span>Major hiccups</a><a href="#thoughts" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">3.</span>Thoughts</a><a href="#other-stuff" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">4.</span>Other stuff</a><a href="#future-stuff" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">5.</span>Future stuff</a><a href="#positioned-layout" class="toc-element" latex-ignore="" style="padding-left: 3mm;"><span latex-ignore="" class="section-num">5.1.</span>Positioned Layout</a><a href="#non-module-based-menus" class="toc-element" latex-ignore="" style="padding-left: 3mm;"><span latex-ignore="" class="section-num">5.2.</span>Non-module based menus</a></div><article id="content"><h2 id="flexbox"><span latex-ignore="" class="section-num">1.</span>FLEXBOX<a href="#flexbox" class="copy-header-ref">🔗</a></h2><p>FINALLY!!! I finally got around to implementing FlexBox. It took me chugging
 an entire pitcher of black coffee <i>(Don't judge me, I like doing that.)</i>
 Granted, it's not fully functional, or maybe it is, I don't know, my unit
 tests are comprehensive enough to say yet.</p><p>To accomplish this, I knew I'd need to layout algorithm in a place that didn't
@@ -16,7 +16,7 @@ quick bit of messing around with the Flow algorithm's previous implementation
 to get it to adapt.</p><p>But it worked, then, I implemented FlexBox. I had written pieces of the
 algorithm beforehand, adding a couple lines once a week here and there. But
 now, loaded up on a literal pitcher of black coffee, I wrote the entire
-algorithm in one afternoon and IT RAN, I AM THE GOAT</p><p>It worked in game as well, as you can see here:</p><iframe style=width:100%;height:300px src="https://www.youtube.com/embed/-7bjVY7K57k?si=CNrUqhdkLucniMnh" title="YouTube video player" frameborder=0 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy=strict-origin-when-cross-origin allowfullscreen></iframe><h2>Major hiccups</h2><p>I soon however encountered an issue. I attempted to open the <i>"Meta"</i>
+algorithm in one afternoon and IT RAN, I AM THE GOAT</p><p>It worked in game as well, as you can see here:</p><iframe style="width:100%;height:300px" src="https://www.youtube.com/embed/-7bjVY7K57k?si=CNrUqhdkLucniMnh" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe><h2 id="major-hiccups"><span latex-ignore="" class="section-num">2.</span>Major hiccups<a href="#major-hiccups" class="copy-header-ref">🔗</a></h2><p>I soon however encountered an issue. I attempted to open the <i>"Meta"</i>
 page on Devtools, just to see if it rendered correctly. The server soon
 crashed because my ported-over Flow algorithm began looping infinitely. At
 this point it was late and I went to sleep.</p><p>The next day, after an hour or two of wrangling I managed to recreate the
@@ -30,11 +30,11 @@ stabilization run, the child element grows again, and this repeats until the
 server stalls and crashes.</p><p>It took me an entire day to figure out how to handle and prevent this. I have
 to thank the W3C standards for coming in clutch, after about 8 hours I busted
 open the specs and found this section:
-<a href=https://www.w3.org/TR/css-sizing-3/#cyclic-percentage-contribution target=_blank>Intrinsic Contributions of Percentage-Sized Boxes
+<a href="https://www.w3.org/TR/css-sizing-3/#cyclic-percentage-contribution" target="_blank">Intrinsic Contributions of Percentage-Sized Boxes
 </a>.
 Of course, just handle the percent values as <code>auto</code> if the
 parent's size isn't explicitly set. I don't know why or how, but yeah... this
-fixed it.</p><h2>Thoughts</h2><p>When I initially started writing the layout engine, I felt like I was in the
+fixed it.</p><h2 id="thoughts"><span latex-ignore="" class="section-num">3.</span>Thoughts<a href="#thoughts" class="copy-header-ref">🔗</a></h2><p>When I initially started writing the layout engine, I felt like I was in the
 dark, I didn't know what I was doing and everything I read either in the spec
 or from other people's own implementations or guides seemed to confuse me
 more.</p><p>One big thing that confused me was how you can perform layout without knowing
@@ -47,18 +47,18 @@ support any kind of writing system other than left-to-write. I assume this
 already means this plugin cannot be used for languages like Arabic, which
 write right-to-left, or Japanese, which can be either left-to-right or
 vertical.</p><p>I wouldn't even know where to start with those languages, I only speak my own
-native language and English.</p><h2>Other stuff</h2><p>I also updated the <a href=/delphi/layout>NLayout</a> documentation itself
+native language and English.</p><h2 id="other-stuff"><span latex-ignore="" class="section-num">4.</span>Other stuff<a href="#other-stuff" class="copy-header-ref">🔗</a></h2><p>I also updated the <a href="/delphi/layout">NLayout</a> documentation itself
 to reflect the new engine.</p><p>If you want to get the latest version of the plugin (at time of writing), the
 download link is
-<a href=https://modrinth.com/plugin/delphi/version/0.5.0 target=_blank>here (Modrinth)!</a></p><h2>Future stuff</h2><p>I'm starting to feel the plugin is almost at a stage where I can call it
+<a href="https://modrinth.com/plugin/delphi/version/0.5.0" target="_blank">here (Modrinth)!</a></p><h2 id="future-stuff"><span latex-ignore="" class="section-num">5.</span>Future stuff<a href="#future-stuff" class="copy-header-ref">🔗</a></h2><p>I'm starting to feel the plugin is almost at a stage where I can call it
 ready for release. <i>(That's a lie.)</i></p><p>I want to implement 2 more major features before it: Positioned Layout, and
-non-module based menus.</p><h3>Positioned Layout</h3><p>It feels like such a vital part for menus, that final touch, on top of Flow
+non-module based menus.</p><h3 id="positioned-layout"><span latex-ignore="" class="section-num">5.1.</span>Positioned Layout<a href="#positioned-layout" class="copy-header-ref">🔗</a></h3><p>It feels like such a vital part for menus, that final touch, on top of Flow
 and Flexbox. Being able to position elements as you want on the page without
 it really affecting the current layout engine feels crucial for any release
 version of this plugin.</p><p>That being said. When it came to Flexbox and Flow, I started out with some
 knowledge of how they worked and their basics. I know almost nothing about
 Positioned layout. I've rarely used it, but each time I have used it, it has
-been powerful and provided features Flow and Flex cannot.</p><h3>Non-module based menus</h3><p>Currently, in order to create a menu, even programmatically, you need to
+been powerful and provided features Flow and Flex cannot.</p><h3 id="non-module-based-menus"><span latex-ignore="" class="section-num">5.2.</span>Non-module based menus<a href="#non-module-based-menus" class="copy-header-ref">🔗</a></h3><p>Currently, in order to create a menu, even programmatically, you need to
 register either a <code>IoModule</code> or a <code>ApiModule</code> that
 opens menus from a provided <code>ResourcePath</code>.</p><p>This system feels cumbersome and sometimes like it could get in the way. The
 big <b>+</b> it provides however, is the ability to open a menu anywhere, as
@@ -70,5 +70,5 @@ be easier for developers to work with. If you can just create a
 <code>Document</code> anywhere and just open it, no need for a registered
 <code>Module</code> instance.</p><p>For now, as well, I think the creation of non-module based menus, or rather,
 pure programmatic menus would only be possible only through the Delphi
-plugin's API.</p></main></article><script src=/js/images.js></script><hr class="palmette page-width" style=margin-left:auto;margin-right:auto><div class="bg-dark content-sizing content footer"><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button></div><table class=footer-metadata><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-08-22 19:45:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>1013</td></tr></tbody></table></div><script src=/js/main.js></script>
-<script src=/js/to-latex.js></script></body></html>
+plugin's API.</p></article></main><script src="/js/images.js"></script><hr class="palmette page-width" style="margin-left:auto;margin-right:auto"><div class="bg-dark content-sizing content footer"><div class="footer-flex"><button class="button" id="latex-convert-btn">Copy content as LaTeX</button></div><table class="footer-metadata"><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-08-22 19:45:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>1013</td></tr></tbody></table></div><script src="/js/main.js"></script>
+<script src="/js/to-latex.js"></script></body></html>

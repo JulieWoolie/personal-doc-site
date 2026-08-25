@@ -1,9 +1,9 @@
-<!doctype html><html lang=en><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel=stylesheet href=/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Scripting support and some minor bug fixes</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=chapter-numbering content="arabic"></head><body class="bg-lighter body" style=background-image:url(/backgrounds/statue-repeat.png)><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class=navbar-link href=/>Home</a>
-<a class=navbar-link href=/blog>Blog</a></div><div class=navbar-middle><a class=navbar-link href=/sun><img height=33 src=/sun.png style=filter:invert()></a></div><div class="navbar-side right"><a class=navbar-link href=/delphi>Delphi</a>
-<a class=navbar-link href=/arcadius>Arcadius</a></div></nav><hr class=palmette><main class="content content-sizing bg-dark cborder" id=content-el><header class=title-container><img class="headerimg large" src=/delphi/only-logo.png><h1 toc-ignore class=pagetitle>Scripting support and some minor bug fixes</h1><div class=subtitle>24-05-2025</div></header><article id=content><p>Oh my god, it's been awhile since I even touched this project. And here I am,
+<html lang="en"><head><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel="stylesheet" href="/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css"><link rel="stylesheet" href="/css/highlighting.css"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="manifest" href="/favicon/site.webmanifest"><title>Scripting support and some minor bug fixes</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="chapter-numbering" content="arabic"></head><body class="bg-lighter body" style="background-image:url(/backgrounds/statue-repeat.png)"><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class="navbar-link" href="/">Home</a>
+<a class="navbar-link" href="/blog">Blog</a></div><div class="navbar-middle"><a class="navbar-link" href="/sun"><img height="33" src="/sun.png" style="filter:invert()"></a></div><div class="navbar-side right"><a class="navbar-link" href="/delphi">Delphi</a>
+<a class="navbar-link" href="/arcadius">Arcadius</a></div></nav><hr class="palmette"><main class="content content-sizing bg-dark cborder" id="content-el"><header class="title-container"><img class="headerimg large" src="/delphi/only-logo.png"><h1 toc-ignore="" class="pagetitle">Scripting support and some minor bug fixes</h1><div class="subtitle">24-05-2025</div></header><article id="content"><p>Oh my god, it's been awhile since I even touched this project. And here I am,
 I'm back to work on it... for another 2 or 3 days until I other things take
-my attention away from it.</p><h2>JS Support</h2><p>I've added JS support, although currently it's very basic and <i>very</i>
+my attention away from it.</p><h2 id="js-support"><span latex-ignore="" class="section-num">1.</span>JS Support<a href="#js-support" class="copy-header-ref">🔗</a></h2><p>I've added JS support, although currently it's very basic and <i>very</i>
 unsecure.</p><p>In keeping with my love of ancient greek stuff, the JS integration module has
 been named <i>"Hephaestus"</i>, as the smith that's going to make these menus
 actually functional. I'll show off a small bit of it functioning later, but
@@ -25,38 +25,38 @@ the projet I'm working on, where all scripts loaded by a page should run in
 the same scope and context anyway.</p><p>Implementing GraalVM wasn't that time consuming, just add the depedencies,
 and write another DomSystem... and then change about 50 other things to add
 script support, make the loading of JS files easier and actually add the
-system to the document instances. It works though, and here it is, in action:</p><video controls>
-<source src=/delphi/js-1.mp4></video><p>As the video shows, you can use JS in both the <code>&lt;script></code>
+system to the document instances. It works though, and here it is, in action:</p><video controls="">
+<source src="/delphi/js-1.mp4"></video><p>As the video shows, you can use JS in both the <code>&lt;script&gt;</code>
 element's content, or link to a <code>.js</code> file with the
 <code>src</code> attribute.</p><p>And it works!! It runs! It actually does its job and you're able to use
 Java objects, like the DOM and <code>DocumentView</code> with it.</p><p>Granted, it's a very basic setup, and I want to curtail the access JS has to
 the host VM, or maybe I don't?? I don't know yet. I want it to be powerful,
 but I'm also worried it will be abused.</p><p>For now, the only stdlib (yes, I'm calling it that) function available is
 <code>command(args...)</code> that lets you execute a console command,
-example:</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-js data-lang=js><span class=line><span class=cl><span class=c1>// Simple command example
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=nx>command</span><span class=p>(</span><span class=sb>`tellraw @a &#34;Hello, world&#34;`</span><span class=p>)</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// You can also use multiple arguments, they will be concatened
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=kr>const</span> <span class=nx>player</span> <span class=o>=</span> <span class=nx>server</span><span class=p>.</span><span class=nx>getPlayer</span><span class=p>(</span><span class=s2>&#34;JulieWoolie&#34;</span><span class=p>);</span>
-</span></span><span class=line><span class=cl><span class=kr>const</span> <span class=nx>amount</span> <span class=o>=</span> <span class=nb>parseInt</span><span class=p>(</span><span class=nx>view</span><span class=p>.</span><span class=nx>getPath</span><span class=p>().</span><span class=nx>getQuery</span><span class=p>(</span><span class=s2>&#34;amount&#34;</span><span class=p>))</span> <span class=o>??</span> <span class=mi>1</span>
-</span></span><span class=line><span class=cl><span class=nx>command</span><span class=p>(</span><span class=s2>&#34;give&#34;</span><span class=p>,</span> <span class=nx>player</span><span class=p>.</span><span class=nx>getName</span><span class=p>(),</span> <span class=s2>&#34;minecraft_stick&#34;</span><span class=p>,</span> <span class=nx>amount</span><span class=p>)</span></span></span></code></pre></td></tr></table></div></div><h2>Devtools Development</h2><p>I worked on the Devtools a bit, not a lot, but a bit. I'll be adding in
+example:</p><div class="highlight"><div class="chroma"><table class="lntable"><tbody><tr><td class="lntd"><pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span></code></pre></td><td class="lntd"><pre tabindex="0" class="chroma"><code class="language-js" data-lang="js"><span class="line"><span class="cl"><span class="c1">// Simple command example
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="nx">command</span><span class="p">(</span><span class="sb">`tellraw @a "Hello, world"`</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// You can also use multiple arguments, they will be concatened
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="kr">const</span> <span class="nx">player</span> <span class="o">=</span> <span class="nx">server</span><span class="p">.</span><span class="nx">getPlayer</span><span class="p">(</span><span class="s2">"JulieWoolie"</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl"><span class="kr">const</span> <span class="nx">amount</span> <span class="o">=</span> <span class="nb">parseInt</span><span class="p">(</span><span class="nx">view</span><span class="p">.</span><span class="nx">getPath</span><span class="p">().</span><span class="nx">getQuery</span><span class="p">(</span><span class="s2">"amount"</span><span class="p">))</span> <span class="o">??</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl"><span class="nx">command</span><span class="p">(</span><span class="s2">"give"</span><span class="p">,</span> <span class="nx">player</span><span class="p">.</span><span class="nx">getName</span><span class="p">(),</span> <span class="s2">"minecraft_stick"</span><span class="p">,</span> <span class="nx">amount</span><span class="p">)</span></span></span></code></pre></td></tr></tbody></table></div></div><h2 id="devtools-development"><span latex-ignore="" class="section-num">2.</span>Devtools Development<a href="#devtools-development" class="copy-header-ref">🔗</a></h2><p>I worked on the Devtools a bit, not a lot, but a bit. I'll be adding in
 another tab: <i>"Actions"</i>, which will allow you to perform some actions
 on the menu, such as:</p><ul><li>Moving the menu</li><li>Forcing it to re-render</li><li>Closing the menu</li></ul><p>Ontop of that, I also fixed some bugs that were ocurring as a result of the
 devtools and changed a few small things around. Namely:</p><ul><li>The child node removal event is now fired <i>after</i> a node has been
 removed from it's parents, not before.</li><li>Fixed a concurrent modification exception when removing attributes.</li><li>Fixed another exception that ocurred when closing menus with a devtool
-instance attached to them.</li></ul><h2>Minor changes</h2><ul><li>Added support for the new <code>TranslationStore</code> which allows me to
+instance attached to them.</li></ul><h2 id="minor-changes"><span latex-ignore="" class="section-num">3.</span>Minor changes<a href="#minor-changes" class="copy-header-ref">🔗</a></h2><ul><li>Added support for the new <code>TranslationStore</code> which allows me to
 load components straight from the translation files</li><li>Expanded the locale loader to also load any custom translations one might
 want from the <code>plugins/Delphi/data/lang</code> directory.</li><li>I'm now finally running off an M.2 SSD so I have an all new windows
 installation, anyway, I installed Java 24, so the build process stopped
 working <code>;-;</code>... jk fixed that.</li><li>Fixed an error being thrown when removing the <code>style</code> attribute,
-caused by me forgetting to add a <code>return;</code> months and months ago.</li></ul><h2>Future plans</h2><ul><li>Wrapping the DOM and Delphi APIs in <code>Proxy</code>s to make them
-easier to use in JavaScript.</li><li>Making the Renderer exclude the <code>&lt;script></code> element from
-being rendered.</li></ul></main></article><script src=/js/images.js></script><hr class="palmette page-width" style=margin-left:auto;margin-right:auto><div class="bg-dark content-sizing content footer"><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button></div><table class=footer-metadata><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-24-05 17:32:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>773</td></tr></tbody></table></div><script src=/js/main.js></script>
-<script src=/js/to-latex.js></script></body></html>
+caused by me forgetting to add a <code>return;</code> months and months ago.</li></ul><h2 id="future-plans"><span latex-ignore="" class="section-num">4.</span>Future plans<a href="#future-plans" class="copy-header-ref">🔗</a></h2><ul><li>Wrapping the DOM and Delphi APIs in <code>Proxy</code>s to make them
+easier to use in JavaScript.</li><li>Making the Renderer exclude the <code>&lt;script&gt;</code> element from
+being rendered.</li></ul></article></main><script src="/js/images.js"></script><hr class="palmette page-width" style="margin-left:auto;margin-right:auto"><div class="bg-dark content-sizing content footer"><div class="footer-flex"><button class="button" id="latex-convert-btn">Copy content as LaTeX</button></div><table class="footer-metadata"><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-24-05 17:32:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>773</td></tr></tbody></table></div><script src="/js/main.js"></script>
+<script src="/js/to-latex.js"></script></body></html>

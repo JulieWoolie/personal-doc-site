@@ -1,80 +1,80 @@
-<!doctype html><html lang=en><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel=stylesheet href=/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Visual bug fixes and support for inline data</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=chapter-numbering content="arabic"></head><body class="bg-lighter body" style=background-image:url(/backgrounds/statue-repeat.png)><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class=navbar-link href=/>Home</a>
-<a class=navbar-link href=/blog>Blog</a></div><div class=navbar-middle><a class=navbar-link href=/sun><img height=33 src=/sun.png style=filter:invert()></a></div><div class="navbar-side right"><a class=navbar-link href=/delphi>Delphi</a>
-<a class=navbar-link href=/arcadius>Arcadius</a></div></nav><hr class=palmette><main class="content content-sizing bg-dark cborder" id=content-el><header class=title-container><img class="headerimg large" src=/delphi/only-logo.png><h1 toc-ignore class=pagetitle>Visual bug fixes and support for inline data</h1><div class=subtitle>06-02-2025</div></header><article id=content><p>The Day started with me testing the measurement system only to find out it
+<html lang="en"><head><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel="stylesheet" href="/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css"><link rel="stylesheet" href="/css/highlighting.css"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="manifest" href="/favicon/site.webmanifest"><title>Visual bug fixes and support for inline data</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="chapter-numbering" content="arabic"></head><body class="bg-lighter body" style="background-image:url(/backgrounds/statue-repeat.png)"><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class="navbar-link" href="/">Home</a>
+<a class="navbar-link" href="/blog">Blog</a></div><div class="navbar-middle"><a class="navbar-link" href="/sun"><img height="33" src="/sun.png" style="filter:invert()"></a></div><div class="navbar-side right"><a class="navbar-link" href="/delphi">Delphi</a>
+<a class="navbar-link" href="/arcadius">Arcadius</a></div></nav><hr class="palmette"><main class="content content-sizing bg-dark cborder" id="content-el"><header class="title-container"><img class="headerimg large" src="/delphi/only-logo.png"><h1 toc-ignore="" class="pagetitle">Visual bug fixes and support for inline data</h1><div class="subtitle">06-02-2025</div></header><article id="content"><p>The Day started with me testing the measurement system only to find out it
 worked... like as far as I could see, it worked. This was unexpected.</p><p>There were some visual bugs I found, that I fixed after adjusting the
 <code>BLOCK_OFFSET_X</code> from yesterday to <code>0.0717</code> which was
 more accurate. And by making regular text render objects also apply the
 offset. (Before, only the empty text displays used the offset) The results
 produced by this were actually really good and fixed a visual error I
-encountered this morning:</p><figure><img src=/delphi/before-blockoffset-adjust.png><figcaption>Before adjusting the constant.</figcaption></figure><figure><img src=/delphi/after-blockoffset-adjust.png><figcaption>After adjusting the constant.</figcaption></figure><p>After that, I worked in some support for the <code>box-sizing</code>
-property.</p><figure><img src=/delphi/box-sizing-test.png><figcaption><code>box-sizing</code> test. The above is set to the default,
+encountered this morning:</p><figure figure-number="1" id="figure-1"><img src="/delphi/before-blockoffset-adjust.png"><figcaption><span latex-ignore="" class="figure-num">Fig.1 - </span>Before adjusting the constant.</figcaption></figure><figure figure-number="2" id="figure-2"><img src="/delphi/after-blockoffset-adjust.png"><figcaption><span latex-ignore="" class="figure-num">Fig.2 - </span>After adjusting the constant.</figcaption></figure><p>After that, I worked in some support for the <code>box-sizing</code>
+property.</p><figure figure-number="3" id="figure-3"><img src="/delphi/box-sizing-test.png"><figcaption><span latex-ignore="" class="figure-num">Fig.3 - </span><code>box-sizing</code> test. The above is set to the default,
 <code>content-box</code> value, while the lower container is set to
 <code>border-box</code>.</figcaption></figure><p>As you can see, the below one fits perfectly inside the the content area of
 the upper box. A quick render tree dump confirms it, the element size of the
-lower box is the exact same as the content area of the upper one! Yipeee!</p><p>After that was fixed, I added some miscellaneous features to the XML parser:</p><ul><li>You can now write CSS styles inside the <code>&lt;style></code> element
-like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span><span class=lnt>7
-</span><span class=lnt>8
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-html data-lang=html><span class=line><span class=cl><span class=p>&lt;</span><span class=nt>style</span><span class=p>&gt;</span>
-</span></span><span class=line><span class=cl>  <span class=p>.</span><span class=nc>btn</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>background-color</span><span class=p>:</span> <span class=kc>red</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>  <span class=p>}</span>
-</span></span><span class=line><span class=cl>  <span class=p>.</span><span class=nc>btn</span><span class=p>:</span><span class=nd>hover</span> <span class=p>{</span>
-</span></span><span class=line><span class=cl>    <span class=k>background-color</span><span class=p>:</span> <span class=kc>blue</span><span class=p>;</span>
-</span></span><span class=line><span class=cl>  <span class=p>}</span>
-</span></span><span class=line><span class=cl><span class=p>&lt;/</span><span class=nt>style</span><span class=p>&gt;</span></span></span></code></pre></td></tr></table></div></div></li><li>You can now write JSON inside <code>&lt;item></code> elements,
-like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span><span class=lnt>17
-</span><span class=lnt>18
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;item&gt;</span>
-</span></span><span class=line><span class=cl>  {
-</span></span><span class=line><span class=cl>    &#34;id&#34;: &#34;minecraft:golden_pickaxe&#34;,
-</span></span><span class=line><span class=cl>    &#34;count&#34;: 1,
-</span></span><span class=line><span class=cl>    &#34;components&#34;: {
-</span></span><span class=line><span class=cl>      &#34;max_stack_size&#34;: 75,
-</span></span><span class=line><span class=cl>      &#34;enchantments&#34;: {
-</span></span><span class=line><span class=cl>        &#34;show_in_tooltip&#34;: true,
-</span></span><span class=line><span class=cl>        &#34;levels&#34;: {
-</span></span><span class=line><span class=cl>          &#34;minecraft:efficiency&#34;: 5,
-</span></span><span class=line><span class=cl>          &#34;minecraft:silk_touch&#34;: 1,
-</span></span><span class=line><span class=cl>          &#34;minecraft:mending&#34;: 1,
-</span></span><span class=line><span class=cl>          &#34;minecraft:unbreaking&#34;: 3
-</span></span><span class=line><span class=cl>        }
-</span></span><span class=line><span class=cl>      }
-</span></span><span class=line><span class=cl>    }
-</span></span><span class=line><span class=cl>  }
-</span></span><span class=line><span class=cl><span class=nt>&lt;/item&gt;</span></span></span></code></pre></td></tr></table></div></div></li><li>Added a new element: <code>&lt;chat-component></code>. You can write
-JSON inside it like so:<div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt>1
-</span><span class=lnt>2
-</span><span class=lnt>3
-</span><span class=lnt>4
-</span><span class=lnt>5
-</span><span class=lnt>6
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-xml data-lang=xml><span class=line><span class=cl><span class=nt>&lt;chat-component&gt;</span>
-</span></span><span class=line><span class=cl>  {
-</span></span><span class=line><span class=cl>    &#34;text&#34;: &#34;Hello, world!&#34;,
-</span></span><span class=line><span class=cl>    &#34;color&#34;:&#34;red&#34;
-</span></span><span class=line><span class=cl>  }
-</span></span><span class=line><span class=cl><span class=nt>&lt;/chat-component&gt;</span></span></span></code></pre></td></tr></table></div></div></li></ul></main></article><script src=/js/images.js></script><hr class="palmette page-width" style=margin-left:auto;margin-right:auto><div class="bg-dark content-sizing content footer"><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button></div><table class=footer-metadata><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-02-06 12:00:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>299</td></tr></tbody></table></div><script src=/js/main.js></script>
-<script src=/js/to-latex.js></script></body></html>
+lower box is the exact same as the content area of the upper one! Yipeee!</p><p>After that was fixed, I added some miscellaneous features to the XML parser:</p><ul><li>You can now write CSS styles inside the <code>&lt;style&gt;</code> element
+like so:<div class="highlight"><div class="chroma"><table class="lntable"><tbody><tr><td class="lntd"><pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td><td class="lntd"><pre tabindex="0" class="chroma"><code class="language-html" data-lang="html"><span class="line"><span class="cl"><span class="p">&lt;</span><span class="nt">style</span><span class="p">&gt;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">.</span><span class="nc">btn</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">background-color</span><span class="p">:</span> <span class="kc">red</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl">  <span class="p">.</span><span class="nc">btn</span><span class="p">:</span><span class="nd">hover</span> <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="k">background-color</span><span class="p">:</span> <span class="kc">blue</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">&lt;/</span><span class="nt">style</span><span class="p">&gt;</span></span></span></code></pre></td></tr></tbody></table></div></div></li><li>You can now write JSON inside <code>&lt;item&gt;</code> elements,
+like so:<div class="highlight"><div class="chroma"><table class="lntable"><tbody><tr><td class="lntd"><pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span></code></pre></td><td class="lntd"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;item&gt;</span>
+</span></span><span class="line"><span class="cl">  {
+</span></span><span class="line"><span class="cl">    "id": "minecraft:golden_pickaxe",
+</span></span><span class="line"><span class="cl">    "count": 1,
+</span></span><span class="line"><span class="cl">    "components": {
+</span></span><span class="line"><span class="cl">      "max_stack_size": 75,
+</span></span><span class="line"><span class="cl">      "enchantments": {
+</span></span><span class="line"><span class="cl">        "show_in_tooltip": true,
+</span></span><span class="line"><span class="cl">        "levels": {
+</span></span><span class="line"><span class="cl">          "minecraft:efficiency": 5,
+</span></span><span class="line"><span class="cl">          "minecraft:silk_touch": 1,
+</span></span><span class="line"><span class="cl">          "minecraft:mending": 1,
+</span></span><span class="line"><span class="cl">          "minecraft:unbreaking": 3
+</span></span><span class="line"><span class="cl">        }
+</span></span><span class="line"><span class="cl">      }
+</span></span><span class="line"><span class="cl">    }
+</span></span><span class="line"><span class="cl">  }
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/item&gt;</span></span></span></code></pre></td></tr></tbody></table></div></div></li><li>Added a new element: <code>&lt;chat-component&gt;</code>. You can write
+JSON inside it like so:<div class="highlight"><div class="chroma"><table class="lntable"><tbody><tr><td class="lntd"><pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span></code></pre></td><td class="lntd"><pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="nt">&lt;chat-component&gt;</span>
+</span></span><span class="line"><span class="cl">  {
+</span></span><span class="line"><span class="cl">    "text": "Hello, world!",
+</span></span><span class="line"><span class="cl">    "color":"red"
+</span></span><span class="line"><span class="cl">  }
+</span></span><span class="line"><span class="cl"><span class="nt">&lt;/chat-component&gt;</span></span></span></code></pre></td></tr></tbody></table></div></div></li></ul></article></main><script src="/js/images.js"></script><hr class="palmette page-width" style="margin-left:auto;margin-right:auto"><div class="bg-dark content-sizing content footer"><div class="footer-flex"><button class="button" id="latex-convert-btn">Copy content as LaTeX</button></div><table class="footer-metadata"><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-02-06 12:00:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>299</td></tr></tbody></table></div><script src="/js/main.js"></script>
+<script src="/js/to-latex.js"></script></body></html>

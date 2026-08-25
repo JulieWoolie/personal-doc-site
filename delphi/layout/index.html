@@ -1,16 +1,16 @@
-<!doctype html><html lang=en><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel=stylesheet href=/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>NLayout Engine</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=chapter-numbering content="arabic"></head><body class="bg-lighter body" style=background-image:url(/backgrounds/statue-repeat.png)><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class=navbar-link href=/>Home</a>
-<a class=navbar-link href=/blog>Blog</a></div><div class=navbar-middle><a class=navbar-link href=/sun><img height=33 src=/sun.png style=filter:invert()></a></div><div class="navbar-side right"><a class=navbar-link href=/delphi>Delphi</a>
-<a class=navbar-link href=/arcadius>Arcadius</a></div></nav><hr class=palmette><main class="content content-sizing bg-dark cborder" id=content-el><header class=title-container><img class="headerimg large" src=/delphi/only-logo.png><h1 toc-ignore class=pagetitle>NLayout Engine</h1><div class=subtitle>Narcissine Layout Engine v4.0</div></header><h2 toc-ignore>Table Of Contents</h2><div id=toc-out></div><article id=content><h2>Introduction</h2><p>This document describes the process of writing the <i>NLayout</i> engine that
+<html lang="en"><head><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel="stylesheet" href="/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css"><link rel="stylesheet" href="/css/highlighting.css"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="manifest" href="/favicon/site.webmanifest"><title>NLayout Engine</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="chapter-numbering" content="arabic"></head><body class="bg-lighter body" style="background-image:url(/backgrounds/statue-repeat.png)"><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class="navbar-link" href="/">Home</a>
+<a class="navbar-link" href="/blog">Blog</a></div><div class="navbar-middle"><a class="navbar-link" href="/sun"><img height="33" src="/sun.png" style="filter:invert()"></a></div><div class="navbar-side right"><a class="navbar-link" href="/delphi">Delphi</a>
+<a class="navbar-link" href="/arcadius">Arcadius</a></div></nav><hr class="palmette"><main class="content content-sizing bg-dark cborder" id="content-el"><header class="title-container"><img class="headerimg large" src="/delphi/only-logo.png"><h1 toc-ignore="" class="pagetitle">NLayout Engine</h1><div class="subtitle">Narcissine Layout Engine v4.0</div></header><h2 toc-ignore="">Table Of Contents</h2><div id="toc-out"><a href="#introduction" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">1.</span>Introduction</a><a href="#the-name" class="toc-element" latex-ignore="" style="padding-left: 3mm;"><span latex-ignore="" class="section-num">1.1.</span>The Name</a><a href="#terminology" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">2.</span>Terminology</a><a href="#layout-passes" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">3.</span>Layout passes</a><a href="#measurement" class="toc-element" latex-ignore="" style="padding-left: 3mm;"><span latex-ignore="" class="section-num">3.1.</span>Measurement</a><a href="#regular-flow" class="toc-element" latex-ignore="" style="padding-left: 6mm;"><span latex-ignore="" class="section-num">3.1.1.</span>Regular Flow</a><a href="#line-division" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.1.1.</span>Line Division</a><a href="#vertical-margins-calculation" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.1.2.</span>Vertical Margins calculation</a><a href="#auto-margin-calculation" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.1.3.</span>Auto margin calculation</a><a href="#flexbox" class="toc-element" latex-ignore="" style="padding-left: 6mm;"><span latex-ignore="" class="section-num">3.1.2.</span>FlexBox</a><a href="#gather-flex-items" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.2.1.</span>Gather Flex Items</a><a href="#calculate-base-sizes" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.2.2.</span>Calculate base sizes</a><a href="#calculate-main-sizes" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.2.3.</span>Calculate main sizes</a><a href="#flex-growth-application" class="toc-element" latex-ignore="" style="padding-left: 12mm;"><span latex-ignore="" class="section-num">3.1.2.3.1.</span>Flex Growth Application</a><a href="#calculate-cross-sizes" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.2.4.</span>Calculate cross sizes</a><a href="#apply-sizes" class="toc-element" latex-ignore="" style="padding-left: 9mm;"><span latex-ignore="" class="section-num">3.1.2.5.</span>Apply sizes</a><a href="#layout" class="toc-element" latex-ignore="" style="padding-left: 3mm;"><span latex-ignore="" class="section-num">3.2.</span>Layout</a><a href="#regular-flow" class="toc-element" latex-ignore="" style="padding-left: 6mm;"><span latex-ignore="" class="section-num">3.2.1.</span>Regular Flow</a><a href="#flexbox" class="toc-element" latex-ignore="" style="padding-left: 6mm;"><span latex-ignore="" class="section-num">3.2.2.</span>FlexBox</a><a href="#sources--docs--tutorials" class="toc-element" latex-ignore=""><span latex-ignore="" class="section-num">4.</span>Sources / Docs / Tutorials</a></div><article id="content"><h2 id="introduction"><span latex-ignore="" class="section-num">1.</span>Introduction<a href="#introduction" class="copy-header-ref">🔗</a></h2><p>This document describes the process of writing the <i>NLayout</i> engine that
 executes layout for Delphi and how it works.</p><p>This part, the layout engine, has been the most difficult part of the Delphi
 project to date, executing layout with so many variables that interact in so
 many different ways depending on layout context and such.</p><p>The layout engine is in the <code>nlayout</code> module, which, obviously,
-handles the layout execution.</p><h3>The Name</h3><p><i>NLayout</i> originally meant <i>"New Layout"</i>, after the Java class I
+handles the layout execution.</p><h3 id="the-name"><span latex-ignore="" class="section-num">1.1.</span>The Name<a href="#the-name" class="copy-header-ref">🔗</a></h3><p><i>NLayout</i> originally meant <i>"New Layout"</i>, after the Java class I
 started writing it in, which was the 2nd version of the layout engine. The
 first being very primitive, just taking in a <code>layout-direction</code>
 (Either X or Y) and tiling elements in that direction.</p><p>Now, it means <i>"Narcissine Layout"</i>, coming from the name <i>Narcissus</i>,
 because only a narcissist would believe they could mimic web layout standards
-competently. And clearly, that is what I am.</p><p>On top of that, this document describes the 4th version of the engine.</p><h2>Terminology</h2><p>Many of the terms here are borrowed from various W3C specifications (Listed
+competently. And clearly, that is what I am.</p><p>On top of that, this document describes the 4th version of the engine.</p><h2 id="terminology"><span latex-ignore="" class="section-num">2.</span>Terminology<a href="#terminology" class="copy-header-ref">🔗</a></h2><p>Many of the terms here are borrowed from various W3C specifications (Listed
 in the sources section)</p><dl><dt>finite/definite size</dt><dd>A size, such as a width, or a height, that is set to an explicit value, such
 as <code>14px</code>.</dd><dt>indefinite size</dt><dd>A size that is dependent on an element's child elements. In Delphi, this
 means any width or height set to <code>auto</code>.</dd><dt><code>UNSET</code></dt><dd>A numeric constant with a value of <code>-1.0</code>.</dd><dt>Screen</dt><dd>Delphi elements are displayed on a screen with a set size, think of this
@@ -46,7 +46,7 @@ formula:</p><math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
 <i>x</i> = X Axis,
 <i>y</i> = Y Axis,
 <i>l</i> = left side,
-<i>t</i> = top side</dd></dl><h2>Layout passes</h2><p>Layout is divided into 2 parts: Measurement (or rather, Setup) and Layout.</p><h3>Measurement</h3><p>This part involves measurement of items, but, because of how it's implemented,
+<i>t</i> = top side</dd></dl><h2 id="layout-passes"><span latex-ignore="" class="section-num">3.</span>Layout passes<a href="#layout-passes" class="copy-header-ref">🔗</a></h2><p>Layout is divided into 2 parts: Measurement (or rather, Setup) and Layout.</p><h3 id="measurement"><span latex-ignore="" class="section-num">3.1.</span>Measurement<a href="#measurement" class="copy-header-ref">🔗</a></h3><p>This part involves measurement of items, but, because of how it's implemented,
 and how the functions perform, it may be more accurate to call this
 the <i>"Setup"</i> pass.</p><p>Before measurement can begin, we need a <code>LayoutContext</code>, this keeps
 track of a stack of <code>Vector2f</code>s (2D vectors, an X and a Y). This is
@@ -59,7 +59,7 @@ continue through in a depth first iteration.</p><p>At each element, we perform t
 computing them to actual numerical values. There isn't a lot to say about
 this step, so here's a link to where the style calculation happens (at
 time of writing):
-<a target=_blank href=https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/LayoutBox.java#L47>Link</a></dd><dt>Determine the current width and height of the layout box</dt><dd>This is done by checking if the node's size is equal to <code>UNSET</code>.
+<a target="_blank" href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/LayoutBox.java#L47">Link</a></dd><dt>Determine the current width and height of the layout box</dt><dd>This is done by checking if the node's size is equal to <code>UNSET</code>.
 If it is, we check if the current element's size is indefinite,
 if it is, set the node's size to be the size of the screen. If the size
 is definite, then we use that as the node's size.</dd><dt>Push current element state to <code>LayoutContext</code></dt><dd>Take the inner size of the current box, and push it to the
@@ -70,9 +70,9 @@ sections.</p><p>This, and the following step will repeat until the size of the e
 and/or it's child nodes stops changing, i.e. when the layout stabilizes.</p></dd><dt>Box size adjustment</dt><dd>If the node's width is set to an indefinite value, then use the width
 returned by the previous step. The same goes for the height of the element.</dd><dt>End</dt><dd>Pop the element's state from the <code>parentSizes</code> stack and the 2
 boolean stacks, and return if the element's size changed from before the
-measurement call.</dd></dl><h4>Regular Flow</h4><p>Conceptually, Flow layout breaks the elements it has to lay out into lines of
+measurement call.</dd></dl><h4 id="regular-flow"><span latex-ignore="" class="section-num">3.1.1.</span>Regular Flow<a href="#regular-flow" class="copy-header-ref">🔗</a></h4><p>Conceptually, Flow layout breaks the elements it has to lay out into lines of
 elements and displays all elements along each line. This section breaks down
-the steps of how elements are measured in Flow Layout.</p><h5>Line Division</h5><p>This step divides elements into lines. Iterate over all elements in the
+the steps of how elements are measured in Flow Layout.</p><h5 id="line-division"><span latex-ignore="" class="section-num">3.1.1.1.</span>Line Division<a href="#line-division" class="copy-header-ref">🔗</a></h5><p>This step divides elements into lines. Iterate over all elements in the
 Flow container, if an element has <code>display: block;</code>, place it onto
 its own line. If the element has <code>display: inline-block;</code>,
 move to the next line. If the current element can not fit onto the current
@@ -81,7 +81,7 @@ left and right margins are included in the check. Depending on the
 <code>display</code> value, the margins used may differ. For
 <code>inline</code> elements, only <code>margin-inline-start</code> and
 <code>margin-inline-end</code> values are used. For others, normal margins
-are used.</p><h5>Vertical Margins calculation</h5><p>Each line has its own top and bottom margins, these margins are created
+are used.</p><h5 id="vertical-margins-calculation"><span latex-ignore="" class="section-num">3.1.1.2.</span>Vertical Margins calculation<a href="#vertical-margins-calculation" class="copy-header-ref">🔗</a></h5><p>Each line has its own top and bottom margins, these margins are created
 out of the margins of all elements on that line.</p><p>Iterate over each item in each line. If vertical margins apply to that item
 (non <code>display: inline;</code> items). Then use those as the base top
 and bottom margins.</p><p>Next, we determine the actual top and bottom margins of that item. To do
@@ -105,23 +105,23 @@ subtracted from it.</p></dd><dt><code>sub</code></dt><dd><p>The inverse of <code
 vertical space subtracted from it and half the element's height,
 while the bottom margin has half the item's height added to it.</p></dd></dl><p>With these effective top and bottom margins available, we change the line's
 top and bottom margins if and only if, the effective margins are greater than
-the existing margins.</p><h5>Auto margin calculation</h5><p>This section is a simple one, we apply <code>margin-left: auto</code> and
+the existing margins.</p><h5 id="auto-margin-calculation"><span latex-ignore="" class="section-num">3.1.1.3.</span>Auto margin calculation<a href="#auto-margin-calculation" class="copy-header-ref">🔗</a></h5><p>This section is a simple one, we apply <code>margin-left: auto</code> and
 <code>margin-right: auto</code> values.</p><p>This is done, by again, iterating over each line. Auto margin calculation is
 only done on lines with 1 item with <code>display: block;</code>.</p><p>First, set the element's left margin to the difference between the
 available width and the item's width. Then, if both left and right
-margins are set to auto, halve the left margin.</p><h4>FlexBox</h4><h5>Gather Flex Items</h5><p>Very simple step where all child nodes of the flexbox container are gathered
+margins are set to auto, halve the left margin.</p><h4 id="flexbox"><span latex-ignore="" class="section-num">3.1.2.</span>FlexBox<a href="#flexbox" class="copy-header-ref">🔗</a></h4><h5 id="gather-flex-items"><span latex-ignore="" class="section-num">3.1.2.1.</span>Gather Flex Items<a href="#gather-flex-items" class="copy-header-ref">🔗</a></h5><p>Very simple step where all child nodes of the flexbox container are gathered
 into <code>FlexItem</code>s. Children that have <code>display: none;</code>
 are skipped.</p><p>During gathering, we also store the CSS <code>order</code> value, if it's set.
 If not, use the node's <code>domIndex</code> as the order. We also store the
 <code>flex-grow</code> and <code>flex-shrink</code> values. If the node has a
 set <code>align-self</code>, store that, otherwise, use the container's
 <code>align-items</code> as the item's self alignment value.</p><p>Finally, after all items have been collected, sort them by their stored
-<code>order</code> value.</p><h5>Calculate base sizes</h5><p>This step iterates over all flex items, as such, this section describes
+<code>order</code> value.</p><h5 id="calculate-base-sizes"><span latex-ignore="" class="section-num">3.1.2.2.</span>Calculate base sizes<a href="#calculate-base-sizes" class="copy-header-ref">🔗</a></h5><p>This step iterates over all flex items, as such, this section describes
 operations performed on all flex items.</p><p><i>Sidenote: I don't know if this step actually follows the W3C spec, but
 who cares.</i></p><p>Measure the current item (This is done mostly to cause a recursive measurement
 call to all the flex item's descendants.) Then, if a <code>flex-basis</code>
 is set on the item, we use that as the base main size, otherwise use the
-measured or set size of the item as it's base size.</p><h5>Calculate main sizes</h5><i>Oh boy...</i><p>First, sum up the main sizes of all flex items and include the relevant
+measured or set size of the item as it's base size.</p><h5 id="calculate-main-sizes"><span latex-ignore="" class="section-num">3.1.2.3.</span>Calculate main sizes<a href="#calculate-main-sizes" class="copy-header-ref">🔗</a></h5><i>Oh boy...</i><p>First, sum up the main sizes of all flex items and include the relevant
 <code>gap</code> in the sum (For <code>row</code>, this is
 <code>column-gap</code>, otherwise use <code>row-gap</code>.)</p><p>If the summed size is greater than the available main size, then either
 wrapping has to occur, or items have to be shrunk, depending on if wrapping
@@ -134,19 +134,19 @@ using this formula:<math xmlns="http://www.w3.org/1998/Math/MathML" display="blo
             </msup>
             <mo>=</mo>
             <mi>B</mi>
-            <mo>&#x2212;</mo>
+            <mo>−</mo>
             <mrow>
               <mo>(</mo>
               <mfrac>
                 <mrow>
                   <mi>S</mi>
-                  <mo>&#x2212;</mo>
+                  <mo>−</mo>
                   <mi>A</mi>
                 </mrow>
                 <mi>F</mi>
               </mfrac>
               <mo>)</mo>
-              <mo>&#x22C5;</mo>
+              <mo>⋅</mo>
               <mi>f</mi>
             </mrow>
           </mrow>
@@ -157,7 +157,7 @@ using this formula:<math xmlns="http://www.w3.org/1998/Math/MathML" display="blo
 <b><i>F</i></b> summed flex shrink value,
 <b><i>f</i></b> is the item's own flex shrink value</p><p>That looks complex, but it literally just means, shrink it by how much it's configured to
 be shrunk
-<a href=https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L394 target=_blank>(It's also simpler in the code)</a></p></li><li><p>If the sum is not positive, all elements must be shrunk equally, so
+<a href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L394" target="_blank">(It's also simpler in the code)</a></p></li><li><p>If the sum is not positive, all elements must be shrunk equally, so
 we use this formula:</p><math xmlns="http://www.w3.org/1998/Math/MathML" display="block">
           <mrow>
             <msup>
@@ -165,13 +165,13 @@ we use this formula:</p><math xmlns="http://www.w3.org/1998/Math/MathML" display
             </msup>
             <mo>=</mo>
             <mi>B</mi>
-            <mo>&#x2212;</mo>
+            <mo>−</mo>
             <mrow>
               <mo>(</mo>
               <mfrac>
                 <mrow>
                   <mi>S</mi>
-                  <mo>&#x2212;</mo>
+                  <mo>−</mo>
                   <mi>A</mi>
                 </mrow>
                 <mi>I</mi>
@@ -187,7 +187,7 @@ main size of the items as you go and checking when it becomes greater than
 the available main size. When it does become greater, move to the next line.</p><p>At the end, if <code>flex-wrap</code> is set to <code>wrap-reverse</code>,
 invert the order of the lines.</p><p>After this, <code>flex-grow</code> is applied to all lines (See the Flex
 Growth Application section)</p></dd><dt>If the sum of all item's is less than the available main size</dt><dd>Place all flex items onto one line, and then apply flex growth (See the Flex
-Growth Application section)</dd></dl><h6>Flex Growth Application</h6><p>This isn't a step, more of a function that can be called.</p><p>The handling of flex growth is similar to how <code>flex-shrink</code> is
+Growth Application section)</dd></dl><h6 id="flex-growth-application"><span latex-ignore="" class="section-num">3.1.2.3.1.</span>Flex Growth Application<a href="#flex-growth-application" class="copy-header-ref">🔗</a></h6><p>This isn't a step, more of a function that can be called.</p><p>The handling of flex growth is similar to how <code>flex-shrink</code> is
 handled, described in the previous section. This function is also only ran
 if the available main size is greater than the sum of the main sizes of the
 items passed to it.</p><ul><li>First, all positive <code>flex-grow</code> values are summed up.</li><li>If the summed value is not greater than <code>0</code>, the function stops.</li><li><p>Otherwise, the following formula is applied to all flex items that were
@@ -204,13 +204,13 @@ passed to the function with a positive flex growth value:</p><math xmlns="http:/
           <mfrac>
             <mrow>
               <mi>A</mi>
-              <mo>&#x2212;</mo>
+              <mo>−</mo>
               <mi>S</mi>
             </mrow>
             <mi>G</mi>
           </mfrac>
           <mo>)</mo>
-          <mo>&#x22C5;</mo>
+          <mo>⋅</mo>
           <mi>g</mi>
         </mrow>
       </mrow>
@@ -220,7 +220,7 @@ passed to the function with a positive flex growth value:</p><math xmlns="http:/
 <b><i>S</i></b> = summed size of all items,
 <b><i>A</i></b> = available main size,
 <b><i>G</i></b> = summed flex grow value,
-<b><i>g</i></b> = the item's own flex grow value</p></li></ul><h5>Calculate cross sizes</h5><p>Cross size calculation begins by getting the value of the <code>gap</code>
+<b><i>g</i></b> = the item's own flex grow value</p></li></ul><h5 id="calculate-cross-sizes"><span latex-ignore="" class="section-num">3.1.2.4.</span>Calculate cross sizes<a href="#calculate-cross-sizes" class="copy-header-ref">🔗</a></h5><p>Cross size calculation begins by getting the value of the <code>gap</code>
 that is applied along the cross axis of the container. For <code>row</code>
 flex containers, this is <code>row-gap</code>, otherwise, it's
 <code>column-gap</code>.</p><p>Then we iterate over each item in each line, and take that item's cross size
@@ -229,11 +229,11 @@ the line's cross size becomes the item's cross size.</p><p>After this, the line'
 <code>stretch</code> item alignment. This is simply done by checking if the
 effective alignment value is <code>stretch</code> for an item, and if it is,
 set the item's cross size to the line's cross size.</p><p>Finally add up all the lines cross sizes (+ the cross gap) to get the flex box
-container's used cross size.</p><h5>Apply sizes</h5><p>This is simply iterating over each item in each line, and calling the item's
+container's used cross size.</p><h5 id="apply-sizes"><span latex-ignore="" class="section-num">3.1.2.5.</span>Apply sizes<a href="#apply-sizes" class="copy-header-ref">🔗</a></h5><p>This is simply iterating over each item in each line, and calling the item's
 algorithm-specific measurement function.</p><p>This step is done, because after the previous 2 steps, the element's size may
 have changed from when it was originally measured, meaning any child nodes of
-the item may now be incorrectly sized or laid out.</p><h3>Layout</h3><p>Layout is performed by Layout algorithms, each executing it differently. At
-time of writing only Flow and FlexBox are supported.</p><h4>Regular Flow</h4><p>First, we create 2 <code>Vector2f</code> variables: <code>pos</code> and
+the item may now be incorrectly sized or laid out.</p><h3 id="layout"><span latex-ignore="" class="section-num">3.2.</span>Layout<a href="#layout" class="copy-header-ref">🔗</a></h3><p>Layout is performed by Layout algorithms, each executing it differently. At
+time of writing only Flow and FlexBox are supported.</p><h4 id="regular-flow"><span latex-ignore="" class="section-num">3.2.1.</span>Regular Flow<a href="#regular-flow" class="copy-header-ref">🔗</a></h4><p>First, we create 2 <code>Vector2f</code> variables: <code>pos</code> and
 <code>offset</code>. The former is the content starting position of the
 container element. The offset is initialized to <code>0, 0</code>.</p><p>Iterate over each line. First, add the line's top margin to the
 <code>offset</code>'s <i>y</i>-axis. Then begin iterating over each item in the line.</p><p>If the item has any left-side margin's, add it to the <code>offset</code>'s
@@ -269,7 +269,7 @@ of free space left on the line.<br><math>
       <msub><mi>i</mi><mi>y</mi></msub>
       <mo>=</mo>
       <msub><mi>i</mi><mi>y</mi></msub>
-      <mo>&#x2212;</mo>
+      <mo>−</mo>
       <mfrac>
         <mi>f</mi>
         <mi>2</mi>
@@ -279,14 +279,14 @@ amount of free space available.<br><math>
       <msub><mi>i</mi><mi>y</mi></msub>
       <mo>=</mo>
       <msub><mi>i</mi><mi>y</mi></msub>
-      <mo>&#x2212;</mo>
+      <mo>−</mo>
       <mi>f</mi>
     </math></dd><dt><code>sub</code></dt><dd>Sub alignment means it has to be below the line, so we move it down by the
 amount of available vertical space and by half the item's own height.<br><math>
       <msub><mi>i</mi><mi>y</mi></msub>
       <mo>=</mo>
       <msub><mi>i</mi><mi>y</mi></msub>
-      <mo>&#x2212;</mo>
+      <mo>−</mo>
       <mo>(</mo>
       <mi>f</mi>
       <mi>+</mi>
@@ -300,7 +300,7 @@ amount of available vertical space and by half the item's own height.<br><math>
     </math></dd></dl><p>Finally, you add the item's width and it's right-side margin to the offset's
 <i>x</i>-axis. And after all items in a line have been laid out, we add the
 line's own height and bottom margin to the offset's <i>y</i>-margin. Also, on
-line breaks, we zero the offset's <i>x</i>-axis.</p><h4>FlexBox</h4><p>With all due respect, I'm not describing this. This is way too messy, so
+line breaks, we zero the offset's <i>x</i>-axis.</p><h4 id="flexbox"><span latex-ignore="" class="section-num">3.2.2.</span>FlexBox<a href="#flexbox" class="copy-header-ref">🔗</a></h4><p>With all due respect, I'm not describing this. This is way too messy, so
 here's a link to the implementation (Correct at time of writing):
-<a href=https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L94 target=_blank><code>FlexLayoutBox.layout()</code></a></p><h2>Sources / Docs / Tutorials</h2><ul><li><a href=https://www.quirksmode.org/css/flexbox-algorithm.html>www.quirksmode.org - Flexbox Algorithm</a></li><li><a href=https://tchayen.com/how-to-write-a-flexbox-layout-engine>tchayen.com - How to Write a Flexbox Layout Engine</a></li><li><a href=https://css-tricks.com/snippets/css/a-guide-to-flexbox/>css-tricks.com - A Guide To Flexbox/</a></li><li><a href=https://www.w3.org/TR/css-sizing-3/>W3.org - CSS Box Sizing Module Level 3</a></li><li><a href=https://www.w3.org/TR/css-flexbox-1/>W3.org - CSS Flexible Box Layout Module Level 1</a></li></ul></main></article><script src=/js/images.js></script><hr class="palmette page-width" style=margin-left:auto;margin-right:auto><div class="bg-dark content-sizing content footer"><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button></div><table class=footer-metadata><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-01-13 16:08:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>2717</td></tr></tbody></table></div><script src=/js/main.js></script>
-<script src=/js/to-latex.js></script></body></html>
+<a href="https://github.com/JulieWoolie/delphi/blob/main/nlayout/src/main/java/com/juliewoolie/nlayout/FlexLayoutBox.java#L94" target="_blank"><code>FlexLayoutBox.layout()</code></a></p><h2 id="sources--docs--tutorials"><span latex-ignore="" class="section-num">4.</span>Sources / Docs / Tutorials<a href="#sources--docs--tutorials" class="copy-header-ref">🔗</a></h2><ul><li><a href="https://www.quirksmode.org/css/flexbox-algorithm.html">www.quirksmode.org - Flexbox Algorithm</a></li><li><a href="https://tchayen.com/how-to-write-a-flexbox-layout-engine">tchayen.com - How to Write a Flexbox Layout Engine</a></li><li><a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/">css-tricks.com - A Guide To Flexbox/</a></li><li><a href="https://www.w3.org/TR/css-sizing-3/">W3.org - CSS Box Sizing Module Level 3</a></li><li><a href="https://www.w3.org/TR/css-flexbox-1/">W3.org - CSS Flexible Box Layout Module Level 1</a></li></ul></article></main><script src="/js/images.js"></script><hr class="palmette page-width" style="margin-left:auto;margin-right:auto"><div class="bg-dark content-sizing content footer"><div class="footer-flex"><button class="button" id="latex-convert-btn">Copy content as LaTeX</button></div><table class="footer-metadata"><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-01-13 16:08:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>2717</td></tr></tbody></table></div><script src="/js/main.js"></script>
+<script src="/js/to-latex.js"></script></body></html>

@@ -1,50 +1,50 @@
-<!doctype html><html lang=en><head><script async src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel=stylesheet href=/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css><link rel=stylesheet href=/css/highlighting.css><link rel=apple-touch-icon sizes=180x180 href=/favicon/apple-touch-icon.png><link rel=icon type=image/png sizes=32x32 href=/favicon/favicon-32x32.png><link rel=icon type=image/png sizes=16x16 href=/favicon/favicon-16x16.png><link rel=manifest href=/favicon/site.webmanifest><title>Scripting Expansions</title><meta name=viewport content="width=device-width,initial-scale=1"><meta name=chapter-numbering content="arabic"></head><body class="bg-lighter body" style=background-image:url(/backgrounds/statue-repeat.png)><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class=navbar-link href=/>Home</a>
-<a class=navbar-link href=/blog>Blog</a></div><div class=navbar-middle><a class=navbar-link href=/sun><img height=33 src=/sun.png style=filter:invert()></a></div><div class="navbar-side right"><a class=navbar-link href=/delphi>Delphi</a>
-<a class=navbar-link href=/arcadius>Arcadius</a></div></nav><hr class=palmette><main class="content content-sizing bg-dark cborder" id=content-el><header class=title-container><img class="headerimg large" src=/delphi/only-logo.png><h1 toc-ignore class=pagetitle>Scripting Expansions</h1><div class=subtitle>25-05-2025</div></header><article id=content><h2>Script expansions</h2><p>I added scheduling functions! <code>setInterval(cb, delay, interval)</code>
+<html lang="en"><head><script async="" src="https://www.googletagmanager.com/gtag/js?id=G-TSMH66TBH9"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag("js",new Date),gtag("config","G-TSMH66TBH9")</script><link rel="stylesheet" href="/css/style.e1ed039dba6a89254a5a3b596d7bb1a2ec82d1dc62343a4e914324bb52f1e08c882ea3befb7f2eb65ba7343f0012a624.css"><link rel="stylesheet" href="/css/highlighting.css"><link rel="apple-touch-icon" sizes="180x180" href="/favicon/apple-touch-icon.png"><link rel="icon" type="image/png" sizes="32x32" href="/favicon/favicon-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/favicon/favicon-16x16.png"><link rel="manifest" href="/favicon/site.webmanifest"><title>Scripting Expansions</title><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="chapter-numbering" content="arabic"></head><body class="bg-lighter body" style="background-image:url(/backgrounds/statue-repeat.png)"><nav class="navbar cborder navbar-visible bg-dark"><div class="navbar-side left"><a class="navbar-link" href="/">Home</a>
+<a class="navbar-link" href="/blog">Blog</a></div><div class="navbar-middle"><a class="navbar-link" href="/sun"><img height="33" src="/sun.png" style="filter:invert()"></a></div><div class="navbar-side right"><a class="navbar-link" href="/delphi">Delphi</a>
+<a class="navbar-link" href="/arcadius">Arcadius</a></div></nav><hr class="palmette"><main class="content content-sizing bg-dark cborder" id="content-el"><header class="title-container"><img class="headerimg large" src="/delphi/only-logo.png"><h1 toc-ignore="" class="pagetitle">Scripting Expansions</h1><div class="subtitle">25-05-2025</div></header><article id="content"><h2 id="script-expansions"><span latex-ignore="" class="section-num">1.</span>Script expansions<a href="#script-expansions" class="copy-header-ref">🔗</a></h2><p>I added scheduling functions! <code>setInterval(cb, delay, interval)</code>
 and <code>setTimeout(cb, delay)</code> are now supported. But keep in mind,
 they take in delays and intervals in ticks, not milliseconds. Both of these
 functions return an ID integer that represents their task ID.</p><p>There is of course an accompanying <code>clearTimeout(taskId)</code> to
 cancel both interval and timeout tasks.</p><p>This was all made possible with the scheduling API I added to the
 <code>DocumentView</code>. This quick little API allows you to schedule tasks
 that run after a certain amount of ticks or are run over and over. Once the
-view itself is closed, the tasks are closed and don't execute.</p><iframe style=width:100%;height:300px src=https://www.youtube.com/embed/f2bup3f3mMw title="Clicker game,  but made with Display Entities and JS" frameborder=0 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy=strict-origin-when-cross-origin allowfullscreen></iframe><h2>Custom Events</h2><p>I also added support for custom events, which I thought might be a good way for
+view itself is closed, the tasks are closed and don't execute.</p><iframe style="width:100%;height:300px" src="https://www.youtube.com/embed/f2bup3f3mMw" title="Clicker game,  but made with Display Entities and JS" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen=""></iframe><h2 id="custom-events"><span latex-ignore="" class="section-num">2.</span>Custom Events<a href="#custom-events" class="copy-header-ref">🔗</a></h2><p>I also added support for custom events, which I thought might be a good way for
 plugins to communicate with menus written with JS, or just a good way to
-communicate with menus, really.</p><div class=highlight><div class=chroma><table class=lntable><tr><td class=lntd><pre tabindex=0 class=chroma><code><span class=lnt> 1
-</span><span class=lnt> 2
-</span><span class=lnt> 3
-</span><span class=lnt> 4
-</span><span class=lnt> 5
-</span><span class=lnt> 6
-</span><span class=lnt> 7
-</span><span class=lnt> 8
-</span><span class=lnt> 9
-</span><span class=lnt>10
-</span><span class=lnt>11
-</span><span class=lnt>12
-</span><span class=lnt>13
-</span><span class=lnt>14
-</span><span class=lnt>15
-</span><span class=lnt>16
-</span></code></pre></td><td class=lntd><pre tabindex=0 class=chroma><code class=language-java data-lang=java><span class=line><span class=cl><span class=n>DocumentView</span> <span class=n>view</span> <span class=o>=</span> <span class=cm>/* .. idk */</span><span class=o>;</span>
-</span></span><span class=line><span class=cl><span class=n>Document</span> <span class=n>document</span> <span class=o>=</span> <span class=n>view</span><span class=o>.</span><span class=na>getDocument</span><span class=o>();</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// Create the event object itself, the only parameter needed, 
-</span></span></span><span class=line><span class=cl><span class=c1>// being the event&#39;s type
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>CustomEvent</span> <span class=n>event</span> <span class=o>=</span> <span class=n>document</span><span class=o>.</span><span class=na>newCustomEvent</span><span class=o>(</span><span class=s>&#34;something-happened&#34;</span><span class=o>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// The &#34;Map.of&#34; can be any map of string to object that contains data 
-</span></span></span><span class=line><span class=cl><span class=c1>// for the event.
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>event</span><span class=o>.</span><span class=na>initEvent</span><span class=o>(</span><span class=kc>null</span><span class=o>,</span> <span class=kc>false</span><span class=o>,</span> <span class=kc>false</span><span class=o>,</span> <span class=n>Map</span><span class=o>.</span><span class=na>of</span><span class=o>(</span><span class=s>&#34;data&#34;</span><span class=o>,</span> <span class=mi>1</span><span class=o>,</span> <span class=s>&#34;data2&#34;</span><span class=o>,</span> <span class=kc>false</span><span class=o>));</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// Then finally, dispatch the event
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>document</span><span class=o>.</span><span class=na>dispatchEvent</span><span class=o>(</span><span class=n>event</span><span class=o>);</span>
-</span></span><span class=line><span class=cl>
-</span></span><span class=line><span class=cl><span class=c1>// Sidenote: you can access those map properties like this:
-</span></span></span><span class=line><span class=cl><span class=c1></span><span class=n>Object</span> <span class=n>data</span> <span class=o>=</span> <span class=n>event</span><span class=o>.</span><span class=na>getProperty</span><span class=o>(</span><span class=s>&#34;data&#34;</span><span class=o>);</span></span></span></code></pre></td></tr></table></div></div><h2>Other</h2><p>There isn't really any other changes, I fixed a weird jerk that would happen when you set a text
+communicate with menus, really.</p><div class="highlight"><div class="chroma"><table class="lntable"><tbody><tr><td class="lntd"><pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span></code></pre></td><td class="lntd"><pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">DocumentView</span> <span class="n">view</span> <span class="o">=</span> <span class="cm">/* .. idk */</span><span class="o">;</span>
+</span></span><span class="line"><span class="cl"><span class="n">Document</span> <span class="n">document</span> <span class="o">=</span> <span class="n">view</span><span class="o">.</span><span class="na">getDocument</span><span class="o">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Create the event object itself, the only parameter needed, 
+</span></span></span><span class="line"><span class="cl"><span class="c1">// being the event's type
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">CustomEvent</span> <span class="n">event</span> <span class="o">=</span> <span class="n">document</span><span class="o">.</span><span class="na">newCustomEvent</span><span class="o">(</span><span class="s">"something-happened"</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// The "Map.of" can be any map of string to object that contains data 
+</span></span></span><span class="line"><span class="cl"><span class="c1">// for the event.
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">event</span><span class="o">.</span><span class="na">initEvent</span><span class="o">(</span><span class="kc">null</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="kc">false</span><span class="o">,</span> <span class="n">Map</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"data"</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="s">"data2"</span><span class="o">,</span> <span class="kc">false</span><span class="o">));</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Then finally, dispatch the event
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">document</span><span class="o">.</span><span class="na">dispatchEvent</span><span class="o">(</span><span class="n">event</span><span class="o">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// Sidenote: you can access those map properties like this:
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span><span class="n">Object</span> <span class="n">data</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="na">getProperty</span><span class="o">(</span><span class="s">"data"</span><span class="o">);</span></span></span></code></pre></td></tr></tbody></table></div></div><h2 id="other"><span latex-ignore="" class="section-num">3.</span>Other<a href="#other" class="copy-header-ref">🔗</a></h2><p>There isn't really any other changes, I fixed a weird jerk that would happen when you set a text
 node's text content to a text with a different size. For less than a tick, it would be squished
 or stretched out before correcting.</p><p>This was happening because the renderer's callback for a text node's content being modified would
 directly update that text node's render object. But the actual layout update would happen when
 the view's tick method was called, much later. This difference caused a half second of the text
-looking smushed or stretched before being updated again.</p></main></article><script src=/js/images.js></script><hr class="palmette page-width" style=margin-left:auto;margin-right:auto><div class="bg-dark content-sizing content footer"><div class=footer-flex><button class=button id=latex-convert-btn>Copy content as LaTeX</button></div><table class=footer-metadata><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-05-26 19:29:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>333</td></tr></tbody></table></div><script src=/js/main.js></script>
-<script src=/js/to-latex.js></script></body></html>
+looking smushed or stretched before being updated again.</p></article></main><script src="/js/images.js"></script><hr class="palmette page-width" style="margin-left:auto;margin-right:auto"><div class="bg-dark content-sizing content footer"><div class="footer-flex"><button class="button" id="latex-convert-btn">Copy content as LaTeX</button></div><table class="footer-metadata"><tbody><tr><td>Author</td><td>Julie</td></tr><tr><td>Publish Date</td><td>2025-05-26 19:29:00 +0200 UTC</td></tr><tr><td>Last Change</td><td>2026-03-20 22:09:38 +0200 +0200</td></tr><tr><td>Last Commit</td><td>use new logo for delphi</td></tr><tr><td>Words</td><td>333</td></tr></tbody></table></div><script src="/js/main.js"></script>
+<script src="/js/to-latex.js"></script></body></html>
