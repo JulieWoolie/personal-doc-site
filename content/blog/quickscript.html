@@ -534,6 +534,21 @@ ul.literallist {
   <dd><i>expression</i></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Loop condition expressions declare a while expression that may or may not be
+  surrounded by parentheses. Loop condition expressions declared with
+  parentheses cannot have any part of the expression outside of the parentheses
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Loop condition expressions must always result in a value that can be
+    assigned in some way to a true/false value.
+  </li>
+</ol>
+
 <h4>Top Level Expression</h4>
 <dl class="syntaxdef">
   <dt>expression:</dt>
@@ -578,7 +593,7 @@ ul.literallist {
   <dd><i>declaration-modifier</i><sub>rep</sub></dd>
 
   <dt>declaration-modifier: <span>one of:</span></dt>
-  <dd><b>native export</b></dd>
+  <dd><b>native export const</b></dd>
 </dl>
 
 <h4>Function Declarations</h4>
@@ -594,51 +609,115 @@ ul.literallist {
   <dd><i>type-expression identifier</i> <b>...</b><sub>opt</sub></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Declares a function that will be accessible in the current scope.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The name and parameter types must not match a function that already exists
+    in the current scope.
+  </li>
+  <li>
+    Function argument lists can only ever have one variadic argument: the last
+    one. Multiple variadic arguments or a variadic argument not being the last
+    one are invalid.
+  </li>
+  <li>
+    Functions declared with the <b><code>export</code></b> keyword can only be
+    declared in the global scope.
+  </li>
+  <li>
+    Functions declared with the <b><code>native</code></b> keyword must not have
+    a function body.
+  </li>
+</ol>
+
 <h4>Variable Declarations</h4>
 <dl class="syntaxdef">
   <dt>variable-declaration:</dt>
   <dd><i>declaration-modifiers type-expression identifier</i></dd>
   <dd><i>declaration-modifiers type-expression identifier</i> <b>=</b> <i>expression</i></dd>
-  <dd><i>declaration-modifiers</i> <b>const</b> <i>type-expression identifier</i></dd>
-  <dd><i>declaration-modifiers</i> <b>const</b> <i>type-expression identifier</i> <b>=</b> <i>expression</i></dd>
 </dl>
+
+<p><b>Description</b></p>
+<p>
+  Declares a variable or a constant that will be accessible in the current
+  scope.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Must not have the name of an already accessible variable</li>
+  <li>
+    If a value is specified for the declaration, the variable's resulting
+    value must match the declared type.
+  </li>
+  <li>
+    If the variable is declared with <b><code>const</code></b>, then a value
+    must be specified.
+  </li>
+  <li>
+    Variables declared with the <b><code>native</code></b> modifier cannot ever
+    have a value. As the <b><code>native</code></b> keyword declares a variable
+    that is provided at runtime via native binding, the value will be declared
+    by the native binding, not in a script file.
+  </li>
+  <li>
+    Variables declared with the <b><code>export</code></b> keyword must only be
+    declared in the global scope.
+  </li>
+</ol>
 
 <h4>Struct Declarations</h4>
 <dl class="syntaxdef">
   <dt>struct-declaration:</dt>
-  <dd><i>declaration-modifiers <b>struct</b> identifier <b>{</b> <i>struct-property-declaration</i><sub>opt rep</sub> <b>}</b></i></dd>
+  <dd><i>declaration-modifiers <b>struct</b> identifier <b>{</b> <i>property-declaration</i><sub>opt rep</sub> <b>}</b></i></dd>
 
-  <dt>struct-property-declaration</dt>
+  <dt>property-declaration</dt>
   <dd><i>type-expression identifier</i></dd>
   <dd><i>type-expression identifier</i> <b>=</b> <i>expression</i></dd>
 </dl>
+
+
+<p><b>Description</b></p>
+<p>
+  Declares a struct data type and its properties.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    A struct must not be declared with the either <b><code>native</code></b>
+    or <b><code>const</code></b> modifier.
+  </li>
+  <li>Struct's must only be declared in the main scope of a source file.</li>
+  <li>Each struct property must have a unique name.</li>
+  <li>
+    Each struct property, if a default value is set, must have an expression
+    whose type is assignable to the property's type.
+  </li>
+</ol>
 
 <h3>Statements</h3>
 
 <dl class="syntaxdef">
   <dt>statement:</dt>
-  <dd><i>block-statement</i></dd>
-  <dd><i>control-flow-statement</i></dd>
-  <dd><i>if-statement</i></dd>
   <dd><i>labeled-statement</i></dd>
-  <dd><i>for-loop-statement</i></dd>
-  <dd><i>do-while-statement</i></dd>
-  <dd><i>while-statement</i></dd>
-  <dd><i>return-statement</i></dd>
-  <dd><i>assert-statement</i></dd>
-  <dd><i>expression</i></dd>
-  <dd><i>variable-declaration</i></dd>
-  <dd><i>function-declaration</i></dd>
-  <dd><i>struct-declaration</i></dd>
+  <dd><i>declaration</i></dd>
+  <dd><i>statement-body</i></dd>
 
   <dt>statement-body:</dt>
-  <dd><i>Block</i></dd>
+  <dd><i>block-statement</i></dd>
   <dd><i>for-loop-statement</i></dd>
   <dd><i>do-while-statement</i></dd>
   <dd><i>while-statement</i></dd>
   <dd><i>if-statement</i></dd>
   <dd><i>return-statement</i></dd>
   <dd><i>control-flow-statement</i></dd>
+  <dd><i>assert-statement</i></dd>
   <dd><i>expression</i></dd>
 </dl>
 
@@ -648,6 +727,16 @@ ul.literallist {
   <dd><b>{</b> <i>statement</i><sub>opt rep</sub> <b>}</b></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Declares a list of statements delimited by <b><code>{</code></b> and
+  <b><code>}</code></b> characters.
+</p>
+<p>
+  Variables declared inside of block statements cannot be referenced from
+  outside of that block.
+</p>
+
 <h4>Loop Flow Control Statements</h4>
 <dl class="syntaxdef">
   <dt>control-flow-statement:</dt>
@@ -655,12 +744,48 @@ ul.literallist {
   <dd><b>break</b> <i>identifier</i><sub>opt</sub></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Influences the way a loop executes. Continue statements instruct the loop to
+  move on to the next iteration of execution, while break statements cause
+  the loop to be exited early before its condition can evaluate to a false
+  value.
+</p>
+<p>
+  Control Flow statements can be declared with a label. This label is optional,
+  if no label is specified, the statement changes how the immediate loop
+  behaves. If a label is set, then it controls how the referenced loop behaves.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Can only be used inside a loop</li>
+  <li>
+    If a label is specified, the label can only reference a label of a loop
+    the statement is inside.
+  </li>
+</ol>
+
 <h4>If Statements</h4>
 <dl class="syntaxdef">
   <dt>if-statement:</dt>
   <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i></dd>
   <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i> <b>else</b> <i>statement-body</i></dd>
 </dl>
+
+<p><b>Description</b></p>
+<p>
+  Evaluates a condition and executes either a body, an else statement or moves
+  on without executing.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The if statement's condition must result in a value that can be assigned to
+    a true/false value.
+  </li>
+</ol>
 
 <h4>Labeled Statements</h4>
 <dl class="syntaxdef">
@@ -676,17 +801,60 @@ ul.literallist {
   <dd><b>for (</b> <i>variable-declaration</i> <b>;</b> <i>expression</i> <b>;</b> <i>expression</i> <b>)</b> <i>statement-body</i></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Declares a variable and iterates until the 2nd expression, the loop condition
+  evaluates to a false value. After each iteration the third expression is
+  executed as well.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The for loop's second expression must result in a value that can be
+    evaluated as a boolean.
+  </li>
+</ol>
+
 <h4>Do While Loop Statements</h4>
 <dl class="syntaxdef">
   <dt>do-while-statement:</dt>
   <dd><b>do</b> <i>block-statement</i> <b>while</b> <i>loop-condition-expression</i></dd>
 </dl>
 
+<p><b>Description</b></p>
+<p>
+  Evaluates a block of code until the defined loop condition results in a false
+  value. The loop's block will be evaluated at least once until the condition
+  is reached.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The loop's condition must result in a value that can be evaluated as a boolean.
+  </li>
+</ol>
+
 <h4>Regular While Loop Statements</h4>
 <dl class="syntaxdef">
   <dt>while-statement:</dt>
   <dd><b>while</b> <i>loop-condition-expression</i> <i>block-statement</i></dd>
 </dl>
+
+<p><b>Description</b></p>
+<p>
+  Evaluates a block of code until the defined loop condition results in a false
+  value. If the condition results in a false value when the loop is first
+  reached, the loop's block is not evaluated at all.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The loop's condition must result in a value that can be evaluated as a boolean.
+  </li>
+</ol>
 
 <h4>Return Statements</h4>
 <dl class="syntaxdef">
@@ -735,13 +903,17 @@ ul.literallist {
 </ol>
 
 <p><b>Examples</b></p>
-<p>
-  <code><pre>
+<code><pre>
 assert true // Does nothing
 assert false // Assertion failed!
 assert false : "message" // Assertion failed: message
 </pre></code>
-</p>
+
+<h3>Script File Statement</h3>
+<dl class="syntaxdef">
+  <dt>script-file-statement:</dt>
+  <dd><i>declaration</i><sub>rep</sub></dd>
+</dl>
 
 <h2>Interpreter</h2>
 <p>
@@ -1313,6 +1485,37 @@ assert false : "message" // Assertion failed: message
     Arguments:
     <ul>
       <li>(<code>uint8</code>) The register containing the function pointer</li>
+    </ul>
+  </dd>
+</dl>
+
+<h4>Foreign Symbol OP Codes</h4>
+<p>
+  These opcodes allow for scripts to read from imported symbols or from binding
+  values or constants.
+</p>
+<dl>
+  <dt><code>FREAD</code></dt>
+  <dd>
+    <p>Read a foreign symbol or constant</p>
+
+    Arguments:
+    <ul>
+      <li>(<code>uint8</code>) Register the read value will be placed in</li>
+      <li>(<code>uint64</code>) Offset of the symbol name in the const string pool</li>
+      <li>(<code>uint32</code>) Type index of the symbol</li>
+    </ul>
+  </dd>
+
+  <dt><code>FWRITE</code></dt>
+  <dd>
+    <p>Write to a foreign symbol</p>
+
+    Arguments:
+    <ul>
+      <li>(<code>uint8</code>) Register the value will be read from</li>
+      <li>(<code>uint64</code>) Offset of the symbol name in the const string pool</li>
+      <li>(<code>uint32</code>) Type index of the symbol</li>
     </ul>
   </dd>
 </dl>
