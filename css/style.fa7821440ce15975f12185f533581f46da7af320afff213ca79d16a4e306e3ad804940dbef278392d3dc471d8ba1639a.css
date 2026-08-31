@@ -197,6 +197,19 @@ sup a {
     margin-block-start: 2em;
   }
 
+  h1 {
+    font-size: 2.0em;
+  }
+  h2 {
+    font-size: 1.75em;
+  }
+  h3 {
+    font-size: 1.5em;
+  }
+  :is(h4, h5, h6) {
+    font-size: 1.25em;
+  }
+
   table {
     border-collapse: collapse;
     text-align: left;
