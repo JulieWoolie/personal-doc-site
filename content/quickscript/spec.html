@@ -1,6 +1,6 @@
 ---
-title: "quickscript"
-subtitle: "little spec for a programming language I made while on vacation... this is no longer little"
+title: "Language Specification"
+subtitle: "Technical Specification for the quickscript Language"
 weight: 40
 publish_date: '2026-07-17 21:00:00 +0200 UTC'
 author: Julie
@@ -10,74 +10,72 @@ noindent: true
 
 <h2>Intro</h2>
 <p>
-  This post will just serve as me rambling about a project I'm working on, aka,
-  trying to plan it and setting stuff up for when I actually implement it so I
-  can reason through it before I realize I fucked up about 5 hours into writing
-  an interpreter.
+  Quick Script, <i>(Mainly stylized as "quickscript,")</i> is a statically-typed,
+  compiled and interpreted scripting language. Quick Script is compiled into an
+  intermediate representation format and then executed by a virtual machine. The
+  intention of quickscript is to provide a scripting language that is OS and
+  CPU-architecture independent while keeping type-safety and static typing with
+  the intention of preserving fast execution speeds.
 </p>
 <p>
-  I want to start with some base ideas that I'm going to try to keep in mind
-  when designing the internal structure of the language's interpreter.
+  The real, base, intention of this language is to serve as a learning exercise
+  in implementing a compiler, an IR format, an interpreter and creating a
+  standard library in a low level language (C++.)
 </p>
 <p>
   Link to the interpreter source code: <a href="https://github.com/JulieWoolie/quickscript">github.com/juliewoolie/quickscript</a>
 </p>
-<dl>
-  <dt>All data exists on the stack.</dt>
-  <dd>
-    That tagline is a bit hyperbolic. I've since discovered that there are
-    some things where its easier for me to pass by reference (arrays, strings,
-    structs) so this mantra exists as a general guideline now.
-  </dd>
 
+<h3>Core Design Ideas</h3>
+<p>
+  The following is a list of core ideas that were adopted in the making of
+  this language, and should be kept in mind for anyone wishing to expand, extend
+  or maintain the project. Please do note that the following principles apply to
+  the source file format only, the IR format is intended to be a compilation
+  target and to be executed without checks, again, to maximize performance.
+</p>
+<dl>
   <dt>No memory interaction</dt>
   <dd>
     You should never be able to interact with raw pointers, random memory or
-    anything like C allows you to. It's a scripting language, not C 2.0.
+    anything like C allows you to.
   </dd>
 
-  <dt>Type safety and basically compiled</dt>
+  <dt>Type safety and static typing</dt>
   <dd>
-    quickscript is a statically typed language and my hope is a type system will
-    allow me to make the most out of what I'm doing. Static typing means that
-    the compiler basically knows where everything will be, how big it will be
-    and how it'll be used.
+    quickscript is a statically-typed language that provides type safety, this
+    is done because I hate dynamic typing and because static typing allows
+    for greater optimizations.
   </dd>
 
   <dt>No garbage collector</dt>
   <dd>
-    Memory handling should be done as it executes, the hope is that with a
-    simple stack-memory-based language data will be freed as scopes are exited
-    and so there's no requirement for automatic garbage collection.
-  </dd>
-
-  <dt>Single threaded</dt>
-  <dd>
-    I'm not managing that shit, at least not right now. This is called
-    <i>quickscript</i> because it's intended to be a quickly (ish) made
-    scripting language.
+    For primitive values like integers and floating point types, data should
+    exist on the stack and allocated and freed as a function executes, while
+    more complex types (like strings, arrays, and structs) should be
+    reference counted.
   </dd>
 
   <dt>No nulls</dt>
   <dd>
     <p>
-      This doesn't mean every value has to have a non-zero value, rather, there
-      can't be anything which can be null, everything has to have a value, even if
-      it's a zero value.
+      This doesn't mean every value has to have a non-null value, rather, there
+      can't be anything which can cause null reference errors. This is difficult
     </p>
     <p>
       This also doesn't mean every array and string has to be allocated to an
       empty value, rather it means the user should never be able to tell
-      something is null.
-    </p>
-    <p>
-      Calling <code>.length</code> on a null string or array? Return
-      <code>0</code> instead of throwing a null reference error.
+      something is null, for example calling <code>.length</code> on a string or
+      array which is, in reality, a null pointer, should return <code>0</code>.
     </p>
   </dd>
 </dl>
 
 <h2>Language</h2>
+<p>
+  quickscript files are written in UTF-8 encoded text files, referred to as
+  "source files." They follow the grammar defined in the following sections.
+</p>
 
 <h3>Notation</h3>
 <p>
@@ -219,7 +217,53 @@ ul.literallist {
     </ul>
   </dd>
 </dl>
-
+<table>
+  <caption>Alias token mappings</caption>
+  <thead>
+  <tr>
+    <th>Alias Token</th>
+    <th>Mapped Token</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><b><code>boolean</code></b></td>
+    <td><b><code>bool</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>byte</code></b></td>
+    <td><b><code>int8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ubyte</code></b></td>
+    <td><b><code>uint8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>short</code></b></td>
+    <td><b><code>int16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ushort</code></b></td>
+    <td><b><code>uint16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>int</code></b></td>
+    <td><b><code>int32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>uint</code></b></td>
+    <td><b><code>uint32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>long</code></b></td>
+    <td><b><code>int64</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ulong</code></b></td>
+    <td><b><code>uint64</code></b></td>
+  </tr>
+  </tbody>
+</table>
 
 <h4>Identifiers</h4>
 <dl class="syntaxdef">
@@ -912,7 +956,15 @@ assert false : "message" // Assertion failed: message
 <h3>Script File Statement</h3>
 <dl class="syntaxdef">
   <dt>script-file-statement:</dt>
+  <dd><i>module-declaration</i> <i>declaration</i><sub>rep</sub></dd>
   <dd><i>declaration</i><sub>rep</sub></dd>
+
+  <dt>module-declaration:</dt>
+  <dd><code>module</code> <i>module-name</i></dd>
+
+  <dt>module-name:</dt>
+  <dd><i>identifier</i></dd>
+  <dd><i>module-name</i> <code>.</code> <i>identifier</i></dd>
 </dl>
 
 <h2>Interpreter</h2>
@@ -1697,6 +1749,81 @@ Instruction types:
   </dd>
 </dl>
 
+<style>
+code.qs {
+  background-color: var(--lighter);
+  white-space: pre-wrap;
+  display: block;
+  padding: 5mm;
+  keyw {
+    color: cyan;
+  }
+  quoted {
+    color: lightgreen;
+  }
+}
+</style>
+
+<h3>Native Libraries</h3>
+<p>
+  Native libraries are libraries declared in quickscript but implemented with
+  native code.
+</p>
+<p>
+  This section will use Windows as an example (Because I am writing this on
+  Windows.) But generally these concepts should apply to all OS' this language
+  may one day run on.
+</p>
+<p>
+  Native libraries are declared in <code>.qscr</code> files, like regular
+  quickscript source files are, except their implementations are defined in
+  native code.
+</p>
+
+<h4>Declaring a script file as native.</h4>
+<p>
+  Native libraries are declared in the module declaration statement, which
+  usually look like this:
+</p>
+<code class="qs"><keyw>module</keyw> module.name.name2</code>
+<p>
+  Native library modules are declared like so:
+</p>
+<code class="qs"><keyw>native</keyw> <keyw>module</keyw> module.name.name2 <keyw>from</keyw> <quoted>"native_library"</quoted></code>
+<p>
+  With the last quoted string being the name of the DLL the library is stored
+  inside. This string should not feature a file suffix or anything in order
+  to keep the language OS-agnostic.
+</p>
+
+<h4>Native method naming convention</h4>
+<p>
+  When loading a library, the script interpreter will look for an exported
+  symbol from the DLL that matches the exported function, for example, the
+  script function:
+</p>
+<code class="qs"><keyw>native module</keyw> foo.foobar <keyw>from</keyw> <quoted>"libfoo"</quoted>
+<keyw>export native int32</keyw> foofunc(int32 x)</code>
+<p>
+  Will look for an exported native function in the <code>libfoo.dll</code>
+  file with this name:
+</p>
+<code><pre>qs_foo_foobar_foofunc_i32</pre></code>
+<p>
+  Essentially meaning the that the function must be prefixed with "<code>qs_</code>",
+  followed by the package name, then followed by the function name and then
+  suffixed with the parameter types, separated by underscores.
+</p>
+
+<h4>Why declare the module native?</h4>
+<p>
+  This is to make it so the compiler can load the library without having have a
+  <code>loadLibrary</code> function at runtime. It also means you can mark some
+  native functions as <code>const</code> and have them be inlined by the
+  compiler, potentially making it so some functions can be excluded from even
+  being called at all.
+</p>
+
 <h2>Standard Library</h2>
 <p>
   This section will just describe all the functions and constants I can think
@@ -2193,6 +2320,11 @@ uint32 f() {
     in bytes.
   </dd>
 
+  <dt>Import Table Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the import table from the start of the file and its size in bytes.
+  </dd>
+
   <dt>Type Table Offset and Size (2 unsigned 64bit integers)</dt>
   <dd>
     Offset of the file's type table from the start of the file and its size
@@ -2205,6 +2337,12 @@ uint32 f() {
     in bytes.
   </dd>
 
+  <dt>Export Table Offset and Size (2 unsigned 64bit integers)</dt>
+  <dd>
+    Offset of the file's export from the start of the file and its size in
+    bytes.
+  </dd>
+
   <dt>Instruction Buffer Offset and Size (2 unsigned 64bit integers)</dt>
   <dd>
     Offset of the instructions from the start of the file and its size in bytes.
@@ -2215,6 +2353,9 @@ uint32 f() {
 
   <dt>Entrypoint function index (unsigned 64bit integer)</dt>
   <dd>Index of the entrypoint function in the file's function table</dd>
+
+  <dt>Data Block Offset And Size (2 unsigned 64bit integers)</dt>
+  <dd>Offset of the file's data block from the beginning of the file</dd>
 </dl>
 
 <h3>Const String Pool</h3>
@@ -2222,6 +2363,11 @@ uint32 f() {
   An array of QS Strings (32bit length prefix followed by UTF-8 encoded
   character data) that make up identifiers, string literals, function names
   and type names.
+</p>
+
+<h3>Import Table</h3>
+<p>
+  A table of imported module names.
 </p>
 
 <h3>Type Table</h3>
@@ -2241,15 +2387,10 @@ uint32 f() {
   <dd>
     Structure type, the layout of this type's data are specified further down.
   </dd>
-  <dt><code>NSTRUCT (0x2)</code></dt>
-  <dd>
-    Native Struct, indicates a struct that has been declared by the compiler
-    itself and as such is only referenced by the script, not declared.
-  </dd>
-  <dt><code>FUNCSIGN (0x3)</code></dt>
+  <dt><code>FUNCSIGN (0x2)</code></dt>
   <dd>Function signature type, data layout specified further down</dd>
 </dl>
-
+`
 <h4>Reserved type indexes</h4>
 <table>
   <thead>
@@ -2280,6 +2421,17 @@ uint32 f() {
 <dl>
   <dt>Name offset (<code>uint64</code>)</dt>
   <dd>The offset of the name of the struct in the const string pool.</dd>
+
+  <dt>Heap Size (<code>uint64</code>)</dt>
+  <dd>
+    The size of the struct's data in bytes. This is the size used when
+    allocating memory for the struct.
+  </dd>
+
+  <dt>Alignment (<code>uint8</code>)</dt>
+  <dd>
+    Alignment of the struct in memory, must be one of <code>1, 2, 4, 8</code>.
+  </dd>
 
   <dt>Constructor location (<code>uint32</code>)</dt>
   <dd>Index of the constructor function of the struct in the function table.</dd>
@@ -2340,11 +2492,23 @@ uint32 f() {
   <dd>Index of the function signature type in the type table.</dd>
 </dl>
 
+<h3>Export table</h3>
+<p>
+  A table of exported functions, structs and variables.
+</p>
+
 <h3>Instruction Array</h3>
 <p>
   Uninterrupted array of compressed IR instructions. Compressed here meaning
   that the IR instructions are saved by stripping away the empty padding used
   to ensure all instructions have the same size.
+</p>
+
+<h3>Data Block</h3>
+<p>
+  A buffer of bytes used for things like the data of large arrays of primitive
+  values and so on. Technically you can store whatever you want in here, but
+  the intention is the aforementioned large primitive array data storage.
 </p>
 
 <h2 id="opcodes-spec">OP Code Table</h2>
@@ -2358,7 +2522,7 @@ uint32 f() {
   <tr><td>Size of an instruction (in bytes)</td><td>16</td></tr>
   <tr><td>Bytes used for an opcode</td><td>2</td></tr>
   <tr><td>Arguments length (in bytes)</td><td>14</td></tr>
-  <tr><td>OP Code count</td><td>310</td></tr>
+  <tr><td>OP Code count</td><td>311</td></tr>
   </tbody>
 </table>
 
@@ -2436,248 +2600,249 @@ uint32 f() {
   <tr><td><code>WRITEIDX32</code></td><td><code>0x0040</code></td><td>11</td><td><code>obj: register, val: register, idx: register</code></td></tr>
   <tr><td><code>WRITEIDX64</code></td><td><code>0x0041</code></td><td>11</td><td><code>obj: register, val: register, idx: register</code></td></tr>
   <tr><td><code>ARRLEN</code></td><td><code>0x0042</code></td><td>12</td><td><code>obj: register, out: register</code></td></tr>
-  <tr><td><code>SETARGTYPE</code></td><td><code>0x0043</code></td><td>6</td><td><code>index: uint32, typeindex: uint32</code></td></tr>
-  <tr><td><code>LFUNCLOOKUP</code></td><td><code>0x0044</code></td><td>9</td><td><code>index: uint32, out: register</code></td></tr>
-  <tr><td><code>NFUNCLOOKUP</code></td><td><code>0x0045</code></td><td>1</td><td><code>typeindex: uint32, funcName: uint64, out: register</code></td></tr>
-  <tr><td><code>INVOKE</code></td><td><code>0x0046</code></td><td>13</td><td><code>func: register</code></td></tr>
-  <tr><td><code>I8TU8</code></td><td><code>0x0047</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TI16</code></td><td><code>0x0048</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TU16</code></td><td><code>0x0049</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TI32</code></td><td><code>0x004A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TU32</code></td><td><code>0x004B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TI64</code></td><td><code>0x004C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TU64</code></td><td><code>0x004D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TF32</code></td><td><code>0x004E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I8TF64</code></td><td><code>0x004F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TI8</code></td><td><code>0x0050</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TI16</code></td><td><code>0x0051</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TI32</code></td><td><code>0x0052</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TI64</code></td><td><code>0x0053</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TF32</code></td><td><code>0x0054</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U8TF64</code></td><td><code>0x0055</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TI8</code></td><td><code>0x0056</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TU8</code></td><td><code>0x0057</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TU16</code></td><td><code>0x0058</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TI32</code></td><td><code>0x0059</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TU32</code></td><td><code>0x005A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TI64</code></td><td><code>0x005B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TU64</code></td><td><code>0x005C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TF32</code></td><td><code>0x005D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I16TF64</code></td><td><code>0x005E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TI8</code></td><td><code>0x005F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TI16</code></td><td><code>0x0060</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TI32</code></td><td><code>0x0061</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TI64</code></td><td><code>0x0062</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TF32</code></td><td><code>0x0063</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U16TF64</code></td><td><code>0x0064</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TI8</code></td><td><code>0x0065</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TU8</code></td><td><code>0x0066</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TI16</code></td><td><code>0x0067</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TU16</code></td><td><code>0x0068</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TU32</code></td><td><code>0x0069</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TI64</code></td><td><code>0x006A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TU64</code></td><td><code>0x006B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TF32</code></td><td><code>0x006C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I32TF64</code></td><td><code>0x006D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TI8</code></td><td><code>0x006E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TI16</code></td><td><code>0x006F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TI32</code></td><td><code>0x0070</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TI64</code></td><td><code>0x0071</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TF32</code></td><td><code>0x0072</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U32TF64</code></td><td><code>0x0073</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TI8</code></td><td><code>0x0074</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TU8</code></td><td><code>0x0075</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TI16</code></td><td><code>0x0076</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TU16</code></td><td><code>0x0077</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TI32</code></td><td><code>0x0078</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TU32</code></td><td><code>0x0079</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TU64</code></td><td><code>0x007A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TF32</code></td><td><code>0x007B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>I64TF64</code></td><td><code>0x007C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TI8</code></td><td><code>0x007D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TI16</code></td><td><code>0x007E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TI32</code></td><td><code>0x007F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TI64</code></td><td><code>0x0080</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TF32</code></td><td><code>0x0081</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>U64TF64</code></td><td><code>0x0082</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TI8</code></td><td><code>0x0083</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TU8</code></td><td><code>0x0084</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TI16</code></td><td><code>0x0085</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TU16</code></td><td><code>0x0086</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TI32</code></td><td><code>0x0087</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TU32</code></td><td><code>0x0088</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TI64</code></td><td><code>0x0089</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TU64</code></td><td><code>0x008A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F32TF64</code></td><td><code>0x008B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TI8</code></td><td><code>0x008C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TU8</code></td><td><code>0x008D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TI16</code></td><td><code>0x008E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TU16</code></td><td><code>0x008F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TI32</code></td><td><code>0x0090</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TU32</code></td><td><code>0x0091</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TI64</code></td><td><code>0x0092</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TU64</code></td><td><code>0x0093</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>F64TF32</code></td><td><code>0x0094</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>BNEGATE</code></td><td><code>0x0095</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>LNEGATE</code></td><td><code>0x0096</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGI8</code></td><td><code>0x0097</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGU8</code></td><td><code>0x0098</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGI16</code></td><td><code>0x0099</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGU16</code></td><td><code>0x009A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGI32</code></td><td><code>0x009B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGU32</code></td><td><code>0x009C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGI64</code></td><td><code>0x009D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGU64</code></td><td><code>0x009E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGF32</code></td><td><code>0x009F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>NEGF64</code></td><td><code>0x00A0</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCI8</code></td><td><code>0x00A1</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCU8</code></td><td><code>0x00A2</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCI16</code></td><td><code>0x00A3</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCU16</code></td><td><code>0x00A4</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCI32</code></td><td><code>0x00A5</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCU32</code></td><td><code>0x00A6</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCI64</code></td><td><code>0x00A7</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCU64</code></td><td><code>0x00A8</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCF32</code></td><td><code>0x00A9</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>INCF64</code></td><td><code>0x00AA</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECI8</code></td><td><code>0x00AB</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECU8</code></td><td><code>0x00AC</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECI16</code></td><td><code>0x00AD</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECU16</code></td><td><code>0x00AE</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECI32</code></td><td><code>0x00AF</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECU32</code></td><td><code>0x00B0</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECI64</code></td><td><code>0x00B1</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECU64</code></td><td><code>0x00B2</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECF32</code></td><td><code>0x00B3</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>DECF64</code></td><td><code>0x00B4</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
-  <tr><td><code>LSHIFT</code></td><td><code>0x00B5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>RSHIFT</code></td><td><code>0x00B6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>BAND</code></td><td><code>0x00B7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LAND</code></td><td><code>0x00B8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>BOR</code></td><td><code>0x00B9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LOR</code></td><td><code>0x00BA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>BXOR</code></td><td><code>0x00BB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LXOR</code></td><td><code>0x00BC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDI8</code></td><td><code>0x00BD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDU8</code></td><td><code>0x00BE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDI16</code></td><td><code>0x00BF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDU16</code></td><td><code>0x00C0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDI32</code></td><td><code>0x00C1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDU32</code></td><td><code>0x00C2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDI64</code></td><td><code>0x00C3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDU64</code></td><td><code>0x00C4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDF32</code></td><td><code>0x00C5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>ADDF64</code></td><td><code>0x00C6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBI8</code></td><td><code>0x00C7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBU8</code></td><td><code>0x00C8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBI16</code></td><td><code>0x00C9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBU16</code></td><td><code>0x00CA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBI32</code></td><td><code>0x00CB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBU32</code></td><td><code>0x00CC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBI64</code></td><td><code>0x00CD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBU64</code></td><td><code>0x00CE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBF32</code></td><td><code>0x00CF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>SUBF64</code></td><td><code>0x00D0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVI8</code></td><td><code>0x00D1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVU8</code></td><td><code>0x00D2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVI16</code></td><td><code>0x00D3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVU16</code></td><td><code>0x00D4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVI32</code></td><td><code>0x00D5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVU32</code></td><td><code>0x00D6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVI64</code></td><td><code>0x00D7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVU64</code></td><td><code>0x00D8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVF32</code></td><td><code>0x00D9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>DIVF64</code></td><td><code>0x00DA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULI8</code></td><td><code>0x00DB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULU8</code></td><td><code>0x00DC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULI16</code></td><td><code>0x00DD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULU16</code></td><td><code>0x00DE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULI32</code></td><td><code>0x00DF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULU32</code></td><td><code>0x00E0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULI64</code></td><td><code>0x00E1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULU64</code></td><td><code>0x00E2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULF32</code></td><td><code>0x00E3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MULF64</code></td><td><code>0x00E4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODI8</code></td><td><code>0x00E5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODU8</code></td><td><code>0x00E6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODI16</code></td><td><code>0x00E7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODU16</code></td><td><code>0x00E8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODI32</code></td><td><code>0x00E9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODU32</code></td><td><code>0x00EA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODI64</code></td><td><code>0x00EB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODU64</code></td><td><code>0x00EC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODF32</code></td><td><code>0x00ED</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>MODF64</code></td><td><code>0x00EE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWI8</code></td><td><code>0x00EF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWU8</code></td><td><code>0x00F0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWI16</code></td><td><code>0x00F1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWU16</code></td><td><code>0x00F2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWI32</code></td><td><code>0x00F3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWU32</code></td><td><code>0x00F4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWI64</code></td><td><code>0x00F5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWU64</code></td><td><code>0x00F6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWF32</code></td><td><code>0x00F7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>POWF64</code></td><td><code>0x00F8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQ8</code></td><td><code>0x00F9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQ16</code></td><td><code>0x00FA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQ32</code></td><td><code>0x00FB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQ64</code></td><td><code>0x00FC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQARR</code></td><td><code>0x00FD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>EQSTRUCT</code></td><td><code>0x00FE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQ8</code></td><td><code>0x00FF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQ16</code></td><td><code>0x0100</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQ32</code></td><td><code>0x0101</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQ64</code></td><td><code>0x0102</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQARR</code></td><td><code>0x0103</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>NEQSTRUCT</code></td><td><code>0x0104</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTI8</code></td><td><code>0x0105</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTU8</code></td><td><code>0x0106</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTI16</code></td><td><code>0x0107</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTU16</code></td><td><code>0x0108</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTI32</code></td><td><code>0x0109</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTU32</code></td><td><code>0x010A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTI64</code></td><td><code>0x010B</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTU64</code></td><td><code>0x010C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTF32</code></td><td><code>0x010D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTF64</code></td><td><code>0x010E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTARR</code></td><td><code>0x010F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEI8</code></td><td><code>0x0110</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEU8</code></td><td><code>0x0111</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEI16</code></td><td><code>0x0112</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEU16</code></td><td><code>0x0113</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEI32</code></td><td><code>0x0114</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEU32</code></td><td><code>0x0115</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEI64</code></td><td><code>0x0116</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEU64</code></td><td><code>0x0117</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEF32</code></td><td><code>0x0118</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEF64</code></td><td><code>0x0119</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>GTEARR</code></td><td><code>0x011A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTI8</code></td><td><code>0x011B</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTU8</code></td><td><code>0x011C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTI16</code></td><td><code>0x011D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTU16</code></td><td><code>0x011E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTI32</code></td><td><code>0x011F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTU32</code></td><td><code>0x0120</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTI64</code></td><td><code>0x0121</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTU64</code></td><td><code>0x0122</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTF32</code></td><td><code>0x0123</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTF64</code></td><td><code>0x0124</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTARR</code></td><td><code>0x0125</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEI8</code></td><td><code>0x0126</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEU8</code></td><td><code>0x0127</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEI16</code></td><td><code>0x0128</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEU16</code></td><td><code>0x0129</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEI32</code></td><td><code>0x012A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEU32</code></td><td><code>0x012B</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEI64</code></td><td><code>0x012C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEU64</code></td><td><code>0x012D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEF32</code></td><td><code>0x012E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEF64</code></td><td><code>0x012F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>LTEARR</code></td><td><code>0x0130</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>STRCONCAT</code></td><td><code>0x0131</code></td><td>7</td><td><code>lhs: register, rhs: register, typeindex: uint32, out: register</code></td></tr>
-  <tr><td><code>STRREP8</code></td><td><code>0x0132</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>STRREP16</code></td><td><code>0x0133</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>STRREP32</code></td><td><code>0x0134</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
-  <tr><td><code>STRREP64</code></td><td><code>0x0135</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LFUNCLOOKUP</code></td><td><code>0x0043</code></td><td>9</td><td><code>index: uint32, out: register</code></td></tr>
+  <tr><td><code>NFUNCLOOKUP</code></td><td><code>0x0044</code></td><td>1</td><td><code>typeindex: uint32, funcName: uint64, out: register</code></td></tr>
+  <tr><td><code>INVOKE</code></td><td><code>0x0045</code></td><td>13</td><td><code>func: register</code></td></tr>
+  <tr><td><code>FREAD</code></td><td><code>0x0046</code></td><td>1</td><td><code>out: register, straddr: uint64, typeindex: uint32</code></td></tr>
+  <tr><td><code>FWRITE</code></td><td><code>0x0047</code></td><td>1</td><td><code>val: register, straddr: uint64, typeindex: uint32</code></td></tr>
+  <tr><td><code>I8TU8</code></td><td><code>0x0048</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TI16</code></td><td><code>0x0049</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TU16</code></td><td><code>0x004A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TI32</code></td><td><code>0x004B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TU32</code></td><td><code>0x004C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TI64</code></td><td><code>0x004D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TU64</code></td><td><code>0x004E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TF32</code></td><td><code>0x004F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I8TF64</code></td><td><code>0x0050</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TI8</code></td><td><code>0x0051</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TI16</code></td><td><code>0x0052</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TI32</code></td><td><code>0x0053</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TI64</code></td><td><code>0x0054</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TF32</code></td><td><code>0x0055</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U8TF64</code></td><td><code>0x0056</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TI8</code></td><td><code>0x0057</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TU8</code></td><td><code>0x0058</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TU16</code></td><td><code>0x0059</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TI32</code></td><td><code>0x005A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TU32</code></td><td><code>0x005B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TI64</code></td><td><code>0x005C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TU64</code></td><td><code>0x005D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TF32</code></td><td><code>0x005E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I16TF64</code></td><td><code>0x005F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TI8</code></td><td><code>0x0060</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TI16</code></td><td><code>0x0061</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TI32</code></td><td><code>0x0062</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TI64</code></td><td><code>0x0063</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TF32</code></td><td><code>0x0064</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U16TF64</code></td><td><code>0x0065</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TI8</code></td><td><code>0x0066</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TU8</code></td><td><code>0x0067</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TI16</code></td><td><code>0x0068</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TU16</code></td><td><code>0x0069</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TU32</code></td><td><code>0x006A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TI64</code></td><td><code>0x006B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TU64</code></td><td><code>0x006C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TF32</code></td><td><code>0x006D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I32TF64</code></td><td><code>0x006E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TI8</code></td><td><code>0x006F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TI16</code></td><td><code>0x0070</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TI32</code></td><td><code>0x0071</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TI64</code></td><td><code>0x0072</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TF32</code></td><td><code>0x0073</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U32TF64</code></td><td><code>0x0074</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TI8</code></td><td><code>0x0075</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TU8</code></td><td><code>0x0076</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TI16</code></td><td><code>0x0077</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TU16</code></td><td><code>0x0078</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TI32</code></td><td><code>0x0079</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TU32</code></td><td><code>0x007A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TU64</code></td><td><code>0x007B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TF32</code></td><td><code>0x007C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>I64TF64</code></td><td><code>0x007D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TI8</code></td><td><code>0x007E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TI16</code></td><td><code>0x007F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TI32</code></td><td><code>0x0080</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TI64</code></td><td><code>0x0081</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TF32</code></td><td><code>0x0082</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>U64TF64</code></td><td><code>0x0083</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TI8</code></td><td><code>0x0084</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TU8</code></td><td><code>0x0085</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TI16</code></td><td><code>0x0086</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TU16</code></td><td><code>0x0087</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TI32</code></td><td><code>0x0088</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TU32</code></td><td><code>0x0089</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TI64</code></td><td><code>0x008A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TU64</code></td><td><code>0x008B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F32TF64</code></td><td><code>0x008C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TI8</code></td><td><code>0x008D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TU8</code></td><td><code>0x008E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TI16</code></td><td><code>0x008F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TU16</code></td><td><code>0x0090</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TI32</code></td><td><code>0x0091</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TU32</code></td><td><code>0x0092</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TI64</code></td><td><code>0x0093</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TU64</code></td><td><code>0x0094</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>F64TF32</code></td><td><code>0x0095</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>BNEGATE</code></td><td><code>0x0096</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>LNEGATE</code></td><td><code>0x0097</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGI8</code></td><td><code>0x0098</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGU8</code></td><td><code>0x0099</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGI16</code></td><td><code>0x009A</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGU16</code></td><td><code>0x009B</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGI32</code></td><td><code>0x009C</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGU32</code></td><td><code>0x009D</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGI64</code></td><td><code>0x009E</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGU64</code></td><td><code>0x009F</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGF32</code></td><td><code>0x00A0</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>NEGF64</code></td><td><code>0x00A1</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCI8</code></td><td><code>0x00A2</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCU8</code></td><td><code>0x00A3</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCI16</code></td><td><code>0x00A4</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCU16</code></td><td><code>0x00A5</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCI32</code></td><td><code>0x00A6</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCU32</code></td><td><code>0x00A7</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCI64</code></td><td><code>0x00A8</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCU64</code></td><td><code>0x00A9</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCF32</code></td><td><code>0x00AA</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>INCF64</code></td><td><code>0x00AB</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECI8</code></td><td><code>0x00AC</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECU8</code></td><td><code>0x00AD</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECI16</code></td><td><code>0x00AE</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECU16</code></td><td><code>0x00AF</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECI32</code></td><td><code>0x00B0</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECU32</code></td><td><code>0x00B1</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECI64</code></td><td><code>0x00B2</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECU64</code></td><td><code>0x00B3</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECF32</code></td><td><code>0x00B4</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>DECF64</code></td><td><code>0x00B5</code></td><td>12</td><td><code>in: register, out: register</code></td></tr>
+  <tr><td><code>LSHIFT</code></td><td><code>0x00B6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>RSHIFT</code></td><td><code>0x00B7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>BAND</code></td><td><code>0x00B8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LAND</code></td><td><code>0x00B9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>BOR</code></td><td><code>0x00BA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LOR</code></td><td><code>0x00BB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>BXOR</code></td><td><code>0x00BC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LXOR</code></td><td><code>0x00BD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDI8</code></td><td><code>0x00BE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDU8</code></td><td><code>0x00BF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDI16</code></td><td><code>0x00C0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDU16</code></td><td><code>0x00C1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDI32</code></td><td><code>0x00C2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDU32</code></td><td><code>0x00C3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDI64</code></td><td><code>0x00C4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDU64</code></td><td><code>0x00C5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDF32</code></td><td><code>0x00C6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>ADDF64</code></td><td><code>0x00C7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBI8</code></td><td><code>0x00C8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBU8</code></td><td><code>0x00C9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBI16</code></td><td><code>0x00CA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBU16</code></td><td><code>0x00CB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBI32</code></td><td><code>0x00CC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBU32</code></td><td><code>0x00CD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBI64</code></td><td><code>0x00CE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBU64</code></td><td><code>0x00CF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBF32</code></td><td><code>0x00D0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>SUBF64</code></td><td><code>0x00D1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVI8</code></td><td><code>0x00D2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVU8</code></td><td><code>0x00D3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVI16</code></td><td><code>0x00D4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVU16</code></td><td><code>0x00D5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVI32</code></td><td><code>0x00D6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVU32</code></td><td><code>0x00D7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVI64</code></td><td><code>0x00D8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVU64</code></td><td><code>0x00D9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVF32</code></td><td><code>0x00DA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>DIVF64</code></td><td><code>0x00DB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULI8</code></td><td><code>0x00DC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULU8</code></td><td><code>0x00DD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULI16</code></td><td><code>0x00DE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULU16</code></td><td><code>0x00DF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULI32</code></td><td><code>0x00E0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULU32</code></td><td><code>0x00E1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULI64</code></td><td><code>0x00E2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULU64</code></td><td><code>0x00E3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULF32</code></td><td><code>0x00E4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MULF64</code></td><td><code>0x00E5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODI8</code></td><td><code>0x00E6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODU8</code></td><td><code>0x00E7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODI16</code></td><td><code>0x00E8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODU16</code></td><td><code>0x00E9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODI32</code></td><td><code>0x00EA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODU32</code></td><td><code>0x00EB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODI64</code></td><td><code>0x00EC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODU64</code></td><td><code>0x00ED</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODF32</code></td><td><code>0x00EE</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>MODF64</code></td><td><code>0x00EF</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWI8</code></td><td><code>0x00F0</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWU8</code></td><td><code>0x00F1</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWI16</code></td><td><code>0x00F2</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWU16</code></td><td><code>0x00F3</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWI32</code></td><td><code>0x00F4</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWU32</code></td><td><code>0x00F5</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWI64</code></td><td><code>0x00F6</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWU64</code></td><td><code>0x00F7</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWF32</code></td><td><code>0x00F8</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>POWF64</code></td><td><code>0x00F9</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>EQ8</code></td><td><code>0x00FA</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>EQ16</code></td><td><code>0x00FB</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>EQ32</code></td><td><code>0x00FC</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>EQ64</code></td><td><code>0x00FD</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>EQARR</code></td><td><code>0x00FE</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>EQSTRUCT</code></td><td><code>0x00FF</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>NEQ8</code></td><td><code>0x0100</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>NEQ16</code></td><td><code>0x0101</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>NEQ32</code></td><td><code>0x0102</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>NEQ64</code></td><td><code>0x0103</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>NEQARR</code></td><td><code>0x0104</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>NEQSTRUCT</code></td><td><code>0x0105</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>GTI8</code></td><td><code>0x0106</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTU8</code></td><td><code>0x0107</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTI16</code></td><td><code>0x0108</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTU16</code></td><td><code>0x0109</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTI32</code></td><td><code>0x010A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTU32</code></td><td><code>0x010B</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTI64</code></td><td><code>0x010C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTU64</code></td><td><code>0x010D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTF32</code></td><td><code>0x010E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTF64</code></td><td><code>0x010F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTARR</code></td><td><code>0x0110</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>GTEI8</code></td><td><code>0x0111</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEU8</code></td><td><code>0x0112</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEI16</code></td><td><code>0x0113</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEU16</code></td><td><code>0x0114</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEI32</code></td><td><code>0x0115</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEU32</code></td><td><code>0x0116</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEI64</code></td><td><code>0x0117</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEU64</code></td><td><code>0x0118</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEF32</code></td><td><code>0x0119</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEF64</code></td><td><code>0x011A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>GTEARR</code></td><td><code>0x011B</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>LTI8</code></td><td><code>0x011C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTU8</code></td><td><code>0x011D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTI16</code></td><td><code>0x011E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTU16</code></td><td><code>0x011F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTI32</code></td><td><code>0x0120</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTU32</code></td><td><code>0x0121</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTI64</code></td><td><code>0x0122</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTU64</code></td><td><code>0x0123</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTF32</code></td><td><code>0x0124</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTF64</code></td><td><code>0x0125</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTARR</code></td><td><code>0x0126</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>LTEI8</code></td><td><code>0x0127</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEU8</code></td><td><code>0x0128</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEI16</code></td><td><code>0x0129</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEU16</code></td><td><code>0x012A</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEI32</code></td><td><code>0x012B</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEU32</code></td><td><code>0x012C</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEI64</code></td><td><code>0x012D</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEU64</code></td><td><code>0x012E</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEF32</code></td><td><code>0x012F</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEF64</code></td><td><code>0x0130</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>LTEARR</code></td><td><code>0x0131</code></td><td>7</td><td><code>lhs: register, rhs: register, out: register, typeindex: uint32</code></td></tr>
+  <tr><td><code>STRCONCAT</code></td><td><code>0x0132</code></td><td>7</td><td><code>lhs: register, rhs: register, typeindex: uint32, out: register</code></td></tr>
+  <tr><td><code>STRREP8</code></td><td><code>0x0133</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>STRREP16</code></td><td><code>0x0134</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>STRREP32</code></td><td><code>0x0135</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
+  <tr><td><code>STRREP64</code></td><td><code>0x0136</code></td><td>11</td><td><code>lhs: register, rhs: register, out: register</code></td></tr>
   </tbody>
 </table>
