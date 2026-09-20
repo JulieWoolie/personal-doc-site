@@ -1,0 +1,1710 @@
+---
+title: "Language Specification"
+subtitle: "Technical Specification for the Tetral Language"
+weight: 40
+publish_date: '2026-09-20 15:00:00 +0200 UTC'
+author: Julie
+toc: true
+noindent: true
+---
+
+<h2>Introduction</h2>
+
+<p>
+  Tetral, from the Greek word for <i>"four,"</i> is a scripting language intended
+  to be interpreted to provide a platform-agnostic execution system and which is
+  intended to be executed fast with little checks on the IR past the initial
+  compilation.
+</p>
+
+<h3>Core Principles</h3>
+<p>
+  Additionally, Tetral is designed with the following 4 core principles in mind,
+  hence the name.
+</p>
+<dl>
+  <dt>Statically Typed</dt>
+  <dd>
+    Types must be specified and known at compile-time to allow for the compiler
+    to optimize as much as possible and to provide easy readability for
+    programmers.
+  </dd>
+
+  <dt>Compiled</dt>
+  <dd>
+    Compiled to an intermediate representation (also referred to as a bytecode,)
+    which can be executed on any platform as long as an interpreter exists for
+    the platform.
+  </dd>
+
+  <dt>Interpreted</dt>
+  <dd>
+    Interpreted by a native interpreter which performs next to checks on the
+    bytecode and executes it to ensure fast execution speed.
+  </dd>
+
+  <dt>Platform-Agnostic</dt>
+  <dd>
+    As long as an interpreter exists, it shouldn't matter how the IR was
+    compiled, it should be possible to execute it.
+  </dd>
+</dl>
+
+<h3>Other Principles</h3>
+<p>
+  There are more principles this language was designed around, but they aren't
+  as flashy.
+</p>
+<dl>
+  <dt>No Memory Interaction</dt>
+  <dd>
+    A programmer should never have to care about memory or be able to interact
+    with raw memory.
+  </dd>
+
+  <dt>Explicit Null Control</dt>
+  <dd>
+    <p>
+      This idea is that object types, should never be null, unless a null value
+      is explicitly allowed. For example, if a variable is declared of an object
+      type, it should be initialized to a value, rather than null. And you
+      shouldn't be able to assign a null value to a non-null type.
+    </p>
+    <p>
+      This only goes for object types, primitives are initialized to a zero
+      value, while strings and arrays always null-initialized by default, but
+      null arrays and strings are just treated as having a length of
+      <code>0</code>.
+    </p>
+  </dd>
+
+  <dt>Reference Counted</dt>
+  <dd>
+    No garbage collector, just reference counting of objects. When the
+    reference count of an object reaches <code>0</code>, it is freed and all
+    its properties, if object types as well, have their reference counters
+    decremented.
+  </dd>
+</dl>
+
+<h2>Concepts</h2>
+<dl>
+  <dt>Source File</dt>
+  <dd>
+    A UTF-8 encoded text file that contains Tetral source code.
+  </dd>
+
+  <dt>Bytecode/IR/Intermediate Representation</dt>
+  <dd>
+    These terms will be used interchangeably in this document, but they all
+    refer to the compiled representation of Tetral source code.
+  </dd>
+
+  <dt>Program</dt>
+  <dd>
+    Either a valid Tetral source file or a Tetral bytecode file that can be
+    executed by the interpreter.
+  </dd>
+
+  <dt>Object Types</dt>
+  <dd>
+    A broad term to describe any non-primitive value in Tetral. Object types are
+    always represented with a pointer.
+  </dd>
+
+  <dt>Structs</dt>
+  <dd>
+    Object types which hold pre-defined properties of pre-defined types that
+    can be instantiated.
+  </dd>
+
+  <dt>Arrays and Strings</dt>
+  <dd>
+    <p>
+      Arrays are objects of a fixed length that contain sequential data of a
+      pre-defined type.
+    </p>
+    <p>
+      Arrays and strings are, for the most part, the same thing. A string is
+      just an array of UTF-8 encoded bytes.
+    </p>
+  </dd>
+
+  <dt>Primitives</dt>
+  <dd>
+    Primitives are integral, floating point and boolean types that are not
+    allocated on the heap. The following are the primitive types recognized by
+    Tetral:
+  </dd>
+
+  <dt><code>bool</code> or <code>boolean</code></dt>
+  <dd>
+    A single byte value representing either a true (<code>1</code>) or false
+    (<code>0</code>) state.
+  </dd>
+
+  <dt><code>uint8</code>, <code>uint16</code>, <code>uint32</code> and <code>uint64</code></dt>
+  <dd>
+    Unsigned integral types, the amount of bits the primitive uses is specified
+    in the name of each one.
+  </dd>
+
+  <dt><code>int8</code>, <code>int16</code>, <code>int32</code> and <code>int64</code></dt>
+  <dd>
+    Signed integral types, the amount of bits each uses is specified in the name
+    of each type.
+  </dd>
+
+  <dt><code>float32</code> and <code>float64</code></dt>
+  <dd>
+    Floating point types, the amount of bits the primitive uses is specified in
+    the name of each type.
+  </dd>
+
+  <dt>Boolean-like</dt>
+  <dd>
+    <p>A value which can in some way be evaluated as true or false.</p>
+    <p>
+      For <code>bool</code> this is obvious, for primitive types, the value of
+      0 results in false, while any non-zero value results in true.
+    </p>
+    <p>
+      For arrays and strings, a null value, (aka that with a length of 0) results
+      in false, while any non-zero length array results in true.
+    </p>
+    <p>
+      Struct types cannot be assigned to a boolean like value other than in the
+      case of a nullable struct type, where a null value results in false, and
+      anything else results in true.
+    </p>
+  </dd>
+</dl>
+
+<h2>Language</h2>
+<p>
+  Tetral files are written in UTF-8 encoded text files, referred to as
+  "source files." They must follow the grammar defined in the following
+  sections.
+</p>
+
+<h3>Notation</h3>
+<p>
+  References to other syntactic rules are in <i>italic</i>, literal values are
+  in <b>bold</b>. An italic syntactic rule followed by a colon <i>(:)</i>
+  defines the rule. Alternative definitions of the rule are defined on new
+  lines. Optional parts are described with the subscript <i>"opt"</i>. And
+  parts which may repeat and appear several times will be described with the
+  suffix <i>"rep"</i>.
+</p>
+<figure>
+  <figcaption>Basic Syntax Notation Example</figcaption>
+  <center>
+    <b>(</b> <i>expression</i><sub><i>opt rep</i></sub> <b>)</b>
+  </center>
+</figure>
+<p>
+  Indicates a syntax element enclosed with <i>"()"</i> which might contain
+  an expression, or several expressions.
+</p>
+
+<style>
+    dl.syntaxdef {
+        code {
+            font-weight: bold;
+        }
+        dt {
+            font-weight: normal;
+            font-style: italic;
+            span {
+                font-style: normal;
+            }
+        }
+        sub {
+            font-style: italic;
+        }
+        b {
+            font-family: monospace;
+        }
+    }
+    ul.literallist {
+        column-count: 5;
+        list-style-type: none;
+        margin-top: 0 !important;
+        font-weight: bold;
+        padding-inline-start: 0;
+        font-family: monospace;
+        li {
+            margin-top: unset;
+        }
+    }
+</style>
+
+<h3>Lexical Elements</h3>
+
+<dl class="syntaxdef">
+  <dt>token:</dt>
+  <dd><i>keyword</i></dd>
+  <dd><i>identifier</i></dd>
+  <dd><i>constant</i></dd>
+  <dd><i>string-literal</i></dd>
+  <dd><i>operator</i></dd>
+</dl>
+
+<h4>Keywords</h4>
+<p>
+  Keyword tokens are divided into two separate categories: real and alias
+  keywords.
+</p>
+<p>
+  The difference between alias keywords and real keywords, is that while the
+  alias keywords are still reserved keywords, their internal token value is
+  mapped to the value that they are an alias for. For example, <b><code>ulong</code></b> is
+  an alias for <b><code>uint64</code></b>.
+</p>
+
+<dl class="syntaxdef">
+  <dt>keyword:</dt>
+  <dd><i>real-keyword</i></dd>
+  <dd><i>type-keyword</i></dd>
+  <dd><i>alias-keyword</i></dd>
+
+  <dt>real-keyword: <span>one of:</span></dt>
+  <dd>
+    <ul class="literallist">
+      <li>if</li>
+      <li>else</li>
+      <li>break</li>
+      <li>continue</li>
+      <li>return</li>
+      <li>while</li>
+      <li>for</li>
+      <li>struct</li>
+      <li>module</li>
+      <li>import</li>
+      <li>export</li>
+      <li>do</li>
+      <li>const</li>
+      <li>assert</li>
+      <li>native</li>
+    </ul>
+  </dd>
+
+  <dt>type-keyword: <span>one of:</span></dt>
+  <dd>
+    <ul class="literallist">
+      <li>void</li>
+      <li>uint8</li>
+      <li>bool</li>
+      <li>int8</li>
+      <li>uint16</li>
+      <li>int16</li>
+      <li>uint32</li>
+      <li>int32</li>
+      <li>uint64</li>
+      <li>int64</li>
+      <li>float32</li>
+      <li>float64</li>
+      <li>string</li>
+    </ul>
+  </dd>
+
+  <dt>alias-keyword: <span>one of:</span></dt>
+  <dd>
+    <ul class="literallist">
+      <li>boolean</li>
+      <li>byte</li>
+      <li>ubyte</li>
+      <li>char</li>
+      <li>short</li>
+      <li>ushort</li>
+      <li>int</li>
+      <li>uint</li>
+      <li>long</li>
+      <li>ulong</li>
+      <li>float</li>
+      <li>double</li>
+    </ul>
+  </dd>
+</dl>
+<table>
+  <caption>Alias token mappings</caption>
+  <thead>
+  <tr>
+    <th>Alias Token</th>
+    <th>Mapped Token</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><b><code>boolean</code></b></td>
+    <td><b><code>bool</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>byte</code></b></td>
+    <td><b><code>int8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ubyte</code></b></td>
+    <td><b><code>uint8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>char</code></b></td>
+    <td><b><code>uint8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>short</code></b></td>
+    <td><b><code>int16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ushort</code></b></td>
+    <td><b><code>uint16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>int</code></b></td>
+    <td><b><code>int32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>uint</code></b></td>
+    <td><b><code>uint32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>long</code></b></td>
+    <td><b><code>int64</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ulong</code></b></td>
+    <td><b><code>uint64</code></b></td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Identifiers</h4>
+<dl class="syntaxdef">
+  <dt>identifier:</dt>
+  <dd><i>identifier-start</i> <i>identifier-continue</i><sub>opt rep</sub></dd>
+
+  <dt>identifier-start:</dt>
+  <dd><i>nondigit</i></dd>
+  <dd>XID_Start character (defined by Unicode)</dd>
+
+  <dt>identifier-continue:</dt>
+  <dd>digit</dd>
+  <dd>nondigit</dd>
+  <dd>XID_Continue character (defined by Unicode)</dd>
+
+  <dt>digit: <span>one of:</span></dt>
+  <dd><b>0 1 2 3 4 5 6 7 8 9</b></dd>
+
+  <dt>nondigit: <span>one of:</span></dt>
+  <dd><b>_ $ a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</b></dd>
+</dl>
+
+<h4>Constants</h4>
+<dl class="syntaxdef">
+  <dt>constant:</dt>
+  <dd><i>integer-constant</i></dd>
+  <dd><i>floating-point-constant</i></dd>
+  <dd><i>character-constant</i></dd>
+  <dd><i>predefined-constant</i></dd>
+</dl>
+
+<h5>Integer Constants</h5>
+<dl class="syntaxdef">
+  <dt>integer-constant:</dt>
+  <dd><i>digit-sequence</i></dd>
+  <dd><i>octal-constant</i></dd>
+  <dd><i>hexadecimal-constant</i></dd>
+  <dd><i>binary-constant</i></dd>
+
+  <dt>octal-constant:</dt>
+  <dd><b>0o</b> <i>octal-digit</i><sub>rep</sub></dd>
+  <dd><b>0O</b> <i>octal-digit</i><sub>rep</sub></dd>
+
+  <dt>octal-digit: <span>one of:</span></dt>
+  <dd><b>0 1 2 3 4 5 6 7</b></dd>
+
+  <dt>hexadecimal-constant:</dt>
+  <dd><b>0x</b> <i>hexadecimal-digit</i><sub>rep</sub></dd>
+  <dd><b>0X</b> <i>hexadecimal-digit</i><sub>rep</sub></dd>
+
+  <dt>hexadecimal-digit: <span>one of:</span></dt>
+  <dd><b>0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F</b></dd>
+
+  <dt>binary-constant:</dt>
+  <dd><b>0b</b> <i>binary-digit</i><sub>rep</sub></dd>
+  <dd><b>0B</b> <i>binary-digit</i><sub>rep</sub></dd>
+
+  <dt>binary-digit: <span>one of:</span></dt>
+  <dd><b>0 1</b></dd>
+
+  <dt>digit-sequence:</dt>
+  <dd><i>digit</i></dd>
+  <dd><i>digit-sequence underscore</i><sub>opt</sub> <i>digit</i></dd>
+
+  <dt>underscore:</dt>
+  <dd><b>_</b></dd>
+</dl>
+
+<h5>Floating Point Constants</h5>
+<dl class="syntaxdef">
+  <dt>floating-point-constant:</dt>
+  <dd><i>fractional-part exponent-part</i><sub>opt</sub></dd>
+
+  <dt>fractional-part:</dt>
+  <dd><i>digit-sequence</i></dd>
+  <dd><i>digit-sequence</i> <b>.</b> <i>digit-sequence</i></dd>
+  <dd><i>digit-sequence</i> <b>.</b></dd>
+  <dd><b>.</b> <i>digit-sequence</i></dd>
+
+  <dt>exponent-part:</dt>
+  <dd><b>e</b> <i>sign</i><sub>opt</sub> <i>digit-sequence</i></dd>
+  <dd><b>E</b> <i>sign</i><sub>opt</sub> <i>digit-sequence</i></dd>
+
+  <dt>sign: <span>one of:</span></dt>
+  <dd><b>+ -</b></dd>
+</dl>
+
+<h5>Character Constants</h5>
+<dl class="syntaxdef">
+  <dt>character-constant:</dt>
+  <dd><b>'</b> char-sequence <b>'</b></dd>
+
+  <dt>char-sequence:</dt>
+  <dd>Any valid UTF-8 character except the single-quote, backslash or newline character</dd>
+  <dd><i>escape-sequence</i></dd>
+
+  <dt>escape-sequence:</dt>
+  <dd><i>simple-escape-sequence</i></dd>
+  <dd><i>hex-escape-sequence</i></dd>
+
+  <dt>simple-escape-sequence: <span>one of:</span></dt>
+  <dd><b>\' \" \\ \t \r \n \T \R \N</b></dd>
+
+  <dt>hex-escape-sequence:</dt>
+  <dd><b>\u</b> <i></i> <i>hexadecimal-digit</i><sub>rep</sub></dd>
+  <dd><b>\U</b> <i></i> <i>hexadecimal-digit</i><sub>rep</sub></dd>
+</dl>
+
+<h5>Predefined Constants</h5>
+<dl class="syntaxdef">
+  <dt>predefined-constant:</dt>
+  <dd><b>true</b></dd>
+  <dd><b>false</b></dd>
+</dl>
+
+<h4>Operators</h4>
+<dl class="syntaxdef">
+  <dt>operator: <span>one of:</span></dt>
+  <dd>
+    <b>
+      ( ) { } [ ] : ; , . ... & &= && &&= | |= * *= / /= + += - -= ^ ^=
+      % %= << <<= >> >>= >>> >>>= < <= > >= ++ -- == != = ! ~ => ** **= || ||= ?
+      ?? ??=
+    </b>
+  </dd>
+</dl>
+
+<h4>Comments</h4>
+<p>
+  Except within a string or character literal, the characters <b>//</b> and
+  <b>#</b> denote the beginning of a line comment. The comment consumes the
+  rest of the source file's line, or until the end of input has
+  been reached.
+</p>
+<p>
+  Except within a string or character literal, the characters <b>/*</b> denote
+  the beginning of a block comment. The comment consumes input until a matching
+  <b>*/</b> sequence has been found, or until the end of input has
+  been reached.
+</p>
+<p>
+  Except within a string or character literal, the characters <b>/**</b> denote
+  the beginning of a documentation comment. The comment consumes input until a
+  matching <b>*/</b> sequence has been found, or until the end of input has
+  been reached.
+</p>
+<p>
+  In almost all cases, comments are simply skipped over and ignored, except for
+  documentation comments (Starting with <b>/**</b>) which are linked to the
+  specific <i>declaration</i> that they prefix.
+</p>
+
+<h3>Expressions</h3>
+<h4>Primary Expressions</h4>
+<dl class="syntaxdef">
+  <dt>primary-expression:</dt>
+  <dd><i>constant</i></dd>
+  <dd><i>identifier</i></dd>
+  <dd><i>object-literal</i></dd>
+  <dd><i>array-literal</i></dd>
+  <dd><i>string-literal</i></dd>
+  <dd><i>cast-expression</i></dd>
+  <dd><i>typeof-expression</i></dd>
+  <dd><b>(</b> <i>expression</i> <b>)</b></dd>
+</dl>
+
+<h5>Cast Expression</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>cast-expression:</dt>
+  <dd><i>value-cast-expression</i></dd>
+  <dd><i>bit-cast-expression</i></dd>
+
+  <dt>value-cast-expression:</dt>
+  <dd><b>cast</b> <b>(</b> <i>type-expression</i> <b>,</b> <i>expression</i> <b>)</b></dd>
+
+  <dt>bit-cast-expression:</dt>
+  <dd><b>bitcast</b> <b>(</b> <i>type-expression</i> <b>,</b> <i>expression</i> <b>)</b></dd>
+</dl>
+
+<p><b>Semantics</b></p>
+<ol>
+  <li>Casts a value returned by an expression to a different type.</li>
+  <li>
+    In the event an integral type is being cast to a floating point type, the
+    integer should be transformed such that the value of the resulting floating
+    point number is equal to the integral number's value.
+  </li>
+  <li>
+    In the event a floating point type is being cast to an integral type, the
+    floating point value should be transformed such that the value of the
+    resulting integral number is the rounded down value of the floating point
+    number.
+  </li>
+  <li>
+    In any case other than the two aforementioned ones, the expression need not
+    be handled by the compiler and can be treated as if it doesn't exist.
+  </li>
+</ol>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Cast expressions can only cast from one primitive type to another, for
+    example, they can be used cast from a floating point to an integral type.
+  </li>
+</ol>
+
+
+
+<h5>Type-Of Expression</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>typeof-expression:</dt>
+  <dd><b>typeof</b> <i>expression</i></dd>
+</dl>
+
+<h5>Object Literals</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>object-literal:</dt>
+  <dd><b>{</b> <i>object-literal-property</i><sub>opt rep</sub> <b>}</b></dd>
+
+  <dt>object-literal-property:</dt>
+  <dd><i>identifier</i> <b>:</b> <i>expression</i></dd>
+</dl>
+
+<h5>Array Literals</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>array-literal:</dt>
+  <dd><b>[</b> <i>array-literal-values</i> <b>]</b></dd>
+
+  <dt>array-literal-values:</dt>
+  <dd><i>expression</i></dd>
+  <dd><i>array-literal-values</i> <b>,</b> <i>expression</i></dd>
+</dl>
+
+<h5>String Literals</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>string-literal:</dt>
+  <dd><i>line-string-literal</i></dd>
+  <dd><i>multiline-string-literal</i></dd>
+  <dd><i>string-literal</i> <i>line-string-literal</i></dd>
+  <dd><i>string-literal</i> <i>multiline-string-literal</i></dd>
+
+  <dt>line-string-literal:</dt>
+  <dd><b>"</b> <i>line-string-content</i> <sub>opt</sub> <b>"</b></dd>
+
+  <dt>line-string-content:</dt>
+  <dd><i>line-string-character</i></dd>
+  <dd><i>line-string-content</i> <i>line-string-character</i></dd>
+  <dd><i>line-string-content</i> <i>string-template</i></dd>
+
+  <dt>multiline-string-literal:</dt>
+  <dd><b>"""</b> <i>multiline-string-content</i> <sub>opt</sub> <b>"""</b></dd>
+
+  <dt>multiline-string-content:</dt>
+  <dd><i>multiline-string-character</i></dd>
+  <dd><i>multiline-string-content</i> <i>multiline-string-character</i></dd>
+  <dd><i>multiline-string-content</i> <i>string-template</i></dd>
+
+  <dt>string-template:</dt>
+  <dd><b>$</b> <i>identifier</i></dd>
+  <dd><b>${</b> <i>expression</i> <b>}</b></dd>
+
+  <dt>line-string-character:</dt>
+  <dd>Any valid UTF-8 character except <b>"</b>, <b>\</b>, <b>$</b> or newline character.</dd>
+  <dd><i>escape-sequence</i></dd>
+
+  <dt>multiline-string-character:</dt>
+  <dd>Any valid UTF-8 character except <b>"""</b>, <b>\</b> or <b>$</b>.</dd>
+  <dd><i>escape-sequence</i></dd>
+</dl>
+
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    A string literal will always result in a value of a <code>string</code>
+    type.
+  </li>
+  <li>
+    It can be assumed that each line in a multiline string will have some level
+    of indentation. After parsing, this indentation must be stripped from the
+    start of each line. Since indentation can vary from line to line, the amount
+    indentation removed depends on the line with the least indentation.
+  </li>
+</ol>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    All expressions and identifiers declared inside a string must return a
+    non-void value.
+  </li>
+</ol>
+
+<h4>Trail Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>trail-expression:</dt>
+  <dd><i>primary-expression</i></dd>
+  <dd><i>property-access-expression</i></dd>
+  <dd><i>index-access-expression</i></dd>
+  <dd><i>function-call-expression</i></dd>
+  <dd><i>coalescence-expression</i></dd>
+</dl>
+
+<h4>Index Access Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>index-access-expression:</dt>
+  <dd><i>trail-expression</i> <b>[</b> <i>expression</i> <b>]</b></dd>
+</dl>
+
+<p><b>Semantics</b></p>
+<ol>
+  <li>Accesses an indexable element in an indexable value.</li>
+</ol>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The type returned by the target <i>trail-expression</i> must be an
+    indexable type. (See below table)
+  </li>
+  <li>
+    The indexing <i>expression</i> must be a type used to index into the
+    target expression's type. (See below table)
+  </li>
+  <li>
+    If the type being accessed is a <code>string</code>, then the index may not
+    be written to.
+  </li>
+</ol>
+
+<table>
+  <caption>Type Indexing</caption>
+  <thead>
+  <tr>
+    <th>Type</th>
+    <th>Indexing Type</th>
+    <th>Value type returned by index access</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>String Type</td>
+    <td><code>uint32</code></td>
+    <td>Single UTF-8 byte, (<code>uint8</code>)</td>
+  </tr>
+  <tr>
+    <td>Any Array Type</td>
+    <td><code>uint32</code></td>
+    <td>The array's component type</td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Property Access Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>index-access-expression:</dt>
+  <dd><i>trail-expression</i> <b>.</b> <i>identifier</i></dd>
+</dl>
+
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The expression returns a value of the type of the property being accessed.
+  </li>
+  <li>
+    For <code>string</code> and array types, the only accessible property is the
+    <code>length</code> property and it returns the number of elements in the
+    object.
+  </li>
+</ol>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>The property being accessed must exist on the specified type.</li>
+  <li>
+    If the property being accessed is an array's or string's length property,
+    the property may not be written to.
+  </li>
+</ol>
+
+<h4>Function Call Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>function-call-expression:</dt>
+  <dd><i>trail-expression</i> <b>(</b> <i>arguments-list</i><sub>opt</sub>  <b>)</b></dd>
+  <dt>arguments-list:</dt>
+  <dd><i>expression</i></dd>
+  <dd><i>arguments-list</i> <b>,</b> <i>expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The value returned by the target <i>trail-expression</i> must be a function.
+  </li>
+  <li>
+    All arguments passed to the function must be assignable to that function's
+    declared arguments.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Invokes a function with the specified arguments.</li>
+  <li>
+    The value returned by the expression is dependent on the return type of the
+    function being invoked.
+  </li>
+</ol>
+
+<h4>Coalescence Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>coalescence-expression:</dt>
+  <dd><i>trail-expression</i> <b>??</b> <i>expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    It must be possible to resolve the left-hand-side expression to a
+    boolean-like value.
+  </li>
+  <li>
+    The values of both the left-hand-side expression and the right-hand-side
+    must be of a compatible type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Evaluates the left-hand-side expression, and if it's boolean-like value
+    results in a false value, the right-hand-side is evaluated.
+  </li>
+</ol>
+
+<h4>Unary Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-expression:</dt>
+  <dd><i>trail-expression</i></dd>
+  <dd><i>unary-increment-expression</i></dd>
+  <dd><i>unary-decrement-expression</i></dd>
+  <dd><i>unary-arithmetic-expression</i></dd>
+  <dd><i>unary-bitwise-negation-expression</i></dd>
+  <dd><i>unary-logical-negation-expression</i></dd>
+</dl>
+
+<h5>Unary Increment Expressions</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-increment-expression:</dt>
+  <dd><b>++</b> <i>unary-expression</i></dd>
+  <dd><i>unary-expression</i> <b>++</b></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue that can be modified.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If the increment operator is placed before the operand, the result is the
+    value of the operand incremented by 1. As a side effect, the resulting
+    value is written to the operand object.
+  </li>
+  <li>
+    If the increment operator is placed after the operand, the result is the
+    value of the operand. As a side effect, the operand's value is incremented
+    by 1 and written to the operand object.
+  </li>
+</ol>
+
+<h5>Unary Decrement Expressions</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-decrement-expression:</dt>
+  <dd><b>--</b> <i>unary-expression</i></dd>
+  <dd><i>unary-expression</i> <b>--</b></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue that can be modified.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If the decrement operator is placed before the operand, the result is the
+    value of the operand decremented by 1. As a side effect, the resulting
+    value is written to the operand object.
+  </li>
+  <li>
+    If the decrement operator is placed after the operand, the result is the
+    value of the operand. As a side effect, the operand's value is decremented
+    by 1 and written to the operand object.
+  </li>
+</ol>
+
+<h5>Unary Arithmetic Expressions</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-arithmetic-expression:</dt>
+  <dd><b>-</b> <i>unary-expression</i></dd>
+  <dd><b>+</b> <i>unary-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the <b>-</b> operator is the negative of the operand's value,
+    or positive, if the operand's value is already negative. If the operand's
+    type an unsigned type, the resulting type is a signed type of the same size.
+  </li>
+  <li>
+    The result of the <b>+</b> operator is the value of the operand.
+  </li>
+</ol>
+
+<h5>Unary Bitwise Negation Expressions</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-bitwise-negation-expression:</dt>
+  <dd><b>~</b> <i>unary-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is the value of the operand with all the
+    bits flipped (All zeroes set to ones and vice versa)
+  </li>
+</ol>
+
+<h5>Unary Logical Negation Expressions</h5>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>unary-logical-negation-expression:</dt>
+  <dd><b>~</b> <i>unary-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is the value of the operand with all the
+    bits flipped (All zeroes set to ones and vice versa)
+  </li>
+</ol>
+
+<h4>Arithmetic Operations</h4>
+<p>
+  This section details constraints and semantics when performing arithmetic
+  operations on two arithmetic (numeric) types.
+</p>
+<p><b>Operand Conversion Constraints</b></p>
+<ol>
+  <li>
+    If both operands are integral types of the same size, but their signedness
+    state differs, then the operation is invalid and an explicit cast must be
+    specified.
+  </li>
+</ol>
+<p><b>Operand Conversion Semantics</b></p>
+<ol>
+  <li>
+    If one operand is a floating point value, then the other value must be
+    converted to the same floating point value.
+  </li>
+  <li>
+    If both operands are floating point values, but of different sizes (eg,
+    left operator is a <code>float32</code>, while the right is a
+    <code>float64</code>) then the smaller operand must be converted to the
+    larger operand's type.
+  </li>
+  <li>
+    If both operands are integral types, then the smaller operand is converted
+    to the larger operand's type.
+  </li>
+</ol>
+
+<h4>Power (POW) Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>power-expression</dt>
+  <dd><i>unary-expression</i></dd>
+  <dd><i>power-expression</i> <b>**</b> <i>unary-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>**</b> operator is the left operand raised to the
+    power of the right operand.
+  </li>
+</ol>
+
+<h4>Multiplicative Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>multiplicative-expression</dt>
+  <dd><i>power-expression</i></dd>
+  <dd><i>multiplicative-expression</i> <b>*</b> <i>power-expression</i></dd>
+  <dd><i>multiplicative-expression</i> <b>/</b> <i>power-expression</i></dd>
+  <dd><i>multiplicative-expression</i> <b>%</b> <i>power-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>*</b> operator is the left operand multiplied by the
+    right operand.
+  </li>
+  <li>
+    The result of the <b>/</b> operator is the left operand divided by the
+    right operand.
+  </li>
+  <li>
+    The result of the <b>%</b> operator is the remainder of dividing the left
+    operand by the right operand.
+  </li>
+</ol>
+
+<h4>Additive Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>additive-expression:</dt>
+  <dd><i>multiplicative-expression</i></dd>
+  <dd><i>additive-expression</i> <b>+</b> <i>multiplicative-expression</i></dd>
+  <dd><i>additive-expression</i> <b>-</b> <i>multiplicative-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>+</b> operator is the left operand plus the right
+    operand.
+  </li>
+  <li>
+    The result of the <b>-</b> operator is the left operand minus the right
+    operand.
+  </li>
+</ol>
+
+<h4>Shift Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>bitshift-expression:</dt>
+  <dd><i>additive-expression</i></dd>
+  <dd><i>bitshift-expression</i> <b>&lt;&lt;</b> <i>additive-expression</i></dd>
+  <dd><i>bitshift-expression</i> <b>&gt;&gt;</b> <i>additive-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the <b>&lt;&lt;</b> operator is the value of the left operand
+    with its bits shifted to the left by the value of the right operand.
+  </li>
+  <li>
+    The result of the <b>&gt;&gt;</b> operator is the value of the left operand
+    with its bits shifted to the right by the value of the right operand.
+  </li>
+</ol>
+
+<h4>Relational Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>relational-expression:</dt>
+  <dd><i>bitshift-expression</i></dd>
+  <dd><i>relational-expression</i> <b>&lt;</b> <i>bitshift-expression</i></dd>
+  <dd><i>relational-expression</i> <b>&lt;=</b> <i>bitshift-expression</i></dd>
+  <dd><i>relational-expression</i> <b>&gt;</b> <i>bitshift-expression</i></dd>
+  <dd><i>relational-expression</i> <b>&gt;=</b> <i>bitshift-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible comparable type (See <chapter-ref target="comp-semantics"></chapter-ref>.)</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If both operands are compatible arithmetic types, then the usual arithmetic
+    conversions are applied.
+  </li>
+  <li>
+    The result of the <b>&lt;</b> operator is a boolean true value if the left
+    operand's value is less than the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&lt;=</b> operator is analogous to the result of the
+    <b>&lt;</b> operator, except that it also returns a boolean true value when
+    the left operand's value is equal to the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&gt;</b> operator is a boolean true value if the left
+    operand's value is greater than the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&gt;=</b> operator is analogous to the result of the
+    <b>&gt;</b> operator, except that it also returns a boolean true value when
+    the left operand's value is equal to the right operand's value.
+  </li>
+</ol>
+
+<h4>Equality Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>equality-expression:</dt>
+  <dd><i>relational-expression</i></dd>
+  <dd><i>equality-expression</i> <b>==</b> <i>relational-expression</i></dd>
+  <dd><i>equality-expression</i> <b>!=</b> <i>relational-expression</i></dd>
+</dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If both operands are compatible arithmetic types, then the usual arithmetic
+    conversions are applied.
+  </li>
+  <li>
+    The result of the <b>==</b> operator is a boolean true value if the left
+    operand's value is equal to the right operand's value.
+  </li>
+  <li>
+    The result of the <b>!=</b> operator is the inverse of the <b>==</b>
+    operator's value.
+  </li>
+</ol>
+
+<h4 id="comp-semantics">Comparison And Equality Semantics</h4>
+<ol>
+  <li>Any two arithmetic values can be compared and their equality checked.</li>
+  <li>
+    Any two array values that have the same comparable component types can be
+    compared.
+  </li>
+  <li>
+    Any two array values that have the same component types can have their
+    equality checked.
+  </li>
+  <li>
+    String values can be compared with other string values and their equality
+    can be checked.
+  </li>
+  <li>
+    Struct values cannot be compared with other struct types, even structs of
+    the same type, but their equality can be checked.
+  </li>
+</ol>
+<h5>Struct Equality Semantics</h5>
+<ol>
+  <li>If both operands are represented by the same pointer, they are equal.</li>
+  <li>
+    If either operand is represented by a null pointer, they are not equal.
+  </li>
+  <li>
+    If any non-object-type property values in the operands are not equal,
+    then the structs are not equal.
+  </li>
+  <li>
+    For every object-type property in both structs, the appropriate equality
+    semantics apply.
+  </li>
+</ol>
+<h5>Array Equality Semantics</h5>
+<ol>
+  <li>If both operands are represented by the same pointer, they are equal.</li>
+  <li>If either operand's pointer is null, the arrays are not equal.</li>
+  <li>
+    If either operand's length does not equal the other's, the arrays are not
+    equal.
+  </li>
+  <li>
+    If any contained values in the operands are not equal, the arrays are not
+    equal.
+  </li>
+</ol>
+<h5>Array Comparison Semantics</h5>
+<ol>
+  <li>
+    If both arrays are represented by the same pointer, neither is greater nor
+    lesser, they are equal.
+  </li>
+  <li>If the left operand's length is 0, then the right operand is greater.</li>
+  <li>If the right operand's length is 0, then the left operand is greater.</li>
+  <li>
+    If all component values in both operands are equal, neither operand is
+    greater or lesser, they are equal.
+  </li>
+  <li>
+    If the first non-equal value in the left operand is lesser than the
+    equivalent value in the right operand, the right operand is greater.
+  </li>
+  <li>
+    If the first non-equal value in the left operand is greater than the
+    equivalent value in the right operand, the left operand is greater.
+  </li>
+</ol>
+
+<h4>XOR Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt><i>xor-expression:</i></dt>
+  <dd><i>equality-expression</i></dd>
+  <dd><i>xor-expression</i> <b>^</b> <i>equality-expression</i></dd>
+</dl>
+
+<h4>Bitwise AND Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt><i>bitwise-and-expression:</i></dt>
+  <dd><i>xor-expression</i></dd>
+  <dd><i>bitwise-and-expression</i> <b>&</b> <i>xor-expression</i></dd>
+</dl>
+
+<h4>Bitwise OR Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt><i>bitwise-or-expression:</i></dt>
+  <dd><i>bitwise-and-expression</i></dd>
+  <dd><i>bitwise-or-expression</i> <b>|</b> <i>bitwise-and-expression</i></dd>
+</dl>
+
+<h4>Logical AND Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt><i>logical-and-expression:</i></dt>
+  <dd><i>bitwise-or-expression</i></dd>
+  <dd><i>logical-and-expression</i> <b>&&</b> <i>bitwise-or-expression</i></dd>
+</dl>
+
+<h4>Logical OR Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt><i>logical-or-expression:</i></dt>
+  <dd><i>logical-and-expression</i></dd>
+  <dd><i>logical-or-expression</i> <b>||</b> <i>logical-and-expression</i></dd>
+</dl>
+
+<h4>Conditional Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>conditional-expression:</dt>
+  <dd><i>logical-or-expression</i></dd>
+  <dd><i>logical-or-expression</i> <b>?</b> <i>expression</i> <b>:</b> <i>conditional-expression</i></dd>
+</dl>
+
+<h4>Assignment Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>assignment-expression:</dt>
+  <dd><i>conditional-expression</i></dd>
+  <dd><i>conditional-expression</i> <i>assignment-operator</i> <i>assignment-expression</i></dd>
+
+  <dt>assignment-operator: <span>one of:</span></dt>
+  <dd><b>
+    = &= &&= |= *= /= += -= ^= %= <<= >>= **= ||= ??=
+  </b></dd>
+</dl>
+
+<h4>Top Level Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>expression:</dt>
+  <dd><i>assignment-expression</i></dd>
+</dl>
+
+<h4>Loop Condition Expression</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>loop-condition-expression:</dt>
+  <dd><b>(</b> <i>expression</i> <b>)</b></dd>
+  <dd><i>expression</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Loop condition expressions declare a while expression that may or may not be
+  surrounded by parentheses. Loop condition expressions declared with
+  parentheses cannot have any part of the expression outside of the parentheses
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Loop condition expressions must always result in a value that can be
+    assigned in some way to a true/false value.
+  </li>
+</ol>
+
+<h3>Type Expressions</h3>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>type-expression:</dt>
+  <dd><i>array-type-expression</i></dd>
+</dl>
+
+<h4>Const Type Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>const-type-expression:</dt>
+  <dd><i>type-keyword</i></dd>
+  <dd><i>alias-keyword</i></dd>
+</dl>
+
+<h4>Type Name Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>type-name-expression:</dt>
+  <dd><i>const-type-expression</i></dd>
+  <dd><i>identifier</i></dd>
+</dl>
+
+<h4>Nullable Type Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>nullable-type-expression:</dt>
+  <dd><i>type-name-expression</i></dd>
+  <dd><i>type-name-expression</i> <b>?</b></dd>
+</dl>
+
+<h4>Array Type Expressions</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>array-type-expression:</dt>
+  <dd><i>nullable-type-expression</i></dd>
+  <dd><i>array-type-expression</i> <b>[]</b></dd>
+</dl>
+
+<h3>Declarations</h3>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>declaration:</dt>
+  <dd><i>function-declaration</i></dd>
+  <dd><i>struct-declaration</i></dd>
+  <dd><i>variable-declaration</i></dd>
+
+  <dt>declaration-modifiers:</dt>
+  <dd><i>declaration-modifier</i><sub>rep</sub></dd>
+
+  <dt>declaration-modifier: <span>one of:</span></dt>
+  <dd><b>native export const</b></dd>
+</dl>
+
+<h4>Function Declarations</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>function-declaration:</dt>
+  <dd><i>declaration-modifiers</i><sub>opt</sub> <i>type-expression</i> <i>identifier</i> <b>(</b> <i>function-argument-list</i><sub>opt</sub> <b>)</b> <i>block-statement</i><sub>opt</sub></dd>
+
+  <dt>function-argument-list:</dt>
+  <dd><i>function-argument-declaration</i></dd>
+  <dd><i>function-argument-list</i> <b>,</b> <i>function-argument-declaration</i></dd>
+
+  <dt>function-argument-declaration:</dt>
+  <dd><i>type-expression identifier</i> <b>...</b><sub>opt</sub></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Declares a function that will be accessible in the current scope.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The name and parameter types must not match a function that already exists
+    in the current scope.
+  </li>
+  <li>
+    Function argument lists can only ever have one variadic argument: the last
+    one. Multiple variadic arguments or a variadic argument not being the last
+    one are invalid.
+  </li>
+  <li>
+    Functions declared with the <b><code>export</code></b> keyword can only be
+    declared in the global scope.
+  </li>
+  <li>
+    Functions declared with the <b><code>native</code></b> keyword must not have
+    a function body.
+  </li>
+</ol>
+
+<h4>Variable Declarations</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>variable-declaration:</dt>
+  <dd><i>declaration-modifiers type-expression identifier</i></dd>
+  <dd><i>declaration-modifiers type-expression identifier</i> <b>=</b> <i>expression</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Declares a variable or a constant that will be accessible in the current
+  scope.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Must not have the name of an already accessible variable</li>
+  <li>
+    If a value is specified for the declaration, the variable's resulting
+    value must match the declared type.
+  </li>
+  <li>
+    If the variable is declared with <b><code>const</code></b>, then a value
+    must be specified.
+  </li>
+  <li>
+    Variables declared with the <b><code>native</code></b> modifier cannot ever
+    have a value. As the <b><code>native</code></b> keyword declares a variable
+    that is provided at runtime via native binding, the value will be declared
+    by the native binding, not in a script file.
+  </li>
+  <li>
+    Variables declared with the <b><code>export</code></b> keyword must only be
+    declared in the global scope.
+  </li>
+</ol>
+
+<h4>Struct Declarations</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>struct-declaration:</dt>
+  <dd><i>declaration-modifiers <b>struct</b> identifier <b>{</b> <i>property-declaration</i><sub>opt rep</sub> <b>}</b></i></dd>
+
+  <dt>property-declaration</dt>
+  <dd><i>type-expression identifier</i></dd>
+  <dd><i>type-expression identifier</i> <b>=</b> <i>expression</i></dd>
+</dl>
+
+
+<p><b>Description</b></p>
+<p>
+  Declares a struct data type and its properties.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    A struct must not be declared with the either <b><code>native</code></b>
+    or <b><code>const</code></b> modifier.
+  </li>
+  <li>Struct's must only be declared in the main scope of a source file.</li>
+  <li>Each struct property must have a unique name.</li>
+  <li>
+    Each struct property, if a default value is set, must have an expression
+    whose type is assignable to the property's type.
+  </li>
+</ol>
+
+<h3>Statements</h3>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>statement:</dt>
+  <dd><i>labeled-statement</i></dd>
+  <dd><i>declaration</i></dd>
+  <dd><i>body-statement</i></dd>
+
+  <dt>body-statement:</dt>
+  <dd><i>block-statement</i></dd>
+  <dd><i>for-loop-statement</i></dd>
+  <dd><i>do-while-statement</i></dd>
+  <dd><i>while-statement</i></dd>
+  <dd><i>if-statement</i></dd>
+  <dd><i>return-statement</i></dd>
+  <dd><i>control-flow-statement</i></dd>
+  <dd><i>assert-statement</i></dd>
+  <dd><i>expression</i></dd>
+</dl>
+
+<h4>Block Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>block-statement:</dt>
+  <dd><b>{</b> <i>statement</i> <sub>opt rep</sub> <b>}</b></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Declares a list of statements delimited by <b><code>{</code></b> and
+  <b><code>}</code></b> characters.
+</p>
+<p>
+  Variables declared inside of block statements cannot be referenced from
+  outside of that block.
+</p>
+
+<h4>Loop Flow Control Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>control-flow-statement:</dt>
+  <dd><b>continue</b> <i>identifier</i><sub>opt</sub></dd>
+  <dd><b>break</b> <i>identifier</i><sub>opt</sub></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Influences the way a loop executes. Continue statements instruct the loop to
+  move on to the next iteration of execution, while break statements cause
+  the loop to be exited early before its condition can evaluate to a false
+  value.
+</p>
+<p>
+  Control Flow statements can be declared with a label. This label is optional,
+  if no label is specified, the statement changes how the immediate loop
+  behaves. If a label is set, then it controls how the referenced loop behaves.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Can only be used inside a loop</li>
+  <li>
+    If a label is specified, the label can only reference a label of a loop
+    the statement is inside.
+  </li>
+</ol>
+
+<h4>If Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>if-statement:</dt>
+  <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i></dd>
+  <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i> <b>else</b> <i>statement-body</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Evaluates a condition and executes either a body, an else statement or moves
+  on without executing.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The if statement's condition must result in a value that can be assigned to
+    a true/false value.
+  </li>
+</ol>
+
+<h4>Labeled Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>labelled-statement:</dt>
+  <dd><i>identifier</i> <b>:</b> <i>for-loop-statement</i></dd>
+  <dd><i>identifier</i> <b>:</b> <i>do-while-statement</i></dd>
+  <dd><i>identifier</i> <b>:</b> <i>while-statement</i></dd>
+</dl>
+
+<h4>For Loop Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>for-loop-statement:</dt>
+  <dd><b>for (</b> <i>variable-declaration</i> <b>;</b> <i>expression</i> <b>;</b> <i>expression</i> <b>)</b> <i>statement-body</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Declares a variable and iterates until the 2nd expression, the loop condition
+  evaluates to a false value. After each iteration the third expression is
+  executed as well.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The for loop's second expression must result in a value that can be
+    evaluated as a boolean.
+  </li>
+</ol>
+
+<h4>Do While Loop Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>do-while-statement:</dt>
+  <dd><b>do</b> <i>block-statement</i> <b>while</b> <i>loop-condition-expression</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Evaluates a block of code until the defined loop condition results in a false
+  value. The loop's block will be evaluated at least once until the condition
+  is reached.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The loop's condition must result in a value that can be evaluated as a boolean.
+  </li>
+</ol>
+
+<h4>Regular While Loop Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>while-statement:</dt>
+  <dd><b>while</b> <i>loop-condition-expression</i> <i>block-statement</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  Evaluates a block of code until the defined loop condition results in a false
+  value. If the condition results in a false value when the loop is first
+  reached, the loop's block is not evaluated at all.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The loop's condition must result in a value that can be evaluated as a boolean.
+  </li>
+</ol>
+
+<h4>Return Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>return-statement:</dt>
+  <dd><b>return</b> <i>expression</i><sub>opt</sub></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>Causes the current function to halt execution and return to the caller.</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Can only be used inside a function body.
+  </li>
+  <li>
+    If the return statement is used in a non-void function, it must always
+    return a value.
+  </li>
+  <li>
+    If the return statement is used in a void function, it must never return
+    a value.
+  </li>
+  <li>
+    The value returned by a return statement, must be assignable to the
+    function's return type.
+  </li>
+</ol>
+
+<h4>Assert Statements</h4>
+<p><b>Syntax</b></p>
+<dl class="syntaxdef">
+  <dt>assert-statement:</dt>
+  <dd><b>assert</b> <i>expression</i></dd>
+  <dd><b>assert</b> <i>expression</i> <b>:</b> <i>expression</i></dd>
+</dl>
+
+<p><b>Description</b></p>
+<p>
+  The assert statement evaluates an expression and if expression results in a
+  false value, it throws an error with a potentially user-specified error
+  message.
+</p>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The expression the assert statement evaluates must always result in a
+    Boolean value.
+  </li>
+  <li>
+    The message expression, if present, must always result in a String value.
+  </li>
+</ol>
+
+<p><b>Examples</b></p>
+<code><pre>
+assert true // Does nothing
+assert false // Assertion failed!
+assert false : "message" // Assertion failed: message
+</pre></code>
+
+<h3>Script File Statement</h3>
+<dl class="syntaxdef">
+  <dt>script-file-statement:</dt>
+  <dd><i>module-declaration</i> <i>declaration</i><sub>rep</sub></dd>
+  <dd><i>declaration</i><sub>rep</sub></dd>
+
+  <dt>module-declaration:</dt>
+  <dd><code>module</code> <i>module-name</i></dd>
+
+  <dt>module-name:</dt>
+  <dd><i>identifier</i></dd>
+  <dd><i>module-name</i> <code>.</code> <i>identifier</i></dd>
+</dl>
+
+<h2>Intermediate Representation (Bytecode Format)</h2>
+
+<h2>Parsing and Compilation</h2>
+
+<h2>Interpreter</h2>
