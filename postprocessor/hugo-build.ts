@@ -13,7 +13,7 @@ async function gatherDirectoryPaths(dir: string, out: string[]) {
 }
 
 async function main() {
-  const outputDir = await Deno.realPath("../public/")
+  const outputDir = "../public"
   const filePaths: string[] = []
 
   await gatherDirectoryPaths(outputDir, filePaths)
@@ -22,7 +22,7 @@ async function main() {
 
   for (const path of filePaths) {
     console.log(`Processing ${path}`)
-
+    
     const text = await Deno.readTextFile(path)
     const processed = processHtml(text, "text/html")
     await Deno.writeTextFile(path, processed)
