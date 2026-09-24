@@ -9,7 +9,6 @@ noindent: true
 ---
 
 <h2>Introduction</h2>
-
 <p>
   Tetral, from the Greek word for <i>"four,"</i> is a scripting language intended
   to be interpreted to provide a platform-agnostic execution system and which is
@@ -86,6 +85,12 @@ noindent: true
     decremented.
   </dd>
 </dl>
+
+<h2>Scope</h2>
+<p>
+  This document defines the Tetral (Also referred to as TetralScript, or
+  TetralLang) programming language and the Tetral Bytecode format.
+</p>
 
 <h2>Concepts</h2>
 <dl>
@@ -178,7 +183,250 @@ noindent: true
       anything else results in true.
     </p>
   </dd>
+
+  <dt>Namespace</dt>
+  <dd>
+    A namespace is an identifier made up of a list of names separated by
+    <i>::</i> characters.
+  </dd>
+
+  <dt>Simple Name</dt>
+  <dd>
+    A simple name is the name of a struct, function or variable in a source file
+    with no namespace prefix.
+  </dd>
+
+  <dt>Fully Qualified Name</dt>
+  <dd>
+    A fully qualified name is the name of a struct, function or variable in a
+    source file with the file's module namespace prefixed to it.
+  </dd>
 </dl>
+
+<h2>Environment</h2>
+
+<h2>Data Types</h2>
+<p>
+  A data type is a specific unit of memory that holds data in a specific layout
+  to represent some piece of information.
+</p>
+<p>
+  In Tetral, types are divided into two categories: Value Data Types which are
+  stored by value and Reference Data Types, which are stored with a pointer that
+  references the type's value in memory.
+</p>
+
+<h3>The Boolean Type</h3>
+<p>
+  The boolean type is a single byte value type representing a <code>0</code>
+  (false) or <code>1</code> (true) value.
+</p>
+
+<h3>Integral Types</h3>
+<p>
+  Integral types are value types of varying sizes used to represent whole
+  numbers. Integral types may be signed or unsigned.
+</p>
+<p>
+  Tetral provides the following integral types:
+</p>
+<table>
+  <caption>Tetral Integral Types</caption>
+  <thead>
+  <tr>
+    <th>Type Name</th>
+    <th>Size (bytes)</th>
+    <th>Alignment</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr><td><code>uint8</code></td><td>1</td><td>1</td><td>Unsigned 8-bit integer</td></tr>
+  <tr><td><code>int8</code></td><td>1</td><td>1</td><td>Signed 8-bit integer</td></tr>
+  <tr><td><code>uint16</code></td><td>2</td><td>2</td><td>Unsigned 16-bit integer</td></tr>
+  <tr><td><code>int16</code></td><td>2</td><td>2</td><td>Signed 16-bit integer</td></tr>
+  <tr><td><code>uint32</code></td><td>4</td><td>4</td><td>Unsigned 32-bit integer</td></tr>
+  <tr><td><code>int32</code></td><td>4</td><td>4</td><td>Signed 32-bit integer</td></tr>
+  <tr><td><code>uint64</code></td><td>8</td><td>8</td><td>Unsigned 64-bit integer</td></tr>
+  <tr><td><code>int64</code></td><td>8</td><td>8</td><td>Signed 64-bit integer</td></tr>
+  </tbody>
+</table>
+
+<h3>Floating Point Types</h3>
+<p>
+  Floating Point Types are value types of 2 sizes, either 32-bits or 64-bits.
+</p>
+<table>
+  <caption>Tetral Floating Point Types</caption>
+  <thead>
+  <tr>
+    <th>Type Name</th>
+    <th>Size (bytes)</th>
+    <th>Alignment</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr><td><code>float32</code></td><td>4</td><td>4</td><td>32-bit floating point type</td></tr>
+  <tr><td><code>float64</code></td><td>8</td><td>8</td><td>64-bit floating point type</td></tr>
+  </tbody>
+</table>
+
+<h3>Array and String Types</h3>
+<p>
+  Array and string types are both in this section since they exist virtually
+  identically in memory. A string is just an array of unsigned 8-bit UTF-8
+  encoded characters.
+</p>
+<p>
+  Arrays are reference types that declare a series of elements. Arrays are
+  prefixed with a 32-bit unsigned integer denoting the capacity of the array.
+</p>
+<p>
+  Array elements can be accessed with the index operator <literal>[]</literal>
+  and their length is accessible through the <literal>length</literal> property.
+</p>
+<p>
+  The memory footprint of an array's heap memory depends on the size of its
+  elements.
+</p>
+
+<h3>Struct Types</h3>
+<p>
+  Struct types are value types made up of data defined by programmers. Structs
+  hold specific properties each of which has a pre-set type and alignment.
+</p>
+<p>
+  When a struct is declared, the largest data type that isn't larger than 8
+  bytes is used as the alignment of a struct.
+</p>
+<p>
+  Each struct property must be aligned to property type's alignment value.
+</p>
+
+<h3>Enum Types</h3>
+<p>
+  Enum types are a series of named constants with values declared in series.
+  Whether an enum type is a value type or a reference type depends on the
+  complexity of the enumeration type itself.
+</p>
+<p>
+  Each enum constant carries an <i>"ordinal"</i> value which is a value
+  starting at 0 and incrementing for each constant.
+</p>
+<p>
+  The complexity of an enum type must be declared in a source file and
+  constraints then enforced on the type declaration depending on whether the
+  type is simple or complex.
+</p>
+<h4>Simple Enum Types</h4>
+<p>
+  Simple enum types are value types which define no properties for any enum
+  constant, meaning the enum holds no values apart from the ordinal itself.
+</p>
+<p>
+  This simplicity means the enum type are to be represented with an unsigned
+  32-bit integer that denotes the ordinal value of the enum constant.
+</p>
+<h4>Complex Enum Types</h4>
+<p>
+  Complex enum types behave almost identically to structs. They are reference
+  types which define a list of type variants and the properties that variant
+  holds.
+</p>
+<p>
+  The first property of this generated enum variant type must always be the
+  ordinal itself, followed by the properties defined per variant.
+</p>
+
+<h3>Interface Types</h3>
+<p>
+  An enum type is not an instatiable type, it is neither a value type nor a
+  reference type, rather it's an outline for a class with functions that each
+  implementing type must implement.
+</p>
+<p>
+  Interfaces can declare methods with a body, but nothing can prevent these
+  from being overridden in derived types. And further, an instance of an
+  interface cannot exist without being implemented by a class.
+</p>
+<p>
+  Any class implementing an interface is considered a valid instance of the
+  interface.
+</p>
+
+<h3>Class Types</h3>
+<p>
+  Class types are reference types which define class members. Class members are
+  either constructors, methods or fields.
+</p>
+<p>
+  Methods are functions that exist within the namespace of a class. Methods are
+  also divided into two separate types: static and non-static. Static methods
+  belong to the class, while non-static methods belong to a class instance.
+</p>
+<p>
+  Class members can, like methods, be declared either static or non-static in
+  which case the same rules for ownership apply.
+</p>
+<p>
+  Members are like the properties of structs and as such they are subject to the
+  same alignment and padding behaviors as defined for struct properties.
+</p>
+<p>
+  Classes can extend one other class and can implement as many non-conflicting
+  interfaces as described in the limits section (See
+  <chapter-ref target="limits"></chapter-ref>)
+</p>
+
+<h2 id="limits">Limits</h2>
+<p>
+  The following limits are defined for features and aspects of the Tetral
+  Language.
+</p>
+<table>
+  <caption>Language Limits</caption>
+  <thead>
+  <tr>
+    <th>Aspect</th>
+    <th>Limit</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Maximum number of implemented interfaces</td>
+    <td>16</td>
+  </tr>
+  <tr>
+    <td>Maximum number of function/method/constructor declaration arguments</td>
+    <td>62</td>
+  </tr>
+  <tr>
+    <td>Maximum number of function/method/constructor call arguments</td>
+    <td>62</td>
+  </tr>
+  <tr>
+    <td>Maximum number of enum constants</td>
+    <td>1024</td>
+  </tr>
+  <tr>
+    <td>Maximum call stack depth</td>
+    <td>512</td>
+  </tr>
+  <tr>
+    <td>Maximum number of nested functions</td>
+    <td>8</td>
+  </tr>
+  </tbody>
+</table>
+<h3>Notes</h3>
+<ol>
+  <li>
+    The limits for call arguments is set to 62 instead of 64 is to give space
+    for the compiler to insert a closure argument and to insert the hidden
+    <code>this</code> argument for methods.
+  </li>
+</ol>
 
 <h2>Language</h2>
 <p>
@@ -207,744 +455,7 @@ noindent: true
   an expression, or several expressions.
 </p>
 
-<style>
-    dl.syntaxdef {
-        code {
-            font-weight: bold;
-        }
-        dt {
-            font-weight: normal;
-            font-style: italic;
-            span {
-                font-style: normal;
-            }
-        }
-        sub {
-            font-style: italic;
-        }
-        b {
-            font-family: monospace;
-        }
-    }
-    ul.literallist {
-        column-count: 5;
-        list-style-type: none;
-        margin-top: 0 !important;
-        font-weight: bold;
-        padding-inline-start: 0;
-        font-family: monospace;
-        li {
-            margin-top: unset;
-        }
-    }
-</style>
-
-<h3>Lexical Elements</h3>
-
-<dl class="syntaxdef">
-  <dt>token:</dt>
-  <dd><i>keyword</i></dd>
-  <dd><i>identifier</i></dd>
-  <dd><i>constant</i></dd>
-  <dd><i>string-literal</i></dd>
-  <dd><i>operator</i></dd>
-</dl>
-
-<h4>Keywords</h4>
-<p>
-  Keyword tokens are divided into two separate categories: real and alias
-  keywords.
-</p>
-<p>
-  The difference between alias keywords and real keywords, is that while the
-  alias keywords are still reserved keywords, their internal token value is
-  mapped to the value that they are an alias for. For example, <b><code>ulong</code></b> is
-  an alias for <b><code>uint64</code></b>.
-</p>
-
-<dl class="syntaxdef">
-  <dt>keyword:</dt>
-  <dd><i>real-keyword</i></dd>
-  <dd><i>type-keyword</i></dd>
-  <dd><i>alias-keyword</i></dd>
-
-  <dt>real-keyword: <span>one of:</span></dt>
-  <dd>
-    <ul class="literallist">
-      <li>if</li>
-      <li>else</li>
-      <li>break</li>
-      <li>continue</li>
-      <li>return</li>
-      <li>while</li>
-      <li>for</li>
-      <li>struct</li>
-      <li>module</li>
-      <li>import</li>
-      <li>export</li>
-      <li>do</li>
-      <li>const</li>
-      <li>assert</li>
-      <li>native</li>
-    </ul>
-  </dd>
-
-  <dt>type-keyword: <span>one of:</span></dt>
-  <dd>
-    <ul class="literallist">
-      <li>void</li>
-      <li>uint8</li>
-      <li>bool</li>
-      <li>int8</li>
-      <li>uint16</li>
-      <li>int16</li>
-      <li>uint32</li>
-      <li>int32</li>
-      <li>uint64</li>
-      <li>int64</li>
-      <li>float32</li>
-      <li>float64</li>
-      <li>string</li>
-    </ul>
-  </dd>
-
-  <dt>alias-keyword: <span>one of:</span></dt>
-  <dd>
-    <ul class="literallist">
-      <li>boolean</li>
-      <li>byte</li>
-      <li>ubyte</li>
-      <li>char</li>
-      <li>short</li>
-      <li>ushort</li>
-      <li>int</li>
-      <li>uint</li>
-      <li>long</li>
-      <li>ulong</li>
-      <li>float</li>
-      <li>double</li>
-    </ul>
-  </dd>
-</dl>
-<table>
-  <caption>Alias token mappings</caption>
-  <thead>
-  <tr>
-    <th>Alias Token</th>
-    <th>Mapped Token</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr>
-    <td><b><code>boolean</code></b></td>
-    <td><b><code>bool</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>byte</code></b></td>
-    <td><b><code>int8</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>ubyte</code></b></td>
-    <td><b><code>uint8</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>char</code></b></td>
-    <td><b><code>uint8</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>short</code></b></td>
-    <td><b><code>int16</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>ushort</code></b></td>
-    <td><b><code>uint16</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>int</code></b></td>
-    <td><b><code>int32</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>uint</code></b></td>
-    <td><b><code>uint32</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>long</code></b></td>
-    <td><b><code>int64</code></b></td>
-  </tr>
-  <tr>
-    <td><b><code>ulong</code></b></td>
-    <td><b><code>uint64</code></b></td>
-  </tr>
-  </tbody>
-</table>
-
-<h4>Identifiers</h4>
-<dl class="syntaxdef">
-  <dt>identifier:</dt>
-  <dd><i>identifier-start</i> <i>identifier-continue</i><sub>opt rep</sub></dd>
-
-  <dt>identifier-start:</dt>
-  <dd><i>nondigit</i></dd>
-  <dd>XID_Start character (defined by Unicode)</dd>
-
-  <dt>identifier-continue:</dt>
-  <dd>digit</dd>
-  <dd>nondigit</dd>
-  <dd>XID_Continue character (defined by Unicode)</dd>
-
-  <dt>digit: <span>one of:</span></dt>
-  <dd><b>0 1 2 3 4 5 6 7 8 9</b></dd>
-
-  <dt>nondigit: <span>one of:</span></dt>
-  <dd><b>_ $ a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</b></dd>
-</dl>
-
-<h4>Constants</h4>
-<dl class="syntaxdef">
-  <dt>constant:</dt>
-  <dd><i>integer-constant</i></dd>
-  <dd><i>floating-point-constant</i></dd>
-  <dd><i>character-constant</i></dd>
-  <dd><i>predefined-constant</i></dd>
-</dl>
-
-<h5>Integer Constants</h5>
-<dl class="syntaxdef">
-  <dt>integer-constant:</dt>
-  <dd><i>digit-sequence</i></dd>
-  <dd><i>octal-constant</i></dd>
-  <dd><i>hexadecimal-constant</i></dd>
-  <dd><i>binary-constant</i></dd>
-
-  <dt>octal-constant:</dt>
-  <dd><b>0o</b> <i>octal-digit</i><sub>rep</sub></dd>
-  <dd><b>0O</b> <i>octal-digit</i><sub>rep</sub></dd>
-
-  <dt>octal-digit: <span>one of:</span></dt>
-  <dd><b>0 1 2 3 4 5 6 7</b></dd>
-
-  <dt>hexadecimal-constant:</dt>
-  <dd><b>0x</b> <i>hexadecimal-digit</i><sub>rep</sub></dd>
-  <dd><b>0X</b> <i>hexadecimal-digit</i><sub>rep</sub></dd>
-
-  <dt>hexadecimal-digit: <span>one of:</span></dt>
-  <dd><b>0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F</b></dd>
-
-  <dt>binary-constant:</dt>
-  <dd><b>0b</b> <i>binary-digit</i><sub>rep</sub></dd>
-  <dd><b>0B</b> <i>binary-digit</i><sub>rep</sub></dd>
-
-  <dt>binary-digit: <span>one of:</span></dt>
-  <dd><b>0 1</b></dd>
-
-  <dt>digit-sequence:</dt>
-  <dd><i>digit</i></dd>
-  <dd><i>digit-sequence underscore</i><sub>opt</sub> <i>digit</i></dd>
-
-  <dt>underscore:</dt>
-  <dd><b>_</b></dd>
-</dl>
-
-<h5>Floating Point Constants</h5>
-<dl class="syntaxdef">
-  <dt>floating-point-constant:</dt>
-  <dd><i>fractional-part exponent-part</i><sub>opt</sub></dd>
-
-  <dt>fractional-part:</dt>
-  <dd><i>digit-sequence</i></dd>
-  <dd><i>digit-sequence</i> <b>.</b> <i>digit-sequence</i></dd>
-  <dd><i>digit-sequence</i> <b>.</b></dd>
-  <dd><b>.</b> <i>digit-sequence</i></dd>
-
-  <dt>exponent-part:</dt>
-  <dd><b>e</b> <i>sign</i><sub>opt</sub> <i>digit-sequence</i></dd>
-  <dd><b>E</b> <i>sign</i><sub>opt</sub> <i>digit-sequence</i></dd>
-
-  <dt>sign: <span>one of:</span></dt>
-  <dd><b>+ -</b></dd>
-</dl>
-
-<h5>Character Constants</h5>
-<dl class="syntaxdef">
-  <dt>character-constant:</dt>
-  <dd><b>'</b> char-sequence <b>'</b></dd>
-
-  <dt>char-sequence:</dt>
-  <dd>Any valid UTF-8 character except the single-quote, backslash or newline character</dd>
-  <dd><i>escape-sequence</i></dd>
-
-  <dt>escape-sequence:</dt>
-  <dd><i>simple-escape-sequence</i></dd>
-  <dd><i>hex-escape-sequence</i></dd>
-
-  <dt>simple-escape-sequence: <span>one of:</span></dt>
-  <dd><b>\' \" \\ \t \r \n \T \R \N</b></dd>
-
-  <dt>hex-escape-sequence:</dt>
-  <dd><b>\u</b> <i></i> <i>hexadecimal-digit</i><sub>rep</sub></dd>
-  <dd><b>\U</b> <i></i> <i>hexadecimal-digit</i><sub>rep</sub></dd>
-</dl>
-
-<h5>Predefined Constants</h5>
-<dl class="syntaxdef">
-  <dt>predefined-constant:</dt>
-  <dd><b>true</b></dd>
-  <dd><b>false</b></dd>
-</dl>
-
-<h4>Operators</h4>
-<dl class="syntaxdef">
-  <dt>operator: <span>one of:</span></dt>
-  <dd>
-    <b>
-      ( ) { } [ ] : ; , . ... & &= && &&= | |= * *= / /= + += - -= ^ ^=
-      % %= << <<= >> >>= >>> >>>= < <= > >= ++ -- == != = ! ~ => ** **= || ||= ?
-      ?? ??=
-    </b>
-  </dd>
-</dl>
-
-<h4>Comments</h4>
-<p>
-  Except within a string or character literal, the characters <b>//</b> and
-  <b>#</b> denote the beginning of a line comment. The comment consumes the
-  rest of the source file's line, or until the end of input has
-  been reached.
-</p>
-<p>
-  Except within a string or character literal, the characters <b>/*</b> denote
-  the beginning of a block comment. The comment consumes input until a matching
-  <b>*/</b> sequence has been found, or until the end of input has
-  been reached.
-</p>
-<p>
-  Except within a string or character literal, the characters <b>/**</b> denote
-  the beginning of a documentation comment. The comment consumes input until a
-  matching <b>*/</b> sequence has been found, or until the end of input has
-  been reached.
-</p>
-<p>
-  In almost all cases, comments are simply skipped over and ignored, except for
-  documentation comments (Starting with <b>/**</b>) which are linked to the
-  specific <i>declaration</i> that they prefix.
-</p>
-
-<h3>Expressions</h3>
-<h4>Primary Expressions</h4>
-<dl class="syntaxdef">
-  <dt>primary-expression:</dt>
-  <dd><i>constant</i></dd>
-  <dd><i>identifier</i></dd>
-  <dd><i>object-literal</i></dd>
-  <dd><i>array-literal</i></dd>
-  <dd><i>string-literal</i></dd>
-  <dd><i>cast-expression</i></dd>
-  <dd><i>typeof-expression</i></dd>
-  <dd><b>(</b> <i>expression</i> <b>)</b></dd>
-</dl>
-
-<h5>Cast Expression</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>cast-expression:</dt>
-  <dd><i>value-cast-expression</i></dd>
-  <dd><i>bit-cast-expression</i></dd>
-
-  <dt>value-cast-expression:</dt>
-  <dd><b>cast</b> <b>(</b> <i>type-expression</i> <b>,</b> <i>expression</i> <b>)</b></dd>
-
-  <dt>bit-cast-expression:</dt>
-  <dd><b>bitcast</b> <b>(</b> <i>type-expression</i> <b>,</b> <i>expression</i> <b>)</b></dd>
-</dl>
-
-<p><b>Semantics</b></p>
-<ol>
-  <li>Casts a value returned by an expression to a different type.</li>
-  <li>
-    In the event an integral type is being cast to a floating point type, the
-    integer should be transformed such that the value of the resulting floating
-    point number is equal to the integral number's value.
-  </li>
-  <li>
-    In the event a floating point type is being cast to an integral type, the
-    floating point value should be transformed such that the value of the
-    resulting integral number is the rounded down value of the floating point
-    number.
-  </li>
-  <li>
-    In any case other than the two aforementioned ones, the expression need not
-    be handled by the compiler and can be treated as if it doesn't exist.
-  </li>
-</ol>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    Cast expressions can only cast from one primitive type to another, for
-    example, they can be used cast from a floating point to an integral type.
-  </li>
-</ol>
-
-
-
-<h5>Type-Of Expression</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>typeof-expression:</dt>
-  <dd><b>typeof</b> <i>expression</i></dd>
-</dl>
-
-<h5>Object Literals</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>object-literal:</dt>
-  <dd><b>{</b> <i>object-literal-property</i><sub>opt rep</sub> <b>}</b></dd>
-
-  <dt>object-literal-property:</dt>
-  <dd><i>identifier</i> <b>:</b> <i>expression</i></dd>
-</dl>
-
-<h5>Array Literals</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>array-literal:</dt>
-  <dd><b>[</b> <i>array-literal-values</i> <b>]</b></dd>
-
-  <dt>array-literal-values:</dt>
-  <dd><i>expression</i></dd>
-  <dd><i>array-literal-values</i> <b>,</b> <i>expression</i></dd>
-</dl>
-
-<h5>String Literals</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>string-literal:</dt>
-  <dd><i>line-string-literal</i></dd>
-  <dd><i>multiline-string-literal</i></dd>
-  <dd><i>string-literal</i> <i>line-string-literal</i></dd>
-  <dd><i>string-literal</i> <i>multiline-string-literal</i></dd>
-
-  <dt>line-string-literal:</dt>
-  <dd><b>"</b> <i>line-string-content</i> <sub>opt</sub> <b>"</b></dd>
-
-  <dt>line-string-content:</dt>
-  <dd><i>line-string-character</i></dd>
-  <dd><i>line-string-content</i> <i>line-string-character</i></dd>
-  <dd><i>line-string-content</i> <i>string-template</i></dd>
-
-  <dt>multiline-string-literal:</dt>
-  <dd><b>"""</b> <i>multiline-string-content</i> <sub>opt</sub> <b>"""</b></dd>
-
-  <dt>multiline-string-content:</dt>
-  <dd><i>multiline-string-character</i></dd>
-  <dd><i>multiline-string-content</i> <i>multiline-string-character</i></dd>
-  <dd><i>multiline-string-content</i> <i>string-template</i></dd>
-
-  <dt>string-template:</dt>
-  <dd><b>$</b> <i>identifier</i></dd>
-  <dd><b>${</b> <i>expression</i> <b>}</b></dd>
-
-  <dt>line-string-character:</dt>
-  <dd>Any valid UTF-8 character except <b>"</b>, <b>\</b>, <b>$</b> or newline character.</dd>
-  <dd><i>escape-sequence</i></dd>
-
-  <dt>multiline-string-character:</dt>
-  <dd>Any valid UTF-8 character except <b>"""</b>, <b>\</b> or <b>$</b>.</dd>
-  <dd><i>escape-sequence</i></dd>
-</dl>
-
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    A string literal will always result in a value of a <code>string</code>
-    type.
-  </li>
-  <li>
-    It can be assumed that each line in a multiline string will have some level
-    of indentation. After parsing, this indentation must be stripped from the
-    start of each line. Since indentation can vary from line to line, the amount
-    indentation removed depends on the line with the least indentation.
-  </li>
-</ol>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    All expressions and identifiers declared inside a string must return a
-    non-void value.
-  </li>
-</ol>
-
-<h4>Trail Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>trail-expression:</dt>
-  <dd><i>primary-expression</i></dd>
-  <dd><i>property-access-expression</i></dd>
-  <dd><i>index-access-expression</i></dd>
-  <dd><i>function-call-expression</i></dd>
-  <dd><i>coalescence-expression</i></dd>
-</dl>
-
-<h4>Index Access Expression</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>index-access-expression:</dt>
-  <dd><i>trail-expression</i> <b>[</b> <i>expression</i> <b>]</b></dd>
-</dl>
-
-<p><b>Semantics</b></p>
-<ol>
-  <li>Accesses an indexable element in an indexable value.</li>
-</ol>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    The type returned by the target <i>trail-expression</i> must be an
-    indexable type. (See below table)
-  </li>
-  <li>
-    The indexing <i>expression</i> must be a type used to index into the
-    target expression's type. (See below table)
-  </li>
-  <li>
-    If the type being accessed is a <code>string</code>, then the index may not
-    be written to.
-  </li>
-</ol>
-
-<table>
-  <caption>Type Indexing</caption>
-  <thead>
-  <tr>
-    <th>Type</th>
-    <th>Indexing Type</th>
-    <th>Value type returned by index access</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr>
-    <td>String Type</td>
-    <td><code>uint32</code></td>
-    <td>Single UTF-8 byte, (<code>uint8</code>)</td>
-  </tr>
-  <tr>
-    <td>Any Array Type</td>
-    <td><code>uint32</code></td>
-    <td>The array's component type</td>
-  </tr>
-  </tbody>
-</table>
-
-<h4>Property Access Expression</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>index-access-expression:</dt>
-  <dd><i>trail-expression</i> <b>.</b> <i>identifier</i></dd>
-</dl>
-
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    The expression returns a value of the type of the property being accessed.
-  </li>
-  <li>
-    For <code>string</code> and array types, the only accessible property is the
-    <code>length</code> property and it returns the number of elements in the
-    object.
-  </li>
-</ol>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>The property being accessed must exist on the specified type.</li>
-  <li>
-    If the property being accessed is an array's or string's length property,
-    the property may not be written to.
-  </li>
-</ol>
-
-<h4>Function Call Expression</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>function-call-expression:</dt>
-  <dd><i>trail-expression</i> <b>(</b> <i>arguments-list</i><sub>opt</sub>  <b>)</b></dd>
-  <dt>arguments-list:</dt>
-  <dd><i>expression</i></dd>
-  <dd><i>arguments-list</i> <b>,</b> <i>expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    The value returned by the target <i>trail-expression</i> must be a function.
-  </li>
-  <li>
-    All arguments passed to the function must be assignable to that function's
-    declared arguments.
-  </li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>Invokes a function with the specified arguments.</li>
-  <li>
-    The value returned by the expression is dependent on the return type of the
-    function being invoked.
-  </li>
-</ol>
-
-<h4>Coalescence Expression</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>coalescence-expression:</dt>
-  <dd><i>trail-expression</i> <b>??</b> <i>expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    It must be possible to resolve the left-hand-side expression to a
-    boolean-like value.
-  </li>
-  <li>
-    The values of both the left-hand-side expression and the right-hand-side
-    must be of a compatible type.
-  </li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    Evaluates the left-hand-side expression, and if it's boolean-like value
-    results in a false value, the right-hand-side is evaluated.
-  </li>
-</ol>
-
-<h4>Unary Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-expression:</dt>
-  <dd><i>trail-expression</i></dd>
-  <dd><i>unary-increment-expression</i></dd>
-  <dd><i>unary-decrement-expression</i></dd>
-  <dd><i>unary-arithmetic-expression</i></dd>
-  <dd><i>unary-bitwise-negation-expression</i></dd>
-  <dd><i>unary-logical-negation-expression</i></dd>
-</dl>
-
-<h5>Unary Increment Expressions</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-increment-expression:</dt>
-  <dd><b>++</b> <i>unary-expression</i></dd>
-  <dd><i>unary-expression</i> <b>++</b></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue that can be modified.</li>
-  <li>The operand must be of an integral or floating point type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    If the increment operator is placed before the operand, the result is the
-    value of the operand incremented by 1. As a side effect, the resulting
-    value is written to the operand object.
-  </li>
-  <li>
-    If the increment operator is placed after the operand, the result is the
-    value of the operand. As a side effect, the operand's value is incremented
-    by 1 and written to the operand object.
-  </li>
-</ol>
-
-<h5>Unary Decrement Expressions</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-decrement-expression:</dt>
-  <dd><b>--</b> <i>unary-expression</i></dd>
-  <dd><i>unary-expression</i> <b>--</b></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue that can be modified.</li>
-  <li>The operand must be of an integral or floating point type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    If the decrement operator is placed before the operand, the result is the
-    value of the operand decremented by 1. As a side effect, the resulting
-    value is written to the operand object.
-  </li>
-  <li>
-    If the decrement operator is placed after the operand, the result is the
-    value of the operand. As a side effect, the operand's value is decremented
-    by 1 and written to the operand object.
-  </li>
-</ol>
-
-<h5>Unary Arithmetic Expressions</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-arithmetic-expression:</dt>
-  <dd><b>-</b> <i>unary-expression</i></dd>
-  <dd><b>+</b> <i>unary-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue.</li>
-  <li>The operand must be of an integral or floating point type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    The result of the <b>-</b> operator is the negative of the operand's value,
-    or positive, if the operand's value is already negative. If the operand's
-    type an unsigned type, the resulting type is a signed type of the same size.
-  </li>
-  <li>
-    The result of the <b>+</b> operator is the value of the operand.
-  </li>
-</ol>
-
-<h5>Unary Bitwise Negation Expressions</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-bitwise-negation-expression:</dt>
-  <dd><b>~</b> <i>unary-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue.</li>
-  <li>The operand must be of an integral type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    The result of the expression is the value of the operand with all the
-    bits flipped (All zeroes set to ones and vice versa)
-  </li>
-</ol>
-
-<h5>Unary Logical Negation Expressions</h5>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>unary-logical-negation-expression:</dt>
-  <dd><b>~</b> <i>unary-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue.</li>
-  <li>The operand must be of an integral type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    The result of the expression is the value of the operand with all the
-    bits flipped (All zeroes set to ones and vice versa)
-  </li>
-</ol>
-
-<h4>Arithmetic Operations</h4>
+<h3>Arithmetic Operations</h3>
 <p>
   This section details constraints and semantics when performing arithmetic
   operations on two arithmetic (numeric) types.
@@ -975,173 +486,15 @@ noindent: true
   </li>
 </ol>
 
-<h4>Power (POW) Expression</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>power-expression</dt>
-  <dd><i>unary-expression</i></dd>
-  <dd><i>power-expression</i> <b>**</b> <i>unary-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible arithmetic type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>The usual arithmetic conversions are applied.</li>
-  <li>
-    The result of the <b>**</b> operator is the left operand raised to the
-    power of the right operand.
-  </li>
-</ol>
+<h3>Identifier Semantics</h3>
+<p>
+  An Identifier can denote a function, a struct, an interface, an enum, a class,
+  a local variable or a global variable. An identifier with an identical value
+  can reference a different symbol at different points in a program.
+</p>
+<p>
 
-<h4>Multiplicative Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>multiplicative-expression</dt>
-  <dd><i>power-expression</i></dd>
-  <dd><i>multiplicative-expression</i> <b>*</b> <i>power-expression</i></dd>
-  <dd><i>multiplicative-expression</i> <b>/</b> <i>power-expression</i></dd>
-  <dd><i>multiplicative-expression</i> <b>%</b> <i>power-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible arithmetic type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>The usual arithmetic conversions are applied.</li>
-  <li>
-    The result of the <b>*</b> operator is the left operand multiplied by the
-    right operand.
-  </li>
-  <li>
-    The result of the <b>/</b> operator is the left operand divided by the
-    right operand.
-  </li>
-  <li>
-    The result of the <b>%</b> operator is the remainder of dividing the left
-    operand by the right operand.
-  </li>
-</ol>
-
-<h4>Additive Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>additive-expression:</dt>
-  <dd><i>multiplicative-expression</i></dd>
-  <dd><i>additive-expression</i> <b>+</b> <i>multiplicative-expression</i></dd>
-  <dd><i>additive-expression</i> <b>-</b> <i>multiplicative-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible arithmetic type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>The usual arithmetic conversions are applied.</li>
-  <li>
-    The result of the <b>+</b> operator is the left operand plus the right
-    operand.
-  </li>
-  <li>
-    The result of the <b>-</b> operator is the left operand minus the right
-    operand.
-  </li>
-</ol>
-
-<h4>Shift Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>bitshift-expression:</dt>
-  <dd><i>additive-expression</i></dd>
-  <dd><i>bitshift-expression</i> <b>&lt;&lt;</b> <i>additive-expression</i></dd>
-  <dd><i>bitshift-expression</i> <b>&gt;&gt;</b> <i>additive-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible integral type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    The result of the <b>&lt;&lt;</b> operator is the value of the left operand
-    with its bits shifted to the left by the value of the right operand.
-  </li>
-  <li>
-    The result of the <b>&gt;&gt;</b> operator is the value of the left operand
-    with its bits shifted to the right by the value of the right operand.
-  </li>
-</ol>
-
-<h4>Relational Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>relational-expression:</dt>
-  <dd><i>bitshift-expression</i></dd>
-  <dd><i>relational-expression</i> <b>&lt;</b> <i>bitshift-expression</i></dd>
-  <dd><i>relational-expression</i> <b>&lt;=</b> <i>bitshift-expression</i></dd>
-  <dd><i>relational-expression</i> <b>&gt;</b> <i>bitshift-expression</i></dd>
-  <dd><i>relational-expression</i> <b>&gt;=</b> <i>bitshift-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible comparable type (See <chapter-ref target="comp-semantics"></chapter-ref>.)</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    If both operands are compatible arithmetic types, then the usual arithmetic
-    conversions are applied.
-  </li>
-  <li>
-    The result of the <b>&lt;</b> operator is a boolean true value if the left
-    operand's value is less than the right operand's value.
-  </li>
-  <li>
-    The result of the <b>&lt;=</b> operator is analogous to the result of the
-    <b>&lt;</b> operator, except that it also returns a boolean true value when
-    the left operand's value is equal to the right operand's value.
-  </li>
-  <li>
-    The result of the <b>&gt;</b> operator is a boolean true value if the left
-    operand's value is greater than the right operand's value.
-  </li>
-  <li>
-    The result of the <b>&gt;=</b> operator is analogous to the result of the
-    <b>&gt;</b> operator, except that it also returns a boolean true value when
-    the left operand's value is equal to the right operand's value.
-  </li>
-</ol>
-
-<h4>Equality Expressions</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>equality-expression:</dt>
-  <dd><i>relational-expression</i></dd>
-  <dd><i>equality-expression</i> <b>==</b> <i>relational-expression</i></dd>
-  <dd><i>equality-expression</i> <b>!=</b> <i>relational-expression</i></dd>
-</dl>
-<p><b>Constraints</b></p>
-<ol>
-  <li>Both operands must be of a compatible type.</li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    If both operands are compatible arithmetic types, then the usual arithmetic
-    conversions are applied.
-  </li>
-  <li>
-    The result of the <b>==</b> operator is a boolean true value if the left
-    operand's value is equal to the right operand's value.
-  </li>
-  <li>
-    The result of the <b>!=</b> operator is the inverse of the <b>==</b>
-    operator's value.
-  </li>
-</ol>
-
+</p>
 <h4 id="comp-semantics">Comparison And Equality Semantics</h4>
 <ol>
   <li>Any two arithmetic values can be compared and their equality checked.</li>
@@ -1212,89 +565,1357 @@ noindent: true
   </li>
 </ol>
 
+<h3>Lexical Elements</h3>
+<grammar-def>
+  <rule-def id="token">
+    <def><rule>keyword</rule></def>
+    <def><rule>identifier</rule></def>
+    <def><rule>constant</rule></def>
+    <def><rule>string-literal</rule></def>
+    <def><rule>operator</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Keywords</h4>
+<p>
+  Keyword tokens are divided into two separate categories: real and alias
+  keywords.
+</p>
+<p>
+  The difference between alias keywords and real keywords, is that while the
+  alias keywords are still reserved keywords, their internal token value is
+  mapped to the value that they are an alias for. For example, <b><code>ulong</code></b> is
+  an alias for <b><code>uint64</code></b>.
+</p>
+
+<grammar-def>
+  <rule-def id="keyword">
+    <def><rule>real-keyword</rule></def>
+    <def><rule>type-keyword</rule></def>
+    <def><rule>alias-keyword</rule></def>
+  </rule-def>
+
+  <rule-def id="real-keyword" type="oneof">
+    <oneof>
+      <literal>if</literal>
+      <literal>else</literal>
+      <literal>break</literal>
+      <literal>continue</literal>
+      <literal>return</literal>
+      <literal>while</literal>
+      <literal>for</literal>
+      <literal>struct</literal>
+      <literal>module</literal>
+      <literal>import</literal>
+      <literal>export</literal>
+      <literal>do</literal>
+      <literal>const</literal>
+      <literal>assert</literal>
+      <literal>native</literal>
+      <literal>this</literal>
+      <literal>override</literal>
+      <literal>static</literal>
+      <literal>protected</literal>
+      <literal>public</literal>
+      <literal>private</literal>
+      <literal>constructor</literal>
+      <literal>this</literal>
+      <literal>super</literal>
+      <literal>null</literal>
+    </oneof>
+  </rule-def>
+  <rule-def id="type-keyword" type="oneof">
+    <oneof>
+      <literal>void</literal>
+      <literal>uint8</literal>
+      <literal>bool</literal>
+      <literal>int8</literal>
+      <literal>uint16</literal>
+      <literal>int16</literal>
+      <literal>uint32</literal>
+      <literal>int32</literal>
+      <literal>uint64</literal>
+      <literal>int64</literal>
+      <literal>float32</literal>
+      <literal>float64</literal>
+      <literal>string</literal>
+    </oneof>
+  </rule-def>
+  <rule-def id="alias-keyword" type="oneof">
+    <oneof>
+      <literal>boolean</literal>
+      <literal>byte</literal>
+      <literal>ubyte</literal>
+      <literal>char</literal>
+      <literal>short</literal>
+      <literal>ushort</literal>
+      <literal>int</literal>
+      <literal>uint</literal>
+      <literal>long</literal>
+      <literal>ulong</literal>
+      <literal>float</literal>
+      <literal>double</literal>
+    </oneof>
+  </rule-def>
+</grammar-def>
+<table>
+  <caption>Alias token mappings</caption>
+  <thead>
+  <tr>
+    <th>Alias Token</th>
+    <th>Mapped Token</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><b><code>boolean</code></b></td>
+    <td><b><code>bool</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>byte</code></b></td>
+    <td><b><code>int8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ubyte</code></b></td>
+    <td><b><code>uint8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>char</code></b></td>
+    <td><b><code>uint8</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>short</code></b></td>
+    <td><b><code>int16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ushort</code></b></td>
+    <td><b><code>uint16</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>int</code></b></td>
+    <td><b><code>int32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>uint</code></b></td>
+    <td><b><code>uint32</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>long</code></b></td>
+    <td><b><code>int64</code></b></td>
+  </tr>
+  <tr>
+    <td><b><code>ulong</code></b></td>
+    <td><b><code>uint64</code></b></td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Identifiers</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="identifier">
+    <def>
+      <rule>identifier-start</rule>
+      <rule modifiers="opt rep">identifier-continue</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="identifier-start">
+    <def><rule>nondigit</rule></def>
+    <def>XID_Start character (Defined by Unicode)</def>
+  </rule-def>
+
+  <rule-def id="identifier-continue">
+    <def><rule>digit</rule></def>
+    <def><rule>nondigit</rule></def>
+    <def>XID_Continue character (Defined by Unicode)</def>
+  </rule-def>
+
+  <rule-def id="digit" type="oneof">
+    <oneof>
+      <literal>0 1 2 3 4 5 6 7 8 9</literal>
+    </oneof>
+  </rule-def>
+
+  <rule-def id="nondigit" type="oneof">
+    <oneof>
+      <literal>_ $ a b c d e f g h i j k l m n o p q r s t u v w x y z A B C D E F G H I J K L M N O P Q R S T U V W X Y Z</literal>
+    </oneof>
+  </rule-def>
+</grammar-def>
+
+<h4>Constants</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="constant">
+    <def><rule>integer-constant</rule></def>
+    <def><rule>floating-point-constant</rule></def>
+    <def><rule>character-constant</rule></def>
+    <def><rule>predefined-constant</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h5>Integer Constants</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="integer-constant">
+    <def><rule>digit-sequence</rule></def>
+    <def><rule>octal-constant</rule></def>
+    <def><rule>hexadecimal-constant</rule></def>
+    <def><rule>binary-constant</rule></def>
+  </rule-def>
+
+  <rule-def id="octal-constant">
+    <def><literal>0o</literal> <rule modifiers="rep">octal-digit</rule></def>
+    <def><literal>0O</literal> <rule modifiers="rep">octal-digit</rule></def>
+  </rule-def>
+
+  <rule-def id="octal-digit" type="oneof">
+    <def>
+      <literal>0 1 2 3 4 5 6 7</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="hexadecimal-constant">
+    <def><literal>0x</literal> <rule modifiers="rep">hexadecimal-digit</rule></def>
+    <def><literal>0X</literal> <rule modifiers="rep">hexadecimal-digit</rule></def>
+  </rule-def>
+
+  <rule-def id="hexadecimal-digit" type="oneof">
+    <def>
+      <literal>0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="binary-constant">
+    <def><literal>0b</literal> <rule modifiers="rep">binary-digit</rule></def>
+    <def><literal>0B</literal> <rule modifiers="rep">binary-digit</rule></def>
+  </rule-def>
+
+  <rule-def id="binary-digit" type="oneof">
+    <def>
+      <literal>0 1</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="digit-sequence">
+    <def><rule>digit</rule></def>
+    <def>
+      <rule>digit-sequence</rule>
+      <rule modifiers="opt">underscore</rule>
+      <rule>digit</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="underscore">
+    <def><literal>_</literal></def>
+  </rule-def>
+</grammar-def>
+
+<h5>Floating Point Constants</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="floating-point-constant">
+    <def>
+      <rule>fractional-part</rule>
+      <rule modifiers="opt">exponent-part</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="fractional-part">
+    <def><rule>digit-sequence</rule></def>
+    <def>
+      <rule>digit-sequence</rule>
+      <literal>.</literal>
+      <rule>digit-sequence</rule>
+    </def>
+    <def>
+      <rule>digit-sequence</rule>
+      <literal>.</literal>
+    </def>
+    <def>
+      <literal>.</literal>
+      <rule>digit-sequence</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="exponent-part">
+    <def>
+      <literal>e</literal>
+      <rule modifiers="opt">sign</rule>
+      <rule>digit-sequence</rule>
+    </def>
+    <def>
+      <literal>E</literal>
+      <rule modifiers="opt">sign</rule>
+      <rule>digit-sequence</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="sign" type="oneof">
+    <def><literal>+ -</literal></def>
+  </rule-def>
+</grammar-def>
+
+<h5>Character Constants</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="character-constant">
+    <def>
+      <literal>'</literal>
+      <rule>char-sequence</rule>
+      <literal>'</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="char-sequence">
+    <def>
+      Any valid UTF-8 character except the single-quote, backslash or newline character
+    </def>
+    <def><rule>escape-sequence</rule></def>
+  </rule-def>
+
+  <rule-def id="escape-sequence">
+    <def><rule>simple-escape-sequence</rule></def>
+    <def><rule>hex-escape-sequence</rule></def>
+  </rule-def>
+
+  <rule-def id="simple-escape-sequence" type="oneof">
+    <def><literal>\' \" \\ \t \r \n \T \R \N</literal></def>
+  </rule-def>
+
+  <rule-def id="hex-escape-sequence">
+    <def>
+      <literal>\u</literal>
+      <rule modifiers="rep">hexadecimal-digit</rule>
+    </def>
+    <def>
+      <literal>\U</literal>
+      <rule modifiers="rep">hexadecimal-digit</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<h5>Predefined Constants</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="predefined-constant">
+    <def><literal>true</literal></def>
+    <def><literal>false</literal></def>
+    <def><literal>null</literal></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Operators</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="operator" type="oneof">
+    <def>
+      <literal>
+        ( ) { } [ ] : ; , . ... & &= && &&= | |= * *= / /= + += - -= ^ ^=
+        % %= << <<= >> >>= >>> >>>= < <= > >= ++ -- == != = ! ~ => ** **= || ||= ?
+        ?? ??=
+      </literal>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<h4>Comments</h4>
+<p>
+  Except within a string or character literal, the characters <b>//</b> and
+  <b>#</b> denote the beginning of a line comment. The comment consumes the
+  rest of the source file's line, or until the end of input has
+  been reached.
+</p>
+<p>
+  Except within a string or character literal, the characters <b>/*</b> denote
+  the beginning of a block comment. The comment consumes input until a matching
+  <b>*/</b> sequence has been found, or until the end of input has
+  been reached.
+</p>
+<p>
+  Except within a string or character literal, the characters <b>/**</b> denote
+  the beginning of a documentation comment. The comment consumes input until a
+  matching <b>*/</b> sequence has been found, or until the end of input has
+  been reached.
+</p>
+<p>
+  In almost all cases, comments are simply skipped over and ignored, except for
+  documentation comments (Starting with <b>/**</b>) which are linked to the
+  specific <rule>declaration</rule> that they prefix.
+</p>
+
+<h3>Expressions</h3>
+
+<h4>Primary Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="primary-expression">
+    <def><rule>constant</rule></def>
+    <def><rule>identifier</rule></def>
+    <def><rule>object-literal</rule></def>
+    <def><rule>array-literal</rule></def>
+    <def><rule>string-literal</rule></def>
+    <def><rule>cast-expression</rule></def>
+    <def><rule>super-constructor-expression</rule></def>
+    <def><rule>super-expression</rule></def>
+    <def><rule>this-expression</rule></def>
+    <def><rule>null-expression</rule></def>
+    <def><literal>(</literal> <rule>expression</rule> <literal>)</literal></def>
+  </rule-def>
+</grammar-def>
+
+<h5>'Super' Expression</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="this-expression">
+    <def>
+      <literal>this</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    May only be used inside a class or interface method declaration or a class
+    constructor declaration.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is a pointer to the <literal>this</literal>
+    object's parent object in the current context.
+  </li>
+</ol>
+
+<h5>Super-Type Constructor Expression</h5>
+<sub>subtest</sub>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="super-constructor-expression">
+    <def>
+      <literal>super</literal>
+      <literal>(</literal>
+      <rule modifiers="opt">arguments-list</rule>
+      <literal>)</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>May only be used inside a class constructor.</li>
+  <li>May only be used when a class extends another class.</li>
+  <li>Must be the first statement in a class constructor.</li>
+</ol>
+
+<h5>'This' Expression</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="this-expression">
+    <def>
+      <literal>this</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    May only be used inside a class or interface method declaration or a class
+    constructor declaration.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is a pointer to the <literal>this</literal>
+    object in the current context.
+  </li>
+</ol>
+
+<h5>Cast Expression</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="cast-expression">
+    <def><rule>value-cast-expression</rule></def>
+    <def><rule>bit-cast-expression</rule></def>
+  </rule-def>
+
+  <rule-def id="value-cast-expression">
+    <def>
+      <literal>cast</literal>
+      <literal>(</literal>
+      <rule>type-expression</rule>
+      <literal>,</literal>
+      <rule>expression</rule>
+      <literal>)</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="bit-cast-expression">
+    <def>
+      <literal>bitcast</literal>
+      <literal>(</literal>
+      <rule>type-expression</rule>
+      <literal>,</literal>
+      <rule>expression</rule>
+      <literal>)</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Cast expressions can only cast from one primitive type to another, for
+    example, they can be used cast from a floating point to an integral type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Casts a value returned by an expression to a different type.</li>
+  <li>
+    In the event an integral type is being cast to a floating point type, the
+    integer should be transformed such that the value of the resulting floating
+    point number is equal to the integral number's value.
+  </li>
+  <li>
+    In the event a floating point type is being cast to an integral type, the
+    floating point value should be transformed such that the value of the
+    resulting integral number is the rounded down value of the floating point
+    number.
+  </li>
+  <li>
+    In any case other than the two aforementioned ones, the expression need not
+    be handled by the compiler and can be treated as if it doesn't exist.
+  </li>
+</ol>
+
+<h5>Object Literals</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="object-literal">
+    <def>
+      <literal>{</literal>
+      <rule modifiers="opt rep">object-literal-property</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+  <rule-def id="object-literal-property">
+    <def>
+      <rule>identifier</rule>
+      <literal>:</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<h5>Array Literals</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+ <rule-def id="array-literal">
+   <def>
+     <literal>[</literal>
+     <rule modifiers="opt">array-literal-values</rule>
+     <literal>]</literal>
+   </def>
+ </rule-def>
+  <rule-def id="array-literal-values">
+    <def><rule>expression</rule></def>
+    <def>
+      <rule>array-literal-values</rule>
+      <literal>,</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<h5>String Literals</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="string-literal">
+    <def><rule>line-string-literal</rule></def>
+    <def><rule>multiline-string-literal</rule></def>
+    <def>
+      <rule>string-literal</rule>
+      <rule>line-string-literal</rule>
+    </def>
+    <def>
+      <rule>string-literal</rule>
+      <rule>multiline-string-literal</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="line-string-literal">
+    <def>
+      <literal>"</literal>
+      <rule modifiers="opt">line-string-content</rule>
+      <literal>"</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="line-string-content">
+    <def><rule>line-string-character</rule></def>
+    <def>
+      <rule>line-string-content</rule>
+      <rule>line-string-character</rule>
+    </def>
+    <def>
+      <rule>line-string-content</rule>
+      <rule>string-template</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="multiline-string-literal">
+    <def>
+      <literal>"""</literal>
+      <rule modifiers="opt">multiline-string-content</rule>
+      <literal>"""</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="multiline-string-content">
+    <def><rule>multiline-string-character</rule></def>
+    <def>
+      <rule>multiline-string-content</rule>
+      <rule>multiline-string-character</rule>
+    </def>
+    <def>
+      <rule>multiline-string-content</rule>
+      <rule>string-template</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="string-template">
+    <def><literal>$</literal><rule>identifier</rule></def>
+    <def><literal>${</literal><rule>expression</rule><literal>}</literal></def>
+  </rule-def>
+
+  <rule-def id="line-string-character">
+    <def>Any valid UTF-8 character except ", \, $ or newline character.</def>
+    <def><rule>escape-sequence</rule></def>
+  </rule-def>
+
+  <rule-def id="multiline-string-character">
+    <def>Any valid UTF-8 character except """, \ or $.</def>
+    <def><rule>escape-sequence</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    All expressions and identifiers declared inside a string must return a
+    non-void value.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    A string literal will always result in a value of a <code>string</code>
+    type.
+  </li>
+  <li>
+    It can be assumed that each line in a multiline string will have some level
+    of indentation. After parsing, this indentation must be stripped from the
+    start of each line. Since indentation can vary from line to line, the amount
+    indentation removed depends on the line with the least indentation.
+  </li>
+</ol>
+
+<h4>Trail Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="trail-expression">
+    <def><rule>primary-expression</rule></def>
+    <def><rule>property-access-expression</rule></def>
+    <def><rule>index-access-expression</rule></def>
+    <def><rule>function-call-expression</rule></def>
+    <def><rule>coalescence-expression</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Index Access Expression</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="index-access-expression">
+    <def>
+      <rule>trail-expression</rule>
+      <literal>[</literal>
+      <rule>expression</rule>
+      <literal>]</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The type returned by the target <rule>trail-expression</rule> must be an
+    indexable type. (See below table)
+  </li>
+  <li>
+    The indexing <i>expression</i> must be a type used to index into the
+    target expression's type. (See below table)
+  </li>
+  <li>
+    If the type being accessed is a <code>string</code>, then the index may not
+    be written to.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Accesses an indexable element in an indexable value.</li>
+</ol>
+
+<table>
+  <caption>Type Indexing</caption>
+  <thead>
+  <tr>
+    <th>Type</th>
+    <th>Indexing Type</th>
+    <th>Value type returned by index access</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>String Type</td>
+    <td><code>uint32</code></td>
+    <td>Single UTF-8 byte, (<code>uint8</code>)</td>
+  </tr>
+  <tr>
+    <td>Any Array Type</td>
+    <td><code>uint32</code></td>
+    <td>The array's component type</td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Property Access Expression</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="property-access-expression">
+    <def>
+      <rule>trail-expression</rule>
+      <literal>.</literal>
+      <rule>identifier</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The property being accessed must exist on the specified type.</li>
+  <li>
+    If the property being accessed is an array's or string's length property,
+    the property may not be written to.
+  </li>
+  <li>
+    The property being accessed would result in access to a private class symbol
+    from outside that class, then the expression is invalid.
+  </li>
+  <li>
+    The property being accessed would result in access to a protected class
+    symbol from outside that class or from outside a derived type of that
+    class, then the expression is invalid.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The expression returns a value of the type of the property being accessed.
+  </li>
+  <li>
+    For <code>string</code> and array types, the only accessible property is the
+    <code>length</code> property and it returns the number of elements in the
+    object.
+  </li>
+</ol>
+
+<h4>Function Call Expression</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="function-call-expression">
+    <def>
+      <rule>trail-expression</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">arguments-list</rule>
+      <literal>)</literal>
+    </def>
+  </rule-def>
+  <rule-def id="arguments-list">
+    <def><rule>expression</rule></def>
+    <def>
+      <rule>arguments-list</rule>
+      <literal>,</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The value returned by the target <i>trail-expression</i> must be a function.
+  </li>
+  <li>
+    All arguments passed to the function must be assignable to that function's
+    declared arguments.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Invokes a function with the specified arguments.</li>
+  <li>
+    The value returned by the expression is dependent on the return type of the
+    function being invoked.
+  </li>
+</ol>
+
+<h4>Coalescence Expression</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="coalescence-expression">
+    <def><rule>trail-expression</rule></def>
+    <def>
+      <rule>trail-expression</rule>
+      <literal>??</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    It must be possible to resolve the left-hand-side expression to a
+    boolean-like value.
+  </li>
+  <li>
+    The values of both the left-hand-side expression and the right-hand-side
+    must be of a compatible type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Evaluates the left-hand-side expression, and if it's boolean-like value
+    results in a false value, the right-hand-side is evaluated.
+  </li>
+</ol>
+
+<h4>Unary Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-expression">
+    <def><rule>trail-expression</rule></def>
+    <def><rule>reference-expression</rule></def>
+    <def><rule>unary-increment-expression</rule></def>
+    <def><rule>unary-decrement-expression</rule></def>
+    <def><rule>unary-arithmetic-expression</rule></def>
+    <def><rule>unary-bitwise-negation-expression</rule>
+    </def><def><rule>unary-logical-negation-expression</rule>
+  </def>
+  </rule-def>
+</grammar-def>
+
+<h5>Reference Expression</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="reference-expression">
+    <def>
+      <literal>&</literal>
+      <rule>unary-expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<h5>Unary Increment Expressions</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-increment-expression">
+    <def>
+      <literal>++</literal>
+      <rule>unary-expression</rule>
+    </def>
+    <def>
+      <rule>unary-expression</rule>
+      <literal>++</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue that can be modified.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If the increment operator is placed before the operand, the result is the
+    value of the operand incremented by 1. As a side effect, the resulting
+    value is written to the operand object.
+  </li>
+  <li>
+    If the increment operator is placed after the operand, the result is the
+    value of the operand. As a side effect, the operand's value is incremented
+    by 1 and written to the operand object.
+  </li>
+</ol>
+
+<h5>Unary Decrement Expressions</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-decrement-expression">
+    <def>
+      <literal>--</literal>
+      <rule>unary-expression</rule>
+    </def>
+    <def>
+      <rule>unary-expression</rule>
+      <literal>--</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue that can be modified.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If the decrement operator is placed before the operand, the result is the
+    value of the operand decremented by 1. As a side effect, the resulting
+    value is written to the operand object.
+  </li>
+  <li>
+    If the decrement operator is placed after the operand, the result is the
+    value of the operand. As a side effect, the operand's value is decremented
+    by 1 and written to the operand object.
+  </li>
+</ol>
+
+<h5>Unary Arithmetic Expressions</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-arithmetic-expression">
+    <def><literal>-</literal> <rule>unary-expression</rule></def>
+    <def><literal>+</literal> <rule>unary-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral or floating point type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the <b>-</b> operator is the negative of the operand's value,
+    or positive, if the operand's value is already negative. If the operand's
+    type an unsigned type, the resulting type is a signed type of the same size.
+  </li>
+  <li>
+    The result of the <b>+</b> operator is the value of the operand.
+  </li>
+</ol>
+
+<h5>Unary Bitwise Negation Expressions</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-bitwise-negation-expression">
+    <def><literal>~</literal> <rule>unary-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is the value of the operand with all the
+    bits flipped (All zeroes set to ones and vice versa)
+  </li>
+</ol>
+
+<h5>Unary Logical Negation Expressions</h5>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="unary-logical-negation-expression">
+    <def><literal>!</literal> <rule>unary-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The operand must be a valid lvalue.</li>
+  <li>The operand must be of an integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the expression is the value of the operand with all the
+    bits flipped (All zeroes set to ones and vice versa)
+  </li>
+</ol>
+
+<h4>Power (POW) Expression</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="power-expression">
+    <def><rule>unary-expression</rule></def>
+    <def><rule>power-expression</rule> <literal>**</literal> <rule>unary-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>**</b> operator is the left operand raised to the
+    power of the right operand.
+  </li>
+</ol>
+
+<h4>Multiplicative Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="multiplicative-expression">
+    <def><rule>power-expression</rule></def>
+    <def><rule>multiplicative-expression</rule> <literal>*</literal> <rule>power-expression</rule></def>
+    <def><rule>multiplicative-expression</rule> <literal>/</literal> <rule>power-expression</rule></def>
+    <def><rule>multiplicative-expression</rule> <literal>%</literal> <rule>power-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>*</b> operator is the left operand multiplied by the
+    right operand.
+  </li>
+  <li>
+    The result of the <b>/</b> operator is the left operand divided by the
+    right operand.
+  </li>
+  <li>
+    The result of the <b>%</b> operator is the remainder of dividing the left
+    operand by the right operand.
+  </li>
+</ol>
+
+<h4>Additive Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="additive-expression">
+    <def><rule>multiplicative-expression</rule></def>
+    <def><rule>additive-expression</rule> <literal>+</literal> <rule>multiplicative-expression</rule></def>
+    <def><rule>additive-expression</rule> <literal>-</literal> <rule>multiplicative-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible arithmetic type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied.</li>
+  <li>
+    The result of the <b>+</b> operator is the left operand plus the right
+    operand.
+  </li>
+  <li>
+    The result of the <b>-</b> operator is the left operand minus the right
+    operand.
+  </li>
+</ol>
+
+<h4>Shift Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="bitshift-expression">
+    <def><rule>additive-expression</rule></def>
+    <def><rule>bitshift-expression</rule> <literal>&lt;&lt;</literal> <rule>additive-expression</rule></def>
+    <def><rule>bitshift-expression</rule> <literal>&gt;&gt;</literal> <rule>additive-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible integral type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the <b>&lt;&lt;</b> operator is the value of the left operand
+    with its bits shifted to the left by the value of the right operand.
+  </li>
+  <li>
+    The result of the <b>&gt;&gt;</b> operator is the value of the left operand
+    with its bits shifted to the right by the value of the right operand.
+  </li>
+</ol>
+
+<h4>Relational Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="relational-expression">
+    <def><rule>bitshift-expression</rule></def>
+    <def><rule>relational-expression</rule> <literal>&lt;</literal> <rule>bitshift-expression</rule></def>
+    <def><rule>relational-expression</rule> <literal>&lt;=</literal> <rule>bitshift-expression</rule></def>
+    <def><rule>relational-expression</rule> <literal>&gt;</literal> <rule>bitshift-expression</rule></def>
+    <def><rule>relational-expression</rule> <literal>&gt;=</literal> <rule>bitshift-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible comparable type (See <chapter-ref target="comp-semantics"></chapter-ref>.)</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If both operands are compatible arithmetic types, then the usual arithmetic
+    conversions are applied.
+  </li>
+  <li>
+    The result of the <b>&lt;</b> operator is a boolean true value if the left
+    operand's value is less than the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&lt;=</b> operator is analogous to the result of the
+    <b>&lt;</b> operator, except that it also returns a boolean true value when
+    the left operand's value is equal to the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&gt;</b> operator is a boolean true value if the left
+    operand's value is greater than the right operand's value.
+  </li>
+  <li>
+    The result of the <b>&gt;=</b> operator is analogous to the result of the
+    <b>&gt;</b> operator, except that it also returns a boolean true value when
+    the left operand's value is equal to the right operand's value.
+  </li>
+</ol>
+
+<h4>Equality Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="equality-expression">
+    <def><rule>relational-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>==</literal> <rule>relational-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>!=</literal> <rule>relational-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    If both operands are compatible arithmetic types, then the usual arithmetic
+    conversions are applied.
+  </li>
+  <li>
+    The result of the <b>==</b> operator is a boolean true value if the left
+    operand's value is equal to the right operand's value.
+  </li>
+  <li>
+    The result of the <b>!=</b> operator is the inverse of the <b>==</b>
+    operator's value.
+  </li>
+</ol>
+
 <h4>XOR Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt><i>xor-expression:</i></dt>
-  <dd><i>equality-expression</i></dd>
-  <dd><i>xor-expression</i> <b>^</b> <i>equality-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="xor-expression">
+    <def><rule>equality-expression</rule></def>
+    <def><rule>xor-expression</rule> <literal>^</literal> <rule>equality-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a valid integral type</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied</li>
+  <li>
+    The result of the <b><code>^</code></b> operator is the value of the left
+    operand with every bit set to true if and only if the corresponding bit is
+    set in only one of the operands.
+  </li>
+</ol>
 
 <h4>Bitwise AND Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt><i>bitwise-and-expression:</i></dt>
-  <dd><i>xor-expression</i></dd>
-  <dd><i>bitwise-and-expression</i> <b>&</b> <i>xor-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="bitwise-and-expression">
+    <def><rule>xor-expression</rule></def>
+    <def><rule>bitwise-and-expression</rule> <literal>&</literal> <rule>xor-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a valid integral type</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied</li>
+  <li>
+    The result of the <b><code>&</code></b> operator is the value of the left
+    operand with every bit set to true if the corresponding bit in the right
+    operand is also set to true.
+  </li>
+</ol>
 
 <h4>Bitwise OR Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt><i>bitwise-or-expression:</i></dt>
-  <dd><i>bitwise-and-expression</i></dd>
-  <dd><i>bitwise-or-expression</i> <b>|</b> <i>bitwise-and-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="bitwise-or-expression">
+    <def><rule>bitwise-and-expression</rule></def>
+    <def><rule>bitwise-or-expression</rule> <literal>|</literal> <rule>bitwise-and-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a valid integral type</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>The usual arithmetic conversions are applied</li>
+  <li>
+    The result of the <b><code>|</code></b> operator is the value of the left
+    operand with every bit set to true if the bit is set in either the left
+    operand or the right operand.
+  </li>
+</ol>
 
 <h4>Logical AND Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt><i>logical-and-expression:</i></dt>
-  <dd><i>bitwise-or-expression</i></dd>
-  <dd><i>logical-and-expression</i> <b>&&</b> <i>bitwise-or-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="logical-and-expression">
+    <def><rule>bitwise-or-expression</rule></def>
+    <def><rule>logical-and-expression</rule> <literal>&&</literal> <rule>bitwise-or-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a valid integral or boolean-like type</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The usual arithmetic conversions are applied if both operands are integral
+    types.
+  </li>
+  <li>
+    The result of the <b><code>&&</code></b> operator is a boolean true value
+    if both operands are a truthy value.
+  </li>
+  <li>
+    If the left operands evaluates to a falsey value, the right operand must
+    not be evaluated.
+  </li>
+</ol>
 
 <h4>Logical OR Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt><i>logical-or-expression:</i></dt>
-  <dd><i>logical-and-expression</i></dd>
-  <dd><i>logical-or-expression</i> <b>||</b> <i>logical-and-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="logical-or-expression">
+    <def><rule>logical-and-expression</rule></def>
+    <def><rule>logical-or-expression</rule> <literal>||</literal> <rule>logical-and-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a valid integral or boolean-like type</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The usual arithmetic conversions are applied if both operands are integral
+    types.
+  </li>
+  <li>
+    The result of the <b><code>||</code></b> operator is a boolean true value
+    if at least one of the operands are a truthy value.
+  </li>
+  <li>
+    If the left operands evaluates to a truthy value, the right operand must
+    not be evaluated.
+  </li>
+</ol>
 
 <h4>Conditional Expression</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>conditional-expression:</dt>
-  <dd><i>logical-or-expression</i></dd>
-  <dd><i>logical-or-expression</i> <b>?</b> <i>expression</i> <b>:</b> <i>conditional-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="conditional-expression">
+    <def><rule>logical-or-expression</rule></def>
+    <def>
+      <rule>logical-or-expression</rule>
+      <literal>?</literal>
+      <rule>expression</rule>
+      <literal>:</literal>
+      <rule>conditional-expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The condition expression must result in a boolean-like value.</li>
+  <li>Both the left and the right operands must result in a compatible type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The condition operand is evaluated first, if it results in a true value,
+    the left operand is the result of the expression, otherwise the right
+    operand is the result.
+  </li>
+  <li>
+    If the left operand is the result, the right operand must not be evaluated,
+    and vice versa.
+  </li>
+</ol>
 
 <h4>Assignment Expression</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>assignment-expression:</dt>
-  <dd><i>conditional-expression</i></dd>
-  <dd><i>conditional-expression</i> <i>assignment-operator</i> <i>assignment-expression</i></dd>
+<grammar-def>
+  <rule-def id="assignment-expression">
+    <def><rule>conditional-expression</rule></def>
+    <def><rule>conditional-expression</rule> <rule>assignment-operator</rule> <rule>assignment-expression</rule></def>
+  </rule-def>
 
-  <dt>assignment-operator: <span>one of:</span></dt>
-  <dd><b>
-    = &= &&= |= *= /= += -= ^= %= <<= >>= **= ||= ??=
-  </b></dd>
-</dl>
+  <rule-def id="assignment-operator" type="oneof">
+    <def>
+      <literal>= &= &&= |= *= /= += -= ^= %= <<= >>= **= ||= ??=</literal>
+    </def>
+  </rule-def>
+</grammar-def>
 
 <h4>Top Level Expression</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>expression:</dt>
-  <dd><i>assignment-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="expression">
+    <def><rule>assignment-expression</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Loop Condition Expression</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>loop-condition-expression:</dt>
-  <dd><b>(</b> <i>expression</i> <b>)</b></dd>
-  <dd><i>expression</i></dd>
-</dl>
-
-<p><b>Description</b></p>
-<p>
-  Loop condition expressions declare a while expression that may or may not be
-  surrounded by parentheses. Loop condition expressions declared with
-  parentheses cannot have any part of the expression outside of the parentheses
-</p>
-
+<grammar-def>
+  <rule-def id="loop-condition-expression">
+    <def><literal>(</literal> <rule>expression</rule> <literal>)</literal></def>
+    <def><rule>expression</rule></def>
+  </rule-def>
+</grammar-def>
 <p><b>Constraints</b></p>
 <ol>
   <li>
@@ -1302,80 +1923,238 @@ noindent: true
     assigned in some way to a true/false value.
   </li>
 </ol>
+<p><b>Description</b></p>
+<p>
+  Loop condition expressions declare an expression that may or may not be
+  surrounded by parentheses. Loop condition expressions declared with
+  parentheses cannot have any part of the expression outside the parentheses
+</p>
 
 <h3>Type Expressions</h3>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>type-expression:</dt>
-  <dd><i>array-type-expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="type-expression">
+    <def><rule>array-type-expression</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Const Type Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>const-type-expression:</dt>
-  <dd><i>type-keyword</i></dd>
-  <dd><i>alias-keyword</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="const-type-expression">
+    <def><rule>type-keyword</rule></def>
+    <def><rule>alias-keyword</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Type Name Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>type-name-expression:</dt>
-  <dd><i>const-type-expression</i></dd>
-  <dd><i>identifier</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="type-name-expression">
+    <def><rule>const-type-expression</rule></def>
+    <def><rule>identifier</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Reference Type Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="reference-type-expression">
+    <def><rule>type-name-expression</rule></def>
+    <def><rule>type-name-expression</rule> <literal>&</literal></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Nullable Type Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>nullable-type-expression:</dt>
-  <dd><i>type-name-expression</i></dd>
-  <dd><i>type-name-expression</i> <b>?</b></dd>
-</dl>
+<grammar-def>
+  <rule-def id="nullable-type-expression">
+    <def><rule>reference-type-expression</rule></def>
+    <def><rule>reference-type-expression</rule> <literal>?</literal></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Array Type Expressions</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>array-type-expression:</dt>
-  <dd><i>nullable-type-expression</i></dd>
-  <dd><i>array-type-expression</i> <b>[]</b></dd>
-</dl>
+<grammar-def>
+  <rule-def id="array-type-expression">
+    <def><rule>nullable-type-expression</rule></def>
+    <def><rule>array-type-expression</rule> <literal>[]</literal></def>
+  </rule-def>
+</grammar-def>
 
 <h3>Declarations</h3>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>declaration:</dt>
-  <dd><i>function-declaration</i></dd>
-  <dd><i>struct-declaration</i></dd>
-  <dd><i>variable-declaration</i></dd>
+<grammar-def>
+  <rule-def id="declaration">
+    <def><rule>function-declaration</rule></def>
+    <def><rule>variable-declaration</rule></def>
+    <def><rule>struct-declaration</rule></def>
+    <def><rule>enum-declaration</rule></def>
+    <def><rule>interface-declaration</rule></def>
+    <def><rule>class-declaration</rule></def>
+  </rule-def>
 
-  <dt>declaration-modifiers:</dt>
-  <dd><i>declaration-modifier</i><sub>rep</sub></dd>
+  <rule-def id="declaration-modifiers">
+    <def>
+      <rule modifiers="rep">declaration-modifier</rule>
+    </def>
+  </rule-def>
 
-  <dt>declaration-modifier: <span>one of:</span></dt>
-  <dd><b>native export const</b></dd>
+  <rule-def id="declaration-modifier" type="oneof">
+    <def><literal>native export const</literal></def>
+  </rule-def>
+
+  <rule-def id="module-header-declarations">
+    <def><rule>module-declaration</rule> <rule modifiers="rep">import-declaration</rule></def>
+    <def><rule>module-declaration</rule></def>
+    <def><rule modifiers="rep">import-declaration</rule></def>
+  </rule-def>
+
+  <rule-def id="module-name">
+    <def><rule>identifier</rule></def>
+    <def><rule>module-name</rule> <literal>::</literal> <rule>identifier</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Module Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="module-declaration">
+    <def><rule>regular-module-declaration</rule></def>
+    <def><rule>native-module-declaration</rule></def>
+  </rule-def>
+
+  <rule-def id="regular-module-declaration">
+    <def><literal>module</literal> <rule>module-name</rule></def>
+  </rule-def>
+
+  <rule-def id="native-module-declaration">
+    <def>
+      <literal>native</literal>
+      <literal>module</literal>
+      <rule>module-name</rule>
+      <literal>from</literal>
+      <rule>line-string-literal</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Concepts</b></p>
+<dl>
+  <dt>Module name</dt>
+  <dd>
+    The name of the module itself declared after the <b><code>module</code></b>
+    keyword.
+  </dd>
+  <dt>Native Library Name</dt>
+  <dd>
+    The string literal declared after the <b><code>from</code></b> keyword in a
+    native module declaration. It is a file name for the dynamically-loadable
+    native C/C++ library that any native functions declared in the file will be
+    linked to. The string must not include the file suffix.
+    (eg: <code>.dll</code>)
+  </dd>
 </dl>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The file name/path referenced by the native library path, if present, must
+    be a valid path to a dynamically linkable library. The path must be
+    accessible to the compiler and known at compile time.
+  </li>
+  <li>
+    It is not required for a module declaration to declare a name unique to the
+    file it's declared in. Multiple files may share the same namespace.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    A module declaration is used by import statements to know from which file
+    to import certain symbols.
+  </li>
+  <li>Adding a module declaration is fully optional.</li>
+  <li>
+    Omitting the module declaration means the file will be able to export any
+    symbols.
+  </li>
+</ol>
+
+<h4>Import Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="import-declaration">
+    <def><literal>import</literal> <rule>module-name</rule></def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The import statement must result in at least one symbol being included in
+    the source file. If no symbols are found with the namespace specified in
+    the import, then the import is considered a failure.
+  </li>
+</ol>
+
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Import all symbols with the specified module name namespace into the source
+    file.
+  </li>
+  <li>
+    All IR, or source files, the compiler is able to find that share the
+    specified namespace are imported into the current source file.
+  </li>
+  <li>
+    When an IR file, or valid source file is found that is declared as native,
+    the native module need not be loaded.
+  </li>
+  <li>
+    During importing, any currently existing native bindings should also be
+    checked for import. This is because native bindings can be registered
+    without a pre-existing Tetral IR or source file to represent the
+    declarations.
+  </li>
+</ol>
 
 <h4>Function Declarations</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>function-declaration:</dt>
-  <dd><i>declaration-modifiers</i><sub>opt</sub> <i>type-expression</i> <i>identifier</i> <b>(</b> <i>function-argument-list</i><sub>opt</sub> <b>)</b> <i>block-statement</i><sub>opt</sub></dd>
+<grammar-def>
+  <rule-def id="function-declaration">
+    <def>
+      <rule modifiers="opt">declaration-modifiers</rule>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+      <rule modifiers="opt">block-statement</rule>
+    </def>
+  </rule-def>
 
-  <dt>function-argument-list:</dt>
-  <dd><i>function-argument-declaration</i></dd>
-  <dd><i>function-argument-list</i> <b>,</b> <i>function-argument-declaration</i></dd>
+  <rule-def id="function-argument-list">
+    <def><rule>function-argument-declaration</rule></def>
+    <def>
+      <rule>function-argument-list</rule>
+      <literal>,</literal>
+      <rule>function-argument-declaration</rule>
+    </def>
+  </rule-def>
 
-  <dt>function-argument-declaration:</dt>
-  <dd><i>type-expression identifier</i> <b>...</b><sub>opt</sub></dd>
-</dl>
-
-<p><b>Description</b></p>
-<p>
-  Declares a function that will be accessible in the current scope.
-</p>
-
+  <rule-def id="function-argument-declaration">
+    <def>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>...</literal>
+    </def>
+    <def>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 <p><b>Constraints</b></p>
 <ol>
   <li>
@@ -1396,24 +2175,40 @@ noindent: true
     a function body.
   </li>
 </ol>
+<p><b>Description</b></p>
+<p>
+  Declares a function that will be accessible in the current scope.
+</p>
 
 <h4>Variable Declarations</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>variable-declaration:</dt>
-  <dd><i>declaration-modifiers type-expression identifier</i></dd>
-  <dd><i>declaration-modifiers type-expression identifier</i> <b>=</b> <i>expression</i></dd>
-</dl>
-
+<grammar-def>
+  <rule-def id="variable-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <rule>declaration-modifiers</rule>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>=</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 <p><b>Description</b></p>
 <p>
   Declares a variable or a constant that will be accessible in the current
   scope.
 </p>
-
 <p><b>Constraints</b></p>
 <ol>
-  <li>Must not have the name of an already accessible variable</li>
+  <li>
+    Must not have the name of an already accessible variable in the current
+    namespace.
+  </li>
   <li>
     If a value is specified for the declaration, the variable's resulting
     value must match the declared type.
@@ -1436,21 +2231,30 @@ noindent: true
 
 <h4>Struct Declarations</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>struct-declaration:</dt>
-  <dd><i>declaration-modifiers <b>struct</b> identifier <b>{</b> <i>property-declaration</i><sub>opt rep</sub> <b>}</b></i></dd>
-
-  <dt>property-declaration</dt>
-  <dd><i>type-expression identifier</i></dd>
-  <dd><i>type-expression identifier</i> <b>=</b> <i>expression</i></dd>
-</dl>
-
-
-<p><b>Description</b></p>
-<p>
-  Declares a struct data type and its properties.
-</p>
-
+<grammar-def>
+  <rule-def id="struct-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <literal>struct</literal>
+      <rule>identifier</rule>
+      <literal>{</literal>
+      <rule modifiers="opt rep">property-declaration</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+  <rule-def id="property-declaration">
+    <def>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>=</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 <p><b>Constraints</b></p>
 <ol>
   <li>
@@ -1463,34 +2267,402 @@ noindent: true
     Each struct property, if a default value is set, must have an expression
     whose type is assignable to the property's type.
   </li>
+  <li>
+    Struct properties may not directly or indirectly reference the declared
+    struct type unless the reference is through a nullable type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Declares a struct data type and its properties.</li>
+</ol>
+
+<h4>Enum Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="enum-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <literal>enum</literal>
+      <rule>identifier</rule>
+      <literal>{</literal>
+      <rule>enum-constant-declaration-list</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="enum-constant-declaration-list">
+    <def><rule>enum-constant-declaration</rule></def>
+    <def>
+      <rule>enum-constant-declaration-list</rule>
+      <literal>,</literal>
+      <rule>enum-constant-declaration</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="enum-constant-declaration">
+    <def><rule>identifier</rule></def>
+    <def>
+      <rule>identifier</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    A struct type may not be declared with the same name as an existing
+    interface, struct, class or function in the same namespace.
+  </li>
+  <li>Each enum constant declaration must have a unique name.</li>
+</ol>
+<p><b>Semantics</b></p>
+
+<h4>Interface Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="interface-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <rule>interface-prefix</rule>
+      <literal>{</literal>
+      <rule modifiers="rep opt">interface-method</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="interface-prefix">
+    <def>
+      <literal>interface</literal>
+      <rule>identifier</rule>
+      <rule modifiers="opt">interface-extensions-declaration</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="interface-extensions-declaration">
+    <def>
+      <literal>extends</literal>
+      <rule>type-name-list</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="type-name-list">
+    <def>
+      <rule>type-name-expression</rule>
+    </def>
+    <def>
+      <rule>type-name-list</rule>
+      <literal>,</literal>
+      <rule>type-name-expression</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="interface-method-declaration">
+    <def>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+      <rule modifiers="opt">block-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Interfaces can only be declared in a source file's global scope.</li>
+</ol>
+
+<p><b>Semantics</b></p>
+
+<h4>Class Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="class-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <rule>class-prefix</rule>
+      <literal>{</literal>
+      <rule modifiers="rep opt">class-property-declaration</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-prefix">
+    <def>
+      <literal>class</literal>
+      <rule>identifier</rule>
+      <rule modifiers="opt">class-extension-declaration</rule>
+      <rule modifiers="opt">class-implements-declaration</rule>
+    </def>
+    <def>
+      <literal>extendable</literal>
+      <literal>class</literal>
+      <rule>identifier</rule>
+      <rule modifiers="opt">class-extension-declaration</rule>
+      <rule modifiers="opt">class-implements-declaration</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-extension-declaration">
+    <def>
+      <literal>extends</literal>
+      <rule>type-name-expression</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-implements-declaration">
+    <def>
+      <literal>implements</literal>
+      <rule>type-name-list</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-property-modifiers">
+    <def>
+      <rule modifiers="rep opt">class-property-modifier</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-property-modifier" type="oneof">
+    <oneof>
+      <literal>public</literal>
+      <literal>private</literal>
+      <literal>protected</literal>
+      <literal>static</literal>
+      <literal>override</literal>
+      <literal>const</literal>
+    </oneof>
+  </rule-def>
+
+  <rule-def id="class-property-declaration">
+    <def><rule>class-field-declaration</rule></def>
+    <def><rule>class-method-declaration</rule></def>
+    <def><rule>class-constructor-declaration</rule></def>
+  </rule-def>
+
+  <rule-def id="class-property-prefix">
+    <def>
+      <rule>class-property-modifiers</rule>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-field-declaration">
+    <def><rule>class-property-prefix</rule></def>
+    <def>
+      <rule>class-property-prefix</rule>
+      <literal>=</literal>
+      <rule>expression</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-method-declaration">
+    <def>
+      <rule>class-property-prefix</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+      <rule>block-statement</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="class-constructor-declaration">
+    <def>
+      <rule>class-property-modifiers</rule>
+      <literal>constructor</literal>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+      <rule>block-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+
+<p><b>Constraints</b></p>
+<ol>
+  <li>Classes may only be declared in a file's global scope.</li>
+  <li>
+    Classes must not be declared with the same name as an already existing
+    function, struct, enum, interface or global variable.
+  </li>
+  <li>
+    Classes implementing interfaces must declare a valid method
+    implementation for every function outlined by its interfaces.
+  </li>
+  <li>
+    Classes may not implement 2 or more interfaces with methods whose
+    implementation would cause other constraints to be violated.
+  </li>
+  <li>Classes may not extend themselves, directly or indirectly.</li>
+  <li>
+    Classes may not extend a class that has not been marked with the
+    <literal>extendable</literal> keyword.
+  </li>
+  <li>Classes may only extend other valid classes.</li>
+  <li>Classes may only implement valid interfaces.</li>
+  <li>
+    Classes may not extend classes if the extension would cause an inheritence
+    cycle.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The same padding and alignment semantics apply to classes as do to structs.
+  </li>
+</ol>
+
+<h5>Class Fields</h5>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Classes may not have 2 or more fields with the same name.</li>
+  <li>
+    Fields declared with the <b><code>const</code></b> modifier must either
+    have a value specified by default or be initialized in the constructor.
+  </li>
+  <li>
+    If a field has a default value, its value must be a valid expression that
+    results in a type compatible with the field's type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>Declares an accessible property.</li>
+</ol>
+
+<h5>Class Constructors</h5>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Classes may not have 2 or more constructors with the same function
+    signature.
+  </li>
+  <li>
+    Constructors may not be declared with the <b><code>override</code></b> or
+    <b><code>static</code></b> keyword.
+  </li>
+  <li>Constructors may not return a value.</li>
+  <li>
+    All constraints that apply to regular function argument lists also apply to
+    constructor arguments.
+  </li>
+  <li>
+    If a class is declared with a base type that requires explicit
+    initialization, then each constructor declared in a class must
+    initialize the base type with a <rule>super-constructor-expression</rule>.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li></li>
+</ol>
+
+<h5>Class Methods</h5>
+<p><b>Constraints</b></p>
+<ol>
+  <li>The declared return type must be a valid type.</li>
+  <li>
+    The same constraints that apply to regular function declarations also apply
+    to method declarations, except for those which cannot be applied to method
+    declarations.
+  </li>
+  <li>
+    Classes may only declare functions with the same name if the argument
+    signatures differs.
+  </li>
+  <li>
+    Classes may not override any methods declared in an inherited type that have
+    the <literal>const</literal> keyword.
+  </li>
+  <li>
+    Classes may not override any methods declared in an inherited type that have
+    the <b><code>const</code></b> keyword.
+  </li>
+  <li>
+    Classes overriding methods from an inherited class or interface must use the
+    <b><code>override</code></b> modifier.
+  </li>
+  <li>
+    A method declared with the <literal>static</literal> modifier cannot also
+    use the modifier <literal>override</literal>.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Declares a member function that belongs to the class the method was
+    declared in.
+  </li>
+</ol>
+
+<h5>Class Access Modifiers</h5>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Each modifier is mutually exclusive to another access modifier.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Access modifiers modify how fields and methods may be accessed from outside
+    the class the symbol was declared in.
+  </li>
+  <li>
+    The <literal>private</literal> keyword ensures a class symbol is only
+    accessible in the class it was declared in.
+  </li>
+  <li>
+    The <literal>protected</literal> keyword ensures a class symbol is only
+    accessible in the class it was declared in, or in a class extending the
+    class.
+  </li>
+  <li>
+    The <literal>public</literal> modifier allows a class symbol to be accessed
+    from anywhere.
+  </li>
+  <li>
+    Omitting the access modifier is equivalent to using the
+    <literal>public</literal> access modifier.
+  </li>
 </ol>
 
 <h3>Statements</h3>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>statement:</dt>
-  <dd><i>labeled-statement</i></dd>
-  <dd><i>declaration</i></dd>
-  <dd><i>body-statement</i></dd>
-
-  <dt>body-statement:</dt>
-  <dd><i>block-statement</i></dd>
-  <dd><i>for-loop-statement</i></dd>
-  <dd><i>do-while-statement</i></dd>
-  <dd><i>while-statement</i></dd>
-  <dd><i>if-statement</i></dd>
-  <dd><i>return-statement</i></dd>
-  <dd><i>control-flow-statement</i></dd>
-  <dd><i>assert-statement</i></dd>
-  <dd><i>expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="statement">
+    <def><rule>labeled-statement</rule></def>
+    <def><rule>declaration</rule></def>
+    <def><rule>body-statement</rule></def>
+  </rule-def>
+  <rule-def id="body-statement">
+    <def><rule>block-statement</rule></def>
+    <def><rule>for-loop-statement</rule></def>
+    <def><rule>do-while-statement</rule></def>
+    <def><rule>while-statement</rule></def>
+    <def><rule>if-statement</rule></def>
+    <def><rule>return-statement</rule></def>
+    <def><rule>control-flow-statement</rule></def>
+    <def><rule>assert-statement</rule></def>
+    <def><rule>expression</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h4>Block Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>block-statement:</dt>
-  <dd><b>{</b> <i>statement</i> <sub>opt rep</sub> <b>}</b></dd>
-</dl>
+<grammar-def>
+  <rule-def id="block-statement">
+    <def>
+      <literal>{</literal>
+      <rule modifiers="opt rep">statement</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+</grammar-def>
 
 <p><b>Description</b></p>
 <p>
@@ -1504,11 +2676,12 @@ noindent: true
 
 <h4>Loop Flow Control Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>control-flow-statement:</dt>
-  <dd><b>continue</b> <i>identifier</i><sub>opt</sub></dd>
-  <dd><b>break</b> <i>identifier</i><sub>opt</sub></dd>
-</dl>
+<grammar-def>
+  <rule-def id="control-flow-statement">
+    <def><literal>continue</literal> <rule modifiers="opt">identifier</rule></def>
+    <def><literal>break</literal> <rule modifiers="opt">identifier</rule></def>
+  </rule-def>
+</grammar-def>
 
 <p><b>Description</b></p>
 <p>
@@ -1534,11 +2707,22 @@ noindent: true
 
 <h4>If Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>if-statement:</dt>
-  <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i></dd>
-  <dd><b>if</b> <i>loop-condition-expression</i> <i>statement-body</i> <b>else</b> <i>statement-body</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="if-statement">
+    <def>
+      <literal>if</literal>
+      <rule>loop-condition-expression</rule>
+      <rule>body-statement</rule>
+    </def>
+    <def>
+      <literal>if</literal>
+      <rule>loop-condition-expression</rule>
+      <rule>body-statement</rule>
+      <literal>else</literal>
+      <rule>body-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 
 <p><b>Description</b></p>
 <p>
@@ -1556,19 +2740,31 @@ noindent: true
 
 <h4>Labeled Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>labelled-statement:</dt>
-  <dd><i>identifier</i> <b>:</b> <i>for-loop-statement</i></dd>
-  <dd><i>identifier</i> <b>:</b> <i>do-while-statement</i></dd>
-  <dd><i>identifier</i> <b>:</b> <i>while-statement</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="labelled-statement">
+    <def><rule>identifier</rule> <literal>:</literal> <rule>for-loop-statement</rule></def>
+    <def><rule>identifier</rule> <literal>:</literal> <rule>do-while-statement</rule></def>
+    <def><rule>identifier</rule> <literal>:</literal> <rule>while-statement</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h4>For Loop Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>for-loop-statement:</dt>
-  <dd><b>for (</b> <i>variable-declaration</i> <b>;</b> <i>expression</i> <b>;</b> <i>expression</i> <b>)</b> <i>statement-body</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="for-loop-statement">
+    <def>
+      <literal>for</literal>
+      <literal>(</literal>
+      <rule>variable-declaration</rule>
+      <literal>;</literal>
+      <rule>expression</rule>
+      <literal>;</literal>
+      <rule>expression</rule>
+      <literal>)</literal>
+      <rule>body-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 
 <p><b>Description</b></p>
 <p>
@@ -1587,11 +2783,22 @@ noindent: true
 
 <h4>Do While Loop Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>do-while-statement:</dt>
-  <dd><b>do</b> <i>block-statement</i> <b>while</b> <i>loop-condition-expression</i></dd>
-</dl>
-
+<grammar-def>
+  <rule-def id="do-while-statement">
+    <def>
+      <literal>do</literal>
+      <rule>block-statement</rule>
+      <literal>while</literal>
+      <rule>loop-condition-expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The loop's condition must result in a value that can be evaluated as a boolean.
+  </li>
+</ol>
 <p><b>Description</b></p>
 <p>
   Evaluates a block of code until the defined loop condition results in a false
@@ -1599,20 +2806,23 @@ noindent: true
   is reached.
 </p>
 
+<h4>Regular While Loop Statements</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="while-statement">
+    <def>
+      <literal>while</literal>
+      <rule>loop-condition-expression</rule>
+      <rule>block-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 <p><b>Constraints</b></p>
 <ol>
   <li>
     The loop's condition must result in a value that can be evaluated as a boolean.
   </li>
 </ol>
-
-<h4>Regular While Loop Statements</h4>
-<p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>while-statement:</dt>
-  <dd><b>while</b> <i>loop-condition-expression</i> <i>block-statement</i></dd>
-</dl>
-
 <p><b>Description</b></p>
 <p>
   Evaluates a block of code until the defined loop condition results in a false
@@ -1620,19 +2830,16 @@ noindent: true
   reached, the loop's block is not evaluated at all.
 </p>
 
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    The loop's condition must result in a value that can be evaluated as a boolean.
-  </li>
-</ol>
-
 <h4>Return Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>return-statement:</dt>
-  <dd><b>return</b> <i>expression</i><sub>opt</sub></dd>
-</dl>
+<grammar-def>
+  <rule-def id="return-statement">
+    <def>
+      <literal>return</literal>
+      <rule modifiers="opt">expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
 
 <p><b>Description</b></p>
 <p>Causes the current function to halt execution and return to the caller.</p>
@@ -1658,53 +2865,414 @@ noindent: true
 
 <h4>Assert Statements</h4>
 <p><b>Syntax</b></p>
-<dl class="syntaxdef">
-  <dt>assert-statement:</dt>
-  <dd><b>assert</b> <i>expression</i></dd>
-  <dd><b>assert</b> <i>expression</i> <b>:</b> <i>expression</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="assert-statement">
+    <def><literal>assert</literal> <rule>expression</rule></def>
+    <def><literal>assert</literal> <rule>expression</rule> <literal>:</literal> <rule>expression</rule></def>
+  </rule-def>
+</grammar-def>
 
-<p><b>Description</b></p>
-<p>
-  The assert statement evaluates an expression and if expression results in a
-  false value, it throws an error with a potentially user-specified error
-  message.
-</p>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Evaluates the condition operand. If the condition results in a true
+    boolean-like value, nothing happens. Otherwise, an error is thrown.
+  </li>
+  <li>
+    If the message operand is present, it is evaluated and used as the error
+    message for the thrown error.
+  </li>
+  <li>
+    If no message operand is present, it must be created from the values of the
+    variables present in the condition expression. (See Message Generation
+    section below).
+  </li>
+  <li>
+    The inclusion of the assert statement in the compiled output is optional,
+    as is the execution of the assert statement
+  </li>
+</ol>
 
 <p><b>Constraints</b></p>
 <ol>
   <li>
     The expression the assert statement evaluates must always result in a
-    Boolean value.
+    Boolean-like value.
   </li>
   <li>
     The message expression, if present, must always result in a String value.
   </li>
 </ol>
 
+<p><b>Message Generation</b></p>
+<p>
+  The messages used by assert statements, if one is not explicitly provided,
+  should be composed of the values of each variable used in the expression,
+  for example, when asserting that a variable named <i>"foo"</i> is equal to
+  10, the automatic error message should be composed of the expression string
+  and followed by the variable's value. In effect, turning the statement into
+  this:
+</p>
+
+{{<highlight java>}}
+assert foo == 10 : "foo == 10, foo: ${foo}"
+{{</highlight>}}
+
 <p><b>Examples</b></p>
-<code><pre>
+{{<highlight java>}}
 assert true // Does nothing
 assert false // Assertion failed!
 assert false : "message" // Assertion failed: message
-</pre></code>
+{{</highlight>}}
 
 <h3>Script File Statement</h3>
-<dl class="syntaxdef">
-  <dt>script-file-statement:</dt>
-  <dd><i>module-declaration</i> <i>declaration</i><sub>rep</sub></dd>
-  <dd><i>declaration</i><sub>rep</sub></dd>
-
-  <dt>module-declaration:</dt>
-  <dd><code>module</code> <i>module-name</i></dd>
-
-  <dt>module-name:</dt>
-  <dd><i>identifier</i></dd>
-  <dd><i>module-name</i> <code>.</code> <i>identifier</i></dd>
-</dl>
+<grammar-def>
+  <rule-def id="script-file-statement">
+    <def><rule>module-header-declarations</rule> <rule modifiers="rep">declaration</rule></def>
+    <def><rule modifiers="rep">declaration</rule></def>
+  </rule-def>
+</grammar-def>
 
 <h2>Intermediate Representation (Bytecode Format)</h2>
+<h3>File Header</h3>
+<h3>String Pool Table</h3>
+<h3>String Pool Data</h3>
+<h3>Type Table</h3>
+<h3>Function Table</h3>
+<h3>Instructions Block</h3>
+<h3>Data Block</h3>
+
+<h2>Bytecode Instructions</h2>
+<h3>General Purpose Instructions</h3>
+<h3>Stack Memory Instructions</h3>
+<h3>Global Memory Instructions</h3>
+<h3>Closure Instructions</h3>
+<h3>Heap Memory Instructions</h3>
+<h3>Function Call Instructions</h3>
+<h3>Foreign Symbol Instructions</h3>
+<h3>Conversion Instructions</h3>
+<h3>Unary Instructions</h3>
+<h3>Binary Instructions</h3>
+<h4>Integer-only Binary Instructions</h4>
+<h4>Boolean-only Binary Instructions</h4>
+<h4>Arithmetic Binary Instructions</h4>
+<h4>Comparison Instructions</h4>
+<h4>String/Array Instructions</h4>
 
 <h2>Parsing and Compilation</h2>
 
 <h2>Interpreter</h2>
+
+<h2>The Standard Library</h2>
+<h3>The <code>std</code> Module</h3>
+<h3>The <code>std::math</code> Module</h3>
+<h3>The <code>std::io</code> Module</h3>
+<h3>The <code>std::reflection</code> Module</h3>
+<h3>The <code>std::json</code> Module</h3>
+
+<h2>Compiler Command Line Interface</h2>
+<p>
+  This section details the CLI (Command Line Interface) of the default Tetral
+  implementation.
+</p>
+<p>
+  The usage of the <code>tetral</code> command looks like so:
+</p>
+<code><pre>
+tetral [OPTIONS] [COMMAND] [COMMAND ARGUMENTS]
+</pre></code>
+
+<h3>Commands</h3>
+<h4>The <code>compile</code> Command</h4>
+<h4>The <code>run</code> Command</h4>
+<h4>The <code>test</code> Command</h4>
+<h4>The <code>help</code> Command</h4>
+<h4>The <code>version</code> Command</h4>
+
+<h3>Flags</h3>
+<p>
+  Certain flags will be referred to as <i>"Value Flags,"</i> these are flags
+  which require a value be provided after the flag's name. The value must be
+  specified after an equals sign (U+003D.) For example:
+</p>
+<code><pre>
+--disable-warn=unused.variable
+</pre></code>
+
+<h4>General Flags</h4>
+<dl>
+  <dt>The <code>--lib-directory</code> Value Flag</dt>
+  <dd>
+    <p>
+      The flag specifies a file path that will be used as a file path from which
+      Tetral can load libraries during compilation or interpretation.
+    </p>
+    <p>
+      The flag can be specified multiple times to append more library
+      directories.
+    </p>
+  </dd>
+
+  <dt>The <code>--no-implicit-std</code> Flag</dt>
+  <dd>
+    <p>
+      Specifies that the default <code>std</code> modules should not be imported
+      automatically.
+    </p>
+    <p>
+      When specified, script files must explicitly import the <code>std</code>
+      modules.
+    </p>
+  </dd>
+
+  <dt>The <code>--implicit-import</code> Value Flag</dt>
+  <dd>
+    <p>
+      Specifies a module name that will be automatically imported without a
+      source file having to explcitly state it's using symbols from that
+      module.
+    </p>
+  </dd>
+</dl>
+
+<h4>Compiler Flags</h4>
+<dl>
+  <dt>The <code>--drop-line-numbers</code> Flag</dt>
+  <dd>
+    Instructs the compiler to omit all <code>PUSHLINE</code> instructions from
+    the compiled output.
+  </dd>
+
+  <dt>The <code>--error-warnings</code> Flags</dt>
+  <dd>
+    Instructs the compiler to treat all warnings as errors.
+  </dd>
+
+  <dt>The <code>--disable-warn</code> Value Flag</dt>
+  <dd>
+    Instructs the compiler to not report certain warnings
+  </dd>
+
+  <dt>The <code>--ignore-asserts</code> Flag</dt>
+  <dd>
+    Instructs the compiler to omit all <b><code>assert</code></b> statements
+    from the compiled output.
+  </dd>
+
+  <dt>The <code>--json-messages</code> Flag</dt>
+  <dd>
+    <p>
+      Instructs the compiler to print all messages in a JSON format instead of the
+      default human-readable format.
+    </p>
+    <p>
+      This will result in messages with a schema defined in <chapter-ref target="json-messages"></chapter-ref>
+    </p>
+    <p>
+      Regardless of this flag being used or not, the compiler will always
+      print to either the standard output or the standard error output.
+    </p>
+  </dd>
+</dl>
+
+<h2>Annexes</h2>
+<h3>Annex A. Class Implementation Details</h3>
+<ol>
+  <li>
+    Class methods are lifted out of classes and become global functions with the
+    class' name and a dot character (U+002E) prefixed to the method's name.
+  </li>
+  <li>
+    For non-<literal>static</literal> methods, a hidden argument, the
+    <literal>this</literal> argument, is prepended to the method's arguments.
+  </li>
+  <li>
+    Class types exist in memory in the same way as struct types, with their
+    functions becoming free-floating.
+  </li>
+  <li>
+    If a class is exported, then all of its lifted functions are also exported.
+  </li>
+  <li>
+    All constructors of a class are similarly transformed into global
+    functions with the type's name and a dot character (U+002E) prefixed and
+    the method name changed to <code>&lt;constructor&gt;</code>.
+  </li>
+  <li>
+    A compiler-only statement is inserted into the body of each function, which
+    calls the interpreter's allocator to allocate enough memory for the type,
+    then the super constructor is invoked, if present, and then the rest of the
+    constructor body.
+  </li>
+</ol>
+
+<h3 id="json-messages">Annex B. JSON Message Format</h3>
+<p>
+  Each logged JSON message is logged as a JSON object with the following
+  properties.
+</p>
+<dl>
+  <dt><code>level</code></dt>
+  <dd>
+    A string determining the "level" of the message. Will always have one of
+    the following values:
+    <ul>
+      <li><code>FATAL</code></li>
+      <li><code>ERROR</code></li>
+      <li><code>WARN</code></li>
+      <li><code>INFO</code></li>
+      <li><code>TRACE</code></li>
+    </ul>
+  </dd>
+
+  <dt><code>message_code</code></dt>
+  <dd>
+    The message code, defined in <chapter-ref target="msg-ids"></chapter-ref>
+  </dd>
+
+  <dt><code>message</code></dt>
+  <dd>
+    Human readable, formatted message.
+  </dd>
+
+  <dt><code>location</code></dt>
+  <dd>
+    <p>
+      This property may be omitted for certain messages, the presence of this
+      property is not guaranteed.
+    </p>
+    <p>
+      If it is present, it will be a JSON object with the following properties:
+    </p>
+    <dl>
+      <dt><code>start_line</code> and <code>end_line</code></dt>
+      <dd>Line number range the message is referencing, starting at 1.</dd>
+
+      <dt><code>start_index</code> and <code>end_index</code></dt>
+      <dd>
+        Index range of the characters in the input the message is referencing,
+        starting at 0.
+      </dd>
+    </dl>
+  </dd>
+</dl>
+
+
+<h3 id="msg-ids">Annex C. Error and Warning IDs</h3>
+<p>
+  This section details the IDs of compiler warning and errors. These IDs are
+  used to provide translations of the compiler and for the
+  <code>--disable-warn</code> argument.
+</p>
+<table>
+  <caption>Compiler Message IDs</caption>
+  <thead>
+  <tr>
+    <th>Message ID</th>
+    <th>Type</th>
+    <th>Default Value</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><code>lexer.invalidcodepoint</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid UTF-8 byte found in source file</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidocto</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid octal sequence</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidhex</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid hexadecimal sequence</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidbin</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid binary sequence</td>
+  </tr>
+  <tr>
+    <td><code>lexer.unclosedstring</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Unclosed string constant</td>
+  </tr>
+  <tr>
+    <td><code>lexer.stringlinebreak</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Linebreak inside single-line string</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidescape</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid escape sequence</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidunicode</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Invalid Unicode sequence</td>
+  </tr>
+  <tr>
+    <td><code>lexer.invalidchar</code></td>
+    <td>Fatal Tokenizer Error</td>
+    <td>Character constant too long, may only contain one UTF-8 character</td>
+  </tr>
+  <tr>
+    <td><code>parser.expected</code></td>
+    <td>Fatal Parser Error</td>
+    <td>Expected %0, found %1</td>
+  </tr>
+  <tr>
+    <td><code>parser.duplicateflag</code></td>
+    <td>Parser Error</td>
+    <td>Declaration modifier already set</td>
+  </tr>
+  <tr>
+    <td><code>parser.funcdecl.trailingcomma</code></td>
+    <td>Parser Error</td>
+    <td>Illegal trailing comma in arguments declaration</td>
+  </tr>
+  <tr>
+    <td><code>parser.funcdecl.nativebody</code></td>
+    <td>Parser Error</td>
+    <td>Native functions cannot have a function body</td>
+  </tr>
+  <tr>
+    <td><code>parser.invalidlabelled</code></td>
+    <td>Fatal Parser Error</td>
+    <td>Illegal statement following loop label</td>
+  </tr>
+  <tr>
+    <td><code>parser.typeexpr.invalid</code></td>
+    <td>Fatal Parser Error</td>
+    <td>Invalid type expression</td>
+  </tr>
+  <tr>
+    <td><code>parser.module.nativenofrom</code></td>
+    <td>Parser Error</td>
+    <td>Native module declaration has no 'from' part to declare native library name.</td>
+  </tr>
+  <tr>
+    <td><code>parser.module.invalidname</code></td>
+    <td>Fatal Parser Error</td>
+    <td>Expected module separator '::' to be followed by module name element.</td>
+  </tr>
+  <tr>
+    <td><code>parser.call.trailingcomma</code></td>
+    <td>Parser Error</td>
+    <td>Illegal trailing comma in function call arguments.</td>
+  </tr>
+  <tr>
+    <td><code>parser.call.malformed</code></td>
+    <td>Parser Error</td>
+    <td>Malformed call expression.</td>
+  </tr>
+  <tr>
+    <td><code>parser.unexpected</code></td>
+    <td>Fatal Parser Error</td>
+    <td>Token not expected here, don't know how to parse.</td>
+  </tr>
+  </tbody>
+</table>
