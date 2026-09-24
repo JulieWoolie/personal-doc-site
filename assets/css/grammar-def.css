@@ -1,0 +1,61 @@
+literal {
+  font-family: monospace;
+  font-weight: bold;
+}
+
+:is(rule, literal)[modifiers]::after {
+  content: attr(modifiers);
+  vertical-align: sub;
+  font-size: smaller;
+}
+
+rule {
+  font-style: italic;
+  border-bottom: 1px solid transparent;
+
+  &:hover {
+    color: #99ccff; /* lighter on hover */
+    border-bottom: 1px solid #99ccff;
+    cursor: pointer;
+  }
+}
+
+grammar-def {
+  display: block;
+  text-align: left;
+  margin-bottom: 5mm;
+  background-color: var(--lighter);
+  padding: 5mm;
+  white-space: nowrap;
+  overflow-x: auto;
+
+  rule-def:not([type="oneof"])::before {
+    content: attr(id) ":";
+    font-style: italic;
+  }
+
+  rule-def[type="oneof"]::before {
+    content: attr(id) ": one of:";
+    font-style: italic;
+  }
+
+  rule-def:not(:first-child) {
+    margin-block-start: 5mm;
+  }
+
+  rule-def {
+    display: block;
+
+    def {
+      display: block;
+      padding-inline-start: 1cm;
+    }
+
+    oneof {
+      padding-inline-start: 1cm;
+      display: grid;
+      column-gap: 2.5mm;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+  }
+}
