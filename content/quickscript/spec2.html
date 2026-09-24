@@ -495,7 +495,7 @@ noindent: true
 <p>
 
 </p>
-<h4 id="comp-semantics">Comparison And Equality Semantics</h4>
+<h3 id="comp-semantics">Comparison And Equality Semantics</h3>
 <ol>
   <li>Any two arithmetic values can be compared and their equality checked.</li>
   <li>
@@ -1702,13 +1702,38 @@ noindent: true
   </li>
 </ol>
 
+<h4>Identity Equality Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="identity-expression">
+    <def><rule>relational-expression</rule></def>
+    <def><rule>identity-expression</rule> <literal>===</literal> <rule>relational-expression</rule></def>
+    <def><rule>identity-expression</rule> <literal>!==</literal> <rule>relational-expression</rule></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>Both operands must be of a compatible reference type.</li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    The result of the <b>===</b> operator is a boolean true value if the left
+    operand's pointer is the same value as the right operand's pointer.
+  </li>
+  <li>
+    The result of the <b>!==</b> operator is the inverse of the <b>===</b>
+    operator's value.
+  </li>
+</ol>
+
 <h4>Equality Expressions</h4>
 <p><b>Syntax</b></p>
 <grammar-def>
   <rule-def id="equality-expression">
-    <def><rule>relational-expression</rule></def>
-    <def><rule>equality-expression</rule> <literal>==</literal> <rule>relational-expression</rule></def>
-    <def><rule>equality-expression</rule> <literal>!=</literal> <rule>relational-expression</rule></def>
+    <def><rule>identity-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>==</literal> <rule>identity-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>!=</literal> <rule>identity-expression</rule></def>
   </rule-def>
 </grammar-def>
 <p><b>Constraints</b></p>
@@ -2983,11 +3008,92 @@ tetral [OPTIONS] [COMMAND] [COMMAND ARGUMENTS]
 </pre></code>
 
 <h3>Commands</h3>
+
 <h4>The <code>compile</code> Command</h4>
+<p><b>Command Usage</b></p>
+<code><pre>
+tetral [OPTIONS] compile [IN FILES]
+</pre></code>
+<p><b>Description</b></p>
+<p>
+  The compile command takes in a list of file paths that are parsed and then
+  compiled into one single bytecode format. The files in the list can be source
+  files or bytecode files.
+</p>
+
 <h4>The <code>run</code> Command</h4>
+<p><b>Command Usage</b></p>
+<code><pre>
+tetral [OPTIONS] run [PROGRAM FILE] [RUNTIME ARGUMENTS]
+</pre></code>
+<p><b>Description</b></p>
+<p>
+  The run command takes in the name of a single program file to execute and
+  runs it. The <code>[RUNTIME ARGUMENTS]</code> arguments may be omitted. These
+  arguments are passed to the script's main function as an array of string
+  arguments with the real-path of the script file always being the first.
+</p>
+
 <h4>The <code>test</code> Command</h4>
+<p><b>Command Usage</b></p>
+<code><pre>
+tetral [OPTIONS] test [TEST DIRECTORY]
+</pre></code>
+<p><b>Description</b></p>
+<p>
+  The test command takes in a file path to a directory of Tetral program files
+  and executes each after another.
+</p>
+<p>
+  Any errors thrown during the execution of the files are ignored and instead
+  are checked against a list of <i>"expected"</i> errors.
+</p>
+
+<p><b>Test Execution</b></p>
+<p>For each valid test file:</p>
+<ol>
+  <li>
+    If the file is a Tetral source file, it is parsed and compiled. If any
+    errors occurred during parsing or compilation, they are checked against a
+    list of expected parsing errors.
+  </li>
+  <li>
+    The test file's entrypoint is then executed as normal.
+  </li>
+  <li>
+    Every function with a name prefixed with <code>test_</code> is then
+    executed. The function's name is considered to be the name of the test case.
+    These functions do not need to be exported.
+  </li>
+  <li>
+    If any errors occurred, they are checked against a list of expected
+    runtime errors. If all match, the test is considered passed. If there are
+    more errors than expected or an expected error did not occur, or if an error
+    did not match the expected one, the test is considered a failure and
+    execution moves on to the next case.
+  </li>
+  <li>
+    When all test cases in a single file have been executed, the
+    <code>tests_shutdown</code> function is called, if one exists. The shutdown
+    function does not need to be exported.
+  </li>
+  <li>
+    If a test result directory is specified, test results, IR, ASTs and config
+    information are dumped to the specified directory.
+  </li>
+</ol>
+
 <h4>The <code>help</code> Command</h4>
+<p>
+  Prints text about the supported flags, commands and their arguments to the
+  console. The version info is printed as well.
+</p>
+
 <h4>The <code>version</code> Command</h4>
+<p>
+  Prints information about the version of the Tetral language, compiler and
+  interpreter in use.
+</p>
 
 <h3>Flags</h3>
 <p>
@@ -3072,6 +3178,73 @@ tetral [OPTIONS] [COMMAND] [COMMAND ARGUMENTS]
       Regardless of this flag being used or not, the compiler will always
       print to either the standard output or the standard error output.
     </p>
+  </dd>
+
+  <dt>The <code>--text-compile</code>/<code>-T</code> Flag</dt>
+  <dd>
+    <p>
+      Writes a textual representation of the compiled Bytecode format to the
+      output file instead of a binary format.
+    </p>
+    <p>
+      Textual IR files are not intended to be read and as such are not valid
+      source or bytecode files. This flag is intended for debugging and
+      human analysis of the compiled output.
+    </p>
+  </dd>
+
+  <dt>The <code>--output-file</code>/<code>-o</code> Value Flag</dt>
+  <dd>
+    <p>Tells the compiler the file path to output the compiled output to.</p>
+    <p>
+      If this flag is not specified, then the file that is written to will be
+      same path as the input file(s), except with the appropriate extension,
+      depending on if the <code>--text-compile</code> flag was specified, or
+      not. (See <chapter-ref target="tl-extensions"></chapter-ref>)
+    </p>
+  </dd>
+</dl>
+
+<h4>Test Command Flags</h4>
+<dl>
+  <dt>The <code>--verbose</code>/<code>-v</code> Flag</dt>
+  <dd>
+    Instructs the test executor to print more information to the standard output
+    than it normally would, providing information about how long each test took
+    to execute.
+  </dd>
+
+  <dt>The <code>--test-output-dir</code>/<code>-TO</code> Value Flag</dt>
+  <dd>
+    <p>
+      Specifies a directory to which the test executor will dump information about
+      each executed test to.
+    </p>
+    <p>
+      Each found test file will be executed and then information about the
+      result will be printed to a dedicated directory nested inside the
+      specified directory.
+    </p>
+    <p>
+      Printed information includes:
+    </p>
+    <ol>
+      <li>
+        A test file's AST, if parsed from a source file. (Dumped into a
+        <code>ast.json</code> file.)
+      </li>
+      <li>
+        A test file's config. (Dumped into a <code>config.json</code> file)
+      </li>
+      <li>
+        A test file's compiled IR, if parsed from a source file. (Dumped into a
+        <code>bytecode.tlir</code> file)
+      </li>
+      <li>
+        A summary of the test results. (Dumped into a <code>results.md</code>
+        file)
+      </li>
+    </ol>
   </dd>
 </dl>
 
@@ -3273,6 +3446,31 @@ tetral [OPTIONS] [COMMAND] [COMMAND ARGUMENTS]
     <td><code>parser.unexpected</code></td>
     <td>Fatal Parser Error</td>
     <td>Token not expected here, don't know how to parse.</td>
+  </tr>
+  </tbody>
+</table>
+
+<h3 id="tl-extensions">Annex D. Tetral File Extensions</h3>
+<table>
+  <caption>Tetral File Extensions</caption>
+  <thead>
+  <tr>
+    <th>File Extension</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><code>.tl</code> or <code>.tetral</code></td>
+    <td>Tetral source files</td>
+  </tr>
+  <tr>
+    <td><code>.tlir</code></td>
+    <td>Tetral Bytecode file</td>
+  </tr>
+  <tr>
+    <td><code>.tltir</code></td>
+    <td>Text representation of a Tetral Bytecode file</td>
   </tr>
   </tbody>
 </table>
