@@ -1981,14 +1981,51 @@ noindent: true
   </rule-def>
 </grammar-def>
 
+<h4>Parameterized Type Expressions</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="parameterized-type-expression">
+    <def><rule>type-name-expression</rule></def>
+    <def><rule>type-name-expression</rule> <literal>&lt;</literal> <rule>type-expression-list</rule> <literal>&gt;</literal></def>
+  </rule-def>
+
+  <rule-def id="type-expression-list">
+    <def><rule>type-expression</rule></def>
+    <def><rule>type-expression-list</rule> <literal>,</literal> <rule>type-expression</rule></def>
+  </rule-def>
+</grammar-def>
+
 <h4>Reference Type Expressions</h4>
 <p><b>Syntax</b></p>
 <grammar-def>
   <rule-def id="reference-type-expression">
-    <def><rule>type-name-expression</rule></def>
-    <def><rule>type-name-expression</rule> <literal>&</literal></def>
+    <def><rule>parameterized-type-expression</rule></def>
+    <def><rule>parameterized-type-expression</rule> <literal>&</literal></def>
+    <def>
+      <rule>parameterized-type-expression</rule>
+      <literal>readonly</literal>
+      <literal>&</literal>
+    </def>
   </rule-def>
 </grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Nested reference types cannot exist, such as a reference to a reference.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Declares a that value of a type is passed not by value or original pointer,
+    but by a pointer that references that value.
+  </li>
+  <li>
+    If the <literal>readonly</literal> keyword was used, it declares that the
+    value referenced by the reference type will not be modified by way of a
+    symbol declared with a <literal>readonly</literal> modifier reference.
+  </li>
+</ol>
 
 <h4>Nullable Type Expressions</h4>
 <p><b>Syntax</b></p>
@@ -1998,6 +2035,22 @@ noindent: true
     <def><rule>reference-type-expression</rule> <literal>?</literal></def>
   </rule-def>
 </grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    Nullable type expressions cannot be used for non-reference data types.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Declares that a value of a reference data type may be a null pointer.
+  </li>
+  <li>
+    Variables, properties, fields or function arguments marked as nullable may
+    be set as <literal>null</literal>.
+  </li>
+</ol>
 
 <h4>Array Type Expressions</h4>
 <p><b>Syntax</b></p>
@@ -2005,6 +2058,7 @@ noindent: true
   <rule-def id="array-type-expression">
     <def><rule>nullable-type-expression</rule></def>
     <def><rule>array-type-expression</rule> <literal>[]</literal></def>
+    <def><rule>array-type-expression</rule> <literal>readonly</literal> <literal>[]</literal></def>
   </rule-def>
 </grammar-def>
 
@@ -2039,6 +2093,32 @@ noindent: true
   <rule-def id="module-name">
     <def><rule>identifier</rule></def>
     <def><rule>module-name</rule> <literal>::</literal> <rule>identifier</rule></def>
+  </rule-def>
+</grammar-def>
+
+<h4>Type Parameter Lists</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="type-arguments">
+    <def>
+      <literal>&lt;</literal>
+      <rule>type-parameter-list</rule>
+      <literal>&gt;</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="type-parameter-list">
+    <def><rule>type-parameter</rule></def>
+    <def><rule>type-parameter-list</rule> <literal>,</literal> <rule>type-parameter</rule></def>
+  </rule-def>
+
+  <rule-def id="type-parameter">
+    <def><rule>identifier</rule></def>
+    <def>
+      <rule>identifier</rule>
+      <literal>extends</literal>
+      <rule>type-expression</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
@@ -2152,10 +2232,7 @@ noindent: true
       <rule modifiers="opt">declaration-modifiers</rule>
       <rule>type-expression</rule>
       <rule>identifier</rule>
-      <literal>(</literal>
-      <rule modifiers="opt">function-argument-list</rule>
-      <literal>)</literal>
-      <rule modifiers="opt">block-statement</rule>
+      <rule>function-definition</rule>
     </def>
   </rule-def>
 
@@ -2177,6 +2254,16 @@ noindent: true
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="function-definition">
+    <def>
+      <rule modifiers="opt">type-arguments</rule>
+      <literal>(</literal>
+      <rule modifiers="opt">function-argument-list</rule>
+      <literal>)</literal>
+      <rule modifiers="opt">block-statement</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -2204,6 +2291,42 @@ noindent: true
 <p>
   Declares a function that will be accessible in the current scope.
 </p>
+
+<h4>Extension Function Declarations</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="extension-function-declaration">
+    <def>
+      <rule modifiers="opt">declaration-modifiers</rule>
+      <rule>type-expression</rule>
+      <rule>extension-function-name</rule>
+      <rule>function-definition</rule>
+    </def>
+  </rule-def>
+  <rule-def id="extension-function-name">
+    <def>
+      <rule>type-expression</rule>
+      <literal>::</literal>
+      <rule>identifier</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>
+    The type referenced in the <rule>extension-function-name</rule> must be a
+    valid type.
+  </li>
+  <li>
+    The function may not access any private variables declared in the extended
+    type if it is a class type.
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  Declares a function which can be called and accessed as though it were a
+  method belonging to any arbitrary type.
+</ol>
 
 <h4>Variable Declarations</h4>
 <p><b>Syntax</b></p>
@@ -2308,11 +2431,18 @@ noindent: true
   <rule-def id="enum-declaration">
     <def>
       <rule>declaration-modifiers</rule>
-      <literal>enum</literal>
-      <rule>identifier</rule>
+      <rule>enum-prefix</rule>
       <literal>{</literal>
       <rule>enum-constant-declaration-list</rule>
       <literal>}</literal>
+    </def>
+  </rule-def>
+
+  <rule-def id="enum-prefix">
+    <def>
+      <literal>enum</literal>
+      <rule>identifier</rule>
+      <rule modifiers="opt">type-arguments</rule>
     </def>
   </rule-def>
 
@@ -2363,6 +2493,7 @@ noindent: true
     <def>
       <literal>interface</literal>
       <rule>identifier</rule>
+      <rule modifiers="opt">type-arguments</rule>
       <rule modifiers="opt">interface-extensions-declaration</rule>
     </def>
   </rule-def>
@@ -2389,10 +2520,7 @@ noindent: true
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
-      <literal>(</literal>
-      <rule modifiers="opt">function-argument-list</rule>
-      <literal>)</literal>
-      <rule modifiers="opt">block-statement</rule>
+      <rule>function-definition</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -2421,13 +2549,7 @@ noindent: true
     <def>
       <literal>class</literal>
       <rule>identifier</rule>
-      <rule modifiers="opt">class-extension-declaration</rule>
-      <rule modifiers="opt">class-implements-declaration</rule>
-    </def>
-    <def>
-      <literal>extendable</literal>
-      <literal>class</literal>
-      <rule>identifier</rule>
+      <rule modifiers="opt">type-arguments</rule>
       <rule modifiers="opt">class-extension-declaration</rule>
       <rule modifiers="opt">class-implements-declaration</rule>
     </def>
@@ -2490,10 +2612,7 @@ noindent: true
   <rule-def id="class-method-declaration">
     <def>
       <rule>class-property-prefix</rule>
-      <literal>(</literal>
-      <rule modifiers="opt">function-argument-list</rule>
-      <literal>)</literal>
-      <rule>block-statement</rule>
+      <rule>function-definition</rule>
     </def>
   </rule-def>
 
@@ -2989,7 +3108,80 @@ assert false : "message" // Assertion failed: message
 <h2>Interpreter</h2>
 
 <h2>The Standard Library</h2>
+
 <h3>The <code>std</code> Module</h3>
+<p>
+  The most basic standard library functions that would be required by a
+  program.
+</p>
+
+<h4 tocignore>The <code>readln</code> Function</h4>
+<code class="qs">
+  <keyw>string</keyw> <id>readln</id>()
+</code>
+<p>
+  Asks for input from the standard input and blocks execution until input has
+  been given.
+</p>
+
+<h4 tocignore>The <code>println</code> Function</h4>
+<code class="qs">
+  <keyw>void</keyw> <id>println</id>(<keyw>string</keyw> message)
+</code>
+<p>
+  Prints a string to the standard output and appends a newline (U+000A)
+  character.
+</p>
+
+<h4 tocignore>The <code>getenv</code> Function</h4>
+<code class="qs">
+  <keyw>string</keyw> <id>getenv</id>(<keyw>string</keyw> name)
+</code>
+<p>
+  The <code>getenv</code> function takes as input a single string: the
+  variable name and returns a value associated with that environment variable.
+</p>
+<p>
+  If no value is associated with that value, a null/empty string is returned
+  instead.
+</p>
+
+<h4 tocignore>The <code>setenv</code> Function</h4>
+<code class="qs">
+<keyw>void</keyw> <id>setenv</id>(<keyw>string</keyw> name, <keyw>string</keyw> value)
+<br>
+<keyw>void</keyw> <id>setenv</id>(<keyw>string</keyw> name, <keyw>string</keyw> value, <keyw>bool</keyw> overwrite)
+</code>
+<p>
+  This function is defined with two overloads. Both definitions take in a
+  variable name and value. One of the overloads takes in a boolean value. If
+  this value is false, then the envirnoment variable will not be overwritten if
+  it is already set.
+</p>
+<p>
+  The function changes a value in or adds to the list of environment variables.
+</p>
+
+<h4 tocignore>Numeric Parsing Functions</h4>
+<code class="qs">
+<quoted>Optional</quoted>&lt;<keyw>int32</keyw>&gt; <id>parseInt</id>(<keyw>string</keyw> s)
+<br>
+<quoted>Optional</quoted>&lt;<keyw>uint32</keyw>&gt; <id>parseUint</id>(<keyw>string</keyw> s)
+<br>
+<quoted>Optional</quoted>&lt;<keyw>int64</keyw>&gt; <id>parseInt64</id>(<keyw>string</keyw> s)
+<br>
+<quoted>Optional</quoted>&lt;<keyw>uint64</keyw>&gt; <id>parseUint64</id>(<keyw>string</keyw> s)
+<br>
+<quoted>Optional</quoted>&lt;<keyw>float32</keyw>&gt; <id>parseFloat</id>(<keyw>string</keyw> s)
+<br>
+<quoted>Optional</quoted>&lt;<keyw>float64</keyw>&gt; <id>parseFloat64</id>(<keyw>string</keyw> s)
+</code>
+<p>
+  Every one of these functions takes a string as an input and parses the
+  beginning of that string into a number of the equivalent value of the
+  respective type.
+</p>
+
 <h3>The <code>std::math</code> Module</h3>
 <h3>The <code>std::io</code> Module</h3>
 <h3>The <code>std::reflection</code> Module</h3>
