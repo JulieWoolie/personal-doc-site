@@ -59,3 +59,20 @@ grammar-def {
     }
   }
 }
+
+code.qs {
+  background-color: var(--lighter);
+  white-space: nowrap;
+  text-align: left;
+  display: block;
+  padding: 5mm;
+  keyw {
+    color: cyan;
+  }
+  quoted {
+    color: lightgreen;
+  }
+  id {
+    color: gold;
+  }
+}
