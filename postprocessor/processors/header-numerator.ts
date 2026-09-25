@@ -14,11 +14,8 @@ export function numberHeaders(doc: Document, headers: CollectedHeader[]) {
     if (level == currentLevel) {
       numbers[numbers.length - 1]++
     } else if (level < currentLevel) {
-      const dif = currentLevel - level
-      for (let i = 0; i < dif; i++) {
-        numbers.pop()
-        numbers[numbers.length - 1]++
-      }
+      numbers.length = level
+      numbers[level - 1]++
     } else {
       numbers.push(1)
     }
