@@ -8,6 +8,10 @@ export function processTableOfContents(doc: Document, headers: CollectedHeader[]
   }
 
   for (const h of headers) {
+    if (h.element.hasAttribute("tocignore")) {
+      continue
+    }
+
     let a = doc.createElement("a")
 
     a.setAttribute("href", `#${h.element.id}`)
