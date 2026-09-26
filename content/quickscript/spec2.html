@@ -201,6 +201,23 @@ noindent: true
     A fully qualified name is the name of a struct, function or variable in a
     source file with the file's module namespace prefixed to it.
   </dd>
+
+  <dt>Symbol</dt>
+  <dd>
+    <p>
+      A symbol is an object which can be referred to with a specified name.
+      Examples of symbols include, but are not limited to:
+    </p>
+    <ul>
+      <li>Functions</li>
+      <li>Structs</li>
+      <li>Enums</li>
+      <li>Classes</li>
+      <li>Local Variables</li>
+      <li>Global Variables</li>
+      <li>Imported Symbols</li>
+    </ul>
+  </dd>
 </dl>
 
 <h2>Environment</h2>
@@ -435,26 +452,6 @@ noindent: true
   sections.
 </p>
 
-<h3>Notation</h3>
-<p>
-  References to other syntactic rules are in <i>italic</i>, literal values are
-  in <b>bold</b>. An italic syntactic rule followed by a colon <i>(:)</i>
-  defines the rule. Alternative definitions of the rule are defined on new
-  lines. Optional parts are described with the subscript <i>"opt"</i>. And
-  parts which may repeat and appear several times will be described with the
-  suffix <i>"rep"</i>.
-</p>
-<figure>
-  <figcaption>Basic Syntax Notation Example</figcaption>
-  <center>
-    <b>(</b> <i>expression</i><sub><i>opt rep</i></sub> <b>)</b>
-  </center>
-</figure>
-<p>
-  Indicates a syntax element enclosed with <i>"()"</i> which might contain
-  an expression, or several expressions.
-</p>
-
 <h3>Arithmetic Operations</h3>
 <p>
   This section details constraints and semantics when performing arithmetic
@@ -493,8 +490,16 @@ noindent: true
   can reference a different symbol at different points in a program.
 </p>
 <p>
-
+  A difference must be made between the identifiers used in
+  <rule>primary-expression</rule>s and identifiers used in other contexts. In a
+  primary expression, the identifier serves as a symbol that references a
+  previously declared or imported symbol.
 </p>
+<p>
+  Symbol lookup is performed in ascending scopes from the current scopes. The
+  order being: Local Scope, Current Function Scope, Global Scope.
+</p>
+
 <h3 id="comp-semantics">Comparison And Equality Semantics</h3>
 <ol>
   <li>Any two arithmetic values can be compared and their equality checked.</li>
@@ -565,6 +570,47 @@ noindent: true
   </li>
 </ol>
 
+<h3 id="def-init">Default Initialization</h3>
+<p>
+  Default initialization occurs when a variable or class/struct property is
+  declared with no value.
+</p>
+<p>
+  Numeric types are initialized to the type's equivalent of the value
+  <code>0</code>. Booleans to the value false. Array, string and nullable
+  reference types are initialized to an empty array. Enumeration types are
+  initialized to the enum value with the ordinal <code>0</code>.
+</p>
+<p>
+  Structs are initialized with all properties set to their default values as
+  specified in the struct declaration.
+</p>
+<p>
+  If a type cannot be default initialized, such as in the case of a class with
+  no no-argument constructors, enums where the 0 ordinal variant requires
+  properties or an interface type. Then the declaration is considered invalid
+  and a value must be explicitly set.
+</p>
+
+<h3>Notation</h3>
+<p>
+  References to other syntactic rules are in <i>italic</i>, literal values are
+  in <b>bold</b>. An italic syntactic rule followed by a colon <i>(:)</i>
+  defines the rule. Alternative definitions of the rule are defined on new
+  lines. Optional parts are described with the subscript <i>"opt"</i>. And
+  parts which may repeat and appear several times will be described with the
+  suffix <i>"rep"</i>.
+</p>
+<figure>
+  <figcaption>Basic Syntax Notation Example</figcaption>
+  <center>
+    <b>(</b> <i>expression</i><sub><i>opt rep</i></sub> <b>)</b>
+  </center>
+</figure>
+<p>
+  Indicates a syntax element enclosed with <i>"()"</i> which might contain
+  an expression, or several expressions.
+</p>
 <h3>Lexical Elements</h3>
 <grammar-def>
   <rule-def id="token">
@@ -2074,16 +2120,6 @@ noindent: true
     <def><rule>class-declaration</rule></def>
   </rule-def>
 
-  <rule-def id="declaration-modifiers">
-    <def>
-      <rule modifiers="rep">declaration-modifier</rule>
-    </def>
-  </rule-def>
-
-  <rule-def id="declaration-modifier" type="oneof">
-    <def><literal>native export const</literal></def>
-  </rule-def>
-
   <rule-def id="module-header-declarations">
     <def><rule>module-declaration</rule> <rule modifiers="rep">import-declaration</rule></def>
     <def><rule>module-declaration</rule></def>
@@ -2095,6 +2131,24 @@ noindent: true
     <def><rule>module-name</rule> <literal>::</literal> <rule>identifier</rule></def>
   </rule-def>
 </grammar-def>
+
+<h4>Declaration Modifiers</h4>
+<p><b>Syntax</b></p>
+<grammar-def>
+  <rule-def id="declaration-modifiers">
+    <def>
+      <rule modifiers="rep">declaration-modifier</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="declaration-modifier" type="oneof">
+    <def><literal>native export const</literal></def>
+  </rule-def>
+</grammar-def>
+<p><b>Constraints</b></p>
+<ol>
+  <li>No declaration modifier may be set more than once.</li>
+</ol>
 
 <h4>Type Parameter Lists</h4>
 <p><b>Syntax</b></p>
@@ -2346,34 +2400,60 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Description</b></p>
-<p>
-  Declares a variable or a constant that will be accessible in the current
-  scope.
-</p>
 <p><b>Constraints</b></p>
 <ol>
   <li>
     Must not have the name of an already accessible variable in the current
-    namespace.
+    scope.
   </li>
   <li>
     If a value is specified for the declaration, the variable's resulting
-    value must match the declared type.
+    value must match the declared type, or be easily convertible to the
+    variable's type.
   </li>
   <li>
-    If the variable is declared with <b><code>const</code></b>, then a value
+    If the variable is declared with <literal>const</literal>, then a value
     must be specified.
   </li>
   <li>
-    Variables declared with the <b><code>native</code></b> modifier cannot ever
-    have a value. As the <b><code>native</code></b> keyword declares a variable
-    that is provided at runtime via native binding, the value will be declared
-    by the native binding, not in a script file.
+    Variable declared with the <literal>const</literal> modifier may not be
+    modified at a later time.
   </li>
   <li>
-    Variables declared with the <b><code>export</code></b> keyword must only be
+    Variables declared with the <literal>export</literal> keyword must only be
     declared in the global scope.
+  </li>
+  <li>
+    Variables cannot be declared with the following keywords:
+    <ul>
+      <li><literal>native</literal></li>
+    </ul>
+  </li>
+  <li>
+    If an initializer value is present, the initializer cannot reference the
+    declared variable.
+  </li>
+  <li>
+    If the variable's type cannot be default-initialized, then a value must be
+    explicitly specified. (See <chapter-ref target="def-init"></chapter-ref>)
+  </li>
+</ol>
+<p><b>Semantics</b></p>
+<ol>
+  <li>
+    Declares a variable or a constant that will be accessible in the current
+    scope.
+  </li>
+  <li>
+    If an initializer value is present, it becomes the value of the variable.
+  </li>
+  <p>
+    If no initializer value is set, then the value must be default-initialized.
+    (See <chapter-ref target="def-init"></chapter-ref>)
+  </p>
+  <li>
+    Variables declared with the <literal>export</literal> keyword are made
+    available for access outside the declaring file.
   </li>
 </ol>
 
@@ -3078,13 +3158,515 @@ assert false : "message" // Assertion failed: message
 </grammar-def>
 
 <h2>Intermediate Representation (Bytecode Format)</h2>
+<p>
+  The result of the compilation of a Tetral source file should be a Tetral
+  Bytecode file. This section outlines the bytecode format.
+</p>
+
 <h3>File Header</h3>
-<h3>String Pool Table</h3>
-<h3>String Pool Data</h3>
-<h3>Type Table</h3>
-<h3>Function Table</h3>
-<h3>Instructions Block</h3>
-<h3>Data Block</h3>
+<p>
+  Each Tetral IR file is prefixed with a file header which provides information
+  about the file's contents. The layout of the header is as follows.
+</p>
+<p>
+  The header begins with an ASCII string that must always have the value
+  <code>TetralLang</code>. This is immediately followed by a 2 byte unsigned
+  integer denoting the file's version.
+</p>
+<p>
+  The file version integer is an incrementing integer which specifies what
+  version of the Tetral bytecode format the file complies with.
+</p>
+<table>
+  <caption>Tetral File Versions</caption>
+  <thead>
+  <tr>
+    <th>Version number</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>1</td>
+    <td>The first version of the Tetral Language</td>
+  </tr>
+  </tbody>
+</table>
+<p>
+  The vile version integer is then followed by a repeating pattern. Each
+  instance of this pattern begins with a single unsigned byte, the entry type.
+  No entry may be defined twice, but not all entries are required to appear in
+  a file.
+</p>
+<p>
+  The following types are valid.
+</p>
+<table>
+  <caption>Bytecode Header Entry Types</caption>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Hexadecimal Value</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><code>END</code></td>
+    <td><code>0x00</code></td>
+    <td>Special entry type used to mark the end of the header.</td>
+  </tr>
+  <tr>
+    <td><code>STRTABLE</code></td>
+    <td><code>0x01</code></td>
+    <td>String table information</td>
+  </tr>
+  <tr>
+    <td><code>STRDATA</code></td>
+    <td><code>0x02</code></td>
+    <td>String pool information</td>
+  </tr>
+  <tr>
+    <td><code>TYPETABLE</code></td>
+    <td><code>0x03</code></td>
+    <td>Type table information</td>
+  </tr>
+  <tr>
+    <td><code>FUNCTABLE</code></td>
+    <td><code>0x04</code></td>
+    <td>Function table information</td>
+  </tr>
+  <tr>
+    <td><code>INSTRBLOCK</code></td>
+    <td><code>0x05</code></td>
+    <td>Instruction block information</td>
+  </tr>
+  <tr>
+    <td><code>RDATA</code></td>
+    <td><code>0x06</code></td>
+    <td>Read only data block information</td>
+  </tr>
+  <tr>
+    <td><code>MDATA</code></td>
+    <td><code>0x06</code></td>
+    <td>Pre-defined metadata properties</td>
+  </tr>
+  <tr>
+    <td><code>ADATA</code></td>
+    <td><code>0x06</code></td>
+    <td>List of arbitrary key,value string pairs.</td>
+  </tr>
+  <tr>
+    <td><code>MODINFO</code></td>
+    <td><code>0x07</code></td>
+    <td>Information about the import and export list.</td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>The <code>STRTABLE</code> Entry</h4>
+<p>
+  Comprised of a 64-bit unsigned integer: an offset of the string table's data
+  from the start of the file, and a 32-bit unsigned integer: the number of
+  entries in the string table.
+</p>
+<p>(See <chapter-ref target="ir-strtable"></chapter-ref>)</p>
+
+<h4>The <code>STRDATA</code> Entry</h4>
+<p>
+  Comprised of two 64-bit unsigned integers, the first is an offset and the
+  second is a size. The offset specifies where, from the start of the file, the
+  file's string pool data is located and the size specifies the size (in bytes)
+  of the file's string pool data.
+</p>
+<p>(See <chapter-ref target="ir-strdata"></chapter-ref>)</p>
+
+<h4>The <code>TYPETABLE</code> Entry</h4>
+<p>
+  Comprised of a 64-bit unsigned integer: an offset of the type table's data
+  from the start of the file, and a 32-bit unsigned integer: the number of
+  entries in the type table.
+</p>
+<p>(See <chapter-ref target="ir-typetable"></chapter-ref>)</p>
+
+<h4>The <code>FUNCTABLE</code> Entry</h4>
+<p>
+  Comprised of a 64-bit unsigned integer: an offset of the function table's data
+  from the start of the file, and a 32-bit unsigned integer: the number of
+  entries in the function table.
+</p>
+<p>(See <chapter-ref target="ir-ftable"></chapter-ref>)</p>
+
+<h4>The <code>INSTRBLOCK</code> Entry</h4>
+<p>
+  Comprised of the following orders. The values appear in the binary in the
+  order they are defined here.
+</p>
+<dl>
+  <dt>Instruction block offset</dt>
+  <dd>
+    A 64-bit unsigned integer that specifies the file's instruction block
+    offset from the start of the file.
+  </dd>
+  <dt>Instruction block size</dt>
+  <dd>
+    A 32-bit unsigned integer that specifies the file's instruction block size
+    in bytes.
+  </dd>
+  <dt>Instruction count</dt>
+  <dd>
+    A 32-bit unsigned integer that specifies how many instructions are in the
+    instruction block.
+  </dd>
+</dl>
+<p>(See <chapter-ref target="ir-instr"></chapter-ref>)</p>
+
+<h4>The <code>RDATA</code> Entry</h4>
+<p>
+  Comprised of two 64-bit unsigned integers, they are as follows and appear in
+  the order they are listed.
+</p>
+<ol>
+  <li>The offset of the data block from the start of the file.</li>
+  <li>The size of the data block, in bytes.</li>
+</ol>
+<p>(See <chapter-ref target="ir-dblock"></chapter-ref>)</p>
+
+<h4>The <code>MDATA</code> Entry</h4>
+<p>
+  Comprised of the following values which and appear in the order they are
+  listed.
+</p>
+<dl>
+  <dt>The file's global scope size</dt>
+  <dd>
+    A 64-bit unsigned integer that determines how many bytes are required to
+    represent the variables stored in the file's global scope.
+  </dd>
+  <dt>Entrypoint function index</dt>
+  <dd>
+    <p>
+      An 32-bit unsigned integer index into the function table from where the
+      execution of the instructions in the file should begin.
+    </p>
+    <p>
+      A value (in hexadecimal) of <code>0xFFFFFFFF</code> means that the file
+      has no entrypoint and cannot be executed by itself.
+    </p>
+  </dd>
+</dl>
+
+<h4>The <code>ADATA</code> Entry</h4>
+<p>
+  This entry begins with a 32-bit unsigned integer that denotes the number of
+  key value pairs stored in the section.
+</p>
+<p>
+  It is then followed by that many number of key-value pairs of strings. Each
+  string is prefixed with a 16-bit unsigned integer denoting the length of the
+  string and is then followed by that many bytes of UTF-8 encoded characters.
+</p>
+
+<h3 id="ir-strtable">String Pool Table</h3>
+<p>
+  The String Pool Table, or just the String Table, is a list of 32-bit unsigned
+  integer pairs. The number of entries in the table is determined in the
+  <code>STRTABLE</code> entry in the header.
+</p>
+<p>
+  Each 32-big unsigned integer is defined as follows:
+</p>
+<dl>
+  <dt>String Pool Offset</dt>
+  <dd>
+    The first 32-bit unsigned integer is an address of a string's content in the
+    String Pool Data.
+  </dd>
+  <dt>String Length</dt>
+  <dd>The second integer is the number of characters in the string.</dd>
+</dl>
+<p>
+  The first entry in the list may be a <i>"null"</i> string entry, meaning an
+  entry with offset 0 and length 0, used as a placeholder for an empty, or null,
+  string.
+</p>
+<p>
+  If this section is present in a bytecode file, then the String Pool Data
+  section must be present too, as well as the corresponding entries in the
+  header.
+</p>
+
+<h3 id="ir-strdata">String Pool Data</h3>
+<p>
+  A block of UTF-8 encoded characters. The size and location of this section is
+  determined by the <code>STRPOOL</code> entry in the header.
+</p>
+<p>
+  If this section is present in a bytecode file, then the String Pool Table
+  section must be present too, as well as the corresponding entries in the
+  header.
+</p>
+
+<h3 id="ir-typetable">Type Table</h3>
+<p>
+  This section is a list of type definitions. The number of definitions in this
+  section and the section's location in the file is determined by the
+  <code>TYPETABLE</code> entry in the header.
+</p>
+<p>
+  Each definition is prefixed with 2 values, an unsigned 32-bit integer and an
+  8-bit unsigned integer.
+</p>
+<p>
+  The first integer is the <i>"type index"</i> of the type definition. This
+  index is used in function table entries, other type table entries, and in
+  some IR instructions to reference the type definition.
+</p>
+<p>
+  The second 8-bit unsigned integer marks the type of the entry. The following
+  values are considered valid.
+</p>
+<table>
+  <caption>Type Table Definition Types</caption>
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Hexadecimal Value</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr><td><code>ARRAY</code></td><td><code>0x00</code></td></tr>
+  <tr><td><code>FUNCSIGN</code></td><td><code>0x01</code></td></tr>
+  <tr><td><code>STRUCT</code></td><td><code>0x02</code></td></tr>
+  <tr><td><code>ENUM</code></td><td><code>0x03</code></td></tr>
+  <tr><td><code>INTERFACE</code></td><td><code>0x04</code></td></tr>
+  <tr><td><code>CLASS</code></td><td><code>0x05</code></td></tr>
+  <tr><td><code>NULLABLE</code></td><td><code>0x06</code></td></tr>
+  <tr><td><code>PARAMETERIZED</code></td><td><code>0x07</code></td></tr>
+  <tr><td><code>TYPEPARAMETER</code></td><td><code>0x08</code></td></tr>
+  <tr><td><code>PARAMLIST</code></td><td><code>0x09</code></td></tr>
+  <tr><td><code>IMPORTED</code></td><td><code>0x0A</code></td></tr>
+  </tbody>
+</table>
+<p>
+  Depending on the type, one of the schemas defined in the following sections
+  is used for the type.
+</p>
+<p>
+  Some entries may reference a <i>"null type index,"</i> this is a type index
+  constant with the hexadecimal value of <code>0xFFFFFFFF</code> and means that
+  the type index references no type
+</p>
+
+<h4>Arrays, Nullable Definitions and Reference Definitions</h4>
+<p>
+  These are defined in one section since their schema is identical, but each
+  type results in a different type construct.
+</p>
+<p>
+  These entries define only a single 32-bit unsigned integer value. It is the
+  type index of the type they reference.
+</p>
+<p>
+  The referenced type index may not be a null type index.
+</p>
+
+<h4>Function Signatures</h4>
+<p>
+  Function signatures are defined with the following values. The values appear
+  in the binary in the order they are defined here.
+</p>
+<dl>
+  <dt>Return type index</dt>
+  <dd>
+    32-bit unsigned integer index into the type table, referencing the type the
+    function signature uses as a return type. This may not be a null type
+    index.
+  </dd>
+  <dt>Variadic state</dt>
+  <dd>
+    8-bit unsigned integer with a value of either 0 or 1 used to determine if
+    the function takes in a variable number of arguments.
+  </dd>
+  <dt>Parameter list index</dt>
+  <dd>
+    A 32-bit unsigned integer referencing the <code>PARAMLIST</code> entry
+    that outlines the type arguments for this type. If the type has no type
+    arguments, this will be a null type index.
+  </dd>
+  <dt>Arguments count</dt>
+  <dd>
+    A 32-bit unsigned integer stating how many entries will be in the next
+    argument list.
+  </dd>
+  <dt>Argument type indexes list</dt>
+  <dd>
+    <p>
+      An array of 32-bit unsigned type indexes referencing the type of the
+      corresponding function argument's type.
+    </p>
+    <p>
+      None of these may be null type indices. If the variadic state of the
+      function is set to 1, then the last parameter to appear in this list must
+      reference an entry with the type <code>ARRAY</code>.
+    </p>
+  </dd>
+</dl>
+
+<h4>Structs</h4>
+<p>
+  Structs are defined with the following values. The values appear in the binary
+  in the order they are defined here.
+</p>
+<dl>
+  <dt>Name index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's name.
+  </dd>
+  <dt>Namespace index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's namespace. If the type has no namespace,
+    the referenced entry will be the table's null entry.
+  </dd>
+  <dt>Type parameter list index</dt>
+  <dd>
+    A 32-bit unsigned integer referencing the <code>PARAMLIST</code> entry
+    that outlines the type arguments for this type. If the type has no type
+    arguments, this will be a null type index.
+  </dd>
+  <dt>Flags</dt>
+  <dt>Property count</dt>
+  <dt>Property list</dt>
+</dl>
+
+<h4>Enums</h4>
+<p>
+  Enumerations are defined with the following values. The values appear in the
+  binary in the order they are defined here.
+</p>
+<dl>
+  <dt>Name index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's name.
+  </dd>
+  <dt>Namespace index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's namespace. If the type has no namespace,
+    the referenced entry will be the table's null entry.
+  </dd>
+  <dt>Type parameter list index</dt>
+  <dd>
+    A 32-bit unsigned integer referencing the <code>PARAMLIST</code> entry
+    that outlines the type arguments for this type. If the type has no type
+    arguments, this will be a null type index.
+  </dd>
+  <dt>Constant count</dt>
+  <dt>Constant list</dt>
+</dl>
+
+<h4>Interfaces</h4>
+<p>
+  Interfaces are defined with the following values. The values appear in the
+  binary in the order they are defined here.
+</p>
+<dl>
+  <dt>Name index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's name.
+  </dd>
+  <dt>Namespace index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's namespace. If the type has no namespace,
+    the referenced entry will be the table's null entry.
+  </dd>
+  <dt>Type parameter list index</dt>
+  <dd>
+    A 32-bit unsigned integer referencing the <code>PARAMLIST</code> entry
+    that outlines the type arguments for this type. If the type has no type
+    arguments, this will be a null type index.
+  </dd>
+  <dt>Extends count</dt>
+  <dt>Extends list</dt>
+  <dt>Member count</dt>
+  <dt>Method list</dt>
+</dl>
+
+<h4>Classes</h4>
+<p>
+  Classes are defined with the following values. The values appear in the binary
+  in the order they are defined here.
+</p>
+<dl>
+  <dt>Name index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's name.
+  </dd>
+  <dt>Namespace index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's namespace. If the type has no namespace,
+    the referenced entry will be the table's null entry.
+  </dd>
+  <dt>Type parameter list index</dt>
+  <dd>
+    A 32-bit unsigned integer referencing the <code>PARAMLIST</code> entry
+    that outlines the type arguments for this type. If the type has no type
+    arguments, this will be a null type index.
+  </dd>
+  <dt>Parent type index</dt>
+  <dt>Implements count</dt>
+  <dt>Implements list</dt>
+  <dt>Member count</dt>
+  <dt>Method list</dt>
+</dl>
+
+<h4>Parameter List Instantiation</h4>
+<p>
+  Parameter lists define the types another type requires to be complete.
+</p>
+<p>
+  Parameter lists are defined with the following values. The values appear in
+  the binary in the order they are defined here.
+</p>
+<dl>
+  <dt>Referenced type index</dt>
+  <dt>Type count</dt>
+  <dt>Type list</dt>
+</dl>
+
+<h4>Imported Type</h4>
+<p>
+  Imported types are types which are not defined in the current file, but are
+  instead defined in another file and must be imported. They are defined with
+  the following values. The values appear in the binary in the order they are
+  defined here.
+</p>
+<dl>
+  <dt>Name index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's name.
+  </dd>
+  <dt>Namespace index</dt>
+  <dd>
+    32-bit unsigned integer index referring to the entry in the file's string
+    table that is used as the type's namespace. If the type has no namespace,
+    the referenced entry will be the table's null entry.
+  </dd>
+</dl>
+
+<h3 id="ir-ftable">Function Table</h3>
+<h3 id="ir-instr">Instructions Block</h3>
+<h3 id="ir-dblock">Data Block</h3>
+<h3 id="ir-imports">Import List</h3>
+<h3 id="ir-exports">Export Table</h3>
 
 <h2>Bytecode Instructions</h2>
 <h3>General Purpose Instructions</h3>
