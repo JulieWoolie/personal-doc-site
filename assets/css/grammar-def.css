@@ -75,4 +75,7 @@ code.qs {
   id {
     color: gold;
   }
+  ident {
+    padding-left: attr(level ch, 2ch);
+  }
 }
