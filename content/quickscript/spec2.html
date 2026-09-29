@@ -301,7 +301,7 @@ noindent: true
 <p>
   Array and string types are both in this section since they exist virtually
   identically in memory. A string is just an array of unsigned 8-bit UTF-8
-  encoded characters.
+  encoded code units.
 </p>
 <p>
   Arrays are reference types that declare a series of elements. Arrays are
@@ -4627,7 +4627,7 @@ assert false : "message" // Assertion failed: message
 <p>
   It is then followed by that many number of key-value pairs of strings. Each
   string is prefixed with a 16-bit unsigned integer denoting the length of the
-  string and is then followed by that many bytes of UTF-8 encoded characters.
+  string and is then followed by that many bytes of UTF-8 bytes.
 </p>
 
 <h3 id="ir-strtable">String Pool Table</h3>
@@ -4646,7 +4646,7 @@ assert false : "message" // Assertion failed: message
     String Pool Data.
   </dd>
   <dt>String Length</dt>
-  <dd>The second integer is the number of characters in the string.</dd>
+  <dd>The second integer is the number of UTF-8 code units in the string.</dd>
 </dl>
 <p>
   The first entry in the list may be a <i>"null"</i> string entry, meaning an
@@ -4661,7 +4661,7 @@ assert false : "message" // Assertion failed: message
 
 <h3 id="ir-strdata">String Pool Data</h3>
 <p>
-  A block of UTF-8 encoded characters. The size and location of this section is
+  A block of UTF-8 encoded codepoints. The size and location of this section is
   determined by the <code>STRPOOL</code> entry in the header.
 </p>
 <p>
