@@ -1,5 +1,5 @@
 ---
-title: "Language Specification"
+title: "Tetral Language Specification"
 subtitle: "Technical Specification for the Tetral Language"
 weight: 40
 publish_date: '2026-09-20 15:00:00 +0200 UTC'
@@ -70,6 +70,11 @@ noindent: true
       shouldn't be able to assign a null value to a non-null type.
     </p>
     <p>
+      The exception for this are arrays and strings, which are null initialized.
+      But null arrays and strings are treated as just a regular array that has
+      a length of 0.
+    </p>
+    <p>
       This only goes for object types, primitives are initialized to a zero
       value, while strings and arrays always null-initialized by default, but
       null arrays and strings are just treated as having a length of
@@ -111,97 +116,6 @@ noindent: true
     executed by the interpreter.
   </dd>
 
-  <dt>Object Types</dt>
-  <dd>
-    A broad term to describe any non-primitive value in Tetral. Object types are
-    always represented with a pointer.
-  </dd>
-
-  <dt>Structs</dt>
-  <dd>
-    Object types which hold pre-defined properties of pre-defined types that
-    can be instantiated.
-  </dd>
-
-  <dt>Arrays and Strings</dt>
-  <dd>
-    <p>
-      Arrays are objects of a fixed length that contain sequential data of a
-      pre-defined type.
-    </p>
-    <p>
-      Arrays and strings are, for the most part, the same thing. A string is
-      just an array of UTF-8 encoded bytes.
-    </p>
-  </dd>
-
-  <dt>Primitives</dt>
-  <dd>
-    Primitives are integral, floating point and boolean types that are not
-    allocated on the heap. The following are the primitive types recognized by
-    Tetral:
-  </dd>
-
-  <dt><code>bool</code> or <code>boolean</code></dt>
-  <dd>
-    A single byte value representing either a true (<code>1</code>) or false
-    (<code>0</code>) state.
-  </dd>
-
-  <dt><code>uint8</code>, <code>uint16</code>, <code>uint32</code> and <code>uint64</code></dt>
-  <dd>
-    Unsigned integral types, the amount of bits the primitive uses is specified
-    in the name of each one.
-  </dd>
-
-  <dt><code>int8</code>, <code>int16</code>, <code>int32</code> and <code>int64</code></dt>
-  <dd>
-    Signed integral types, the amount of bits each uses is specified in the name
-    of each type.
-  </dd>
-
-  <dt><code>float32</code> and <code>float64</code></dt>
-  <dd>
-    Floating point types, the amount of bits the primitive uses is specified in
-    the name of each type.
-  </dd>
-
-  <dt>Boolean-like</dt>
-  <dd>
-    <p>A value which can in some way be evaluated as true or false.</p>
-    <p>
-      For <code>bool</code> this is obvious, for primitive types, the value of
-      0 results in false, while any non-zero value results in true.
-    </p>
-    <p>
-      For arrays and strings, a null value, (aka that with a length of 0) results
-      in false, while any non-zero length array results in true.
-    </p>
-    <p>
-      Struct types cannot be assigned to a boolean like value other than in the
-      case of a nullable struct type, where a null value results in false, and
-      anything else results in true.
-    </p>
-  </dd>
-
-  <dt>Namespace</dt>
-  <dd>
-    A namespace is an identifier made up of a list of names separated by
-    <i>::</i> characters.
-  </dd>
-
-  <dt>Simple Name</dt>
-  <dd>
-    A simple name is the name of a struct, function or variable in a source file
-    with no namespace prefix.
-  </dd>
-
-  <dt>Fully Qualified Name</dt>
-  <dd>
-    A fully qualified name is the name of a struct, function or variable in a
-    source file with the file's module namespace prefixed to it.
-  </dd>
-
   <dt>Symbol</dt>
   <dd>
     <p>
@@ -218,19 +132,65 @@ noindent: true
       <li>Imported Symbols</li>
     </ul>
   </dd>
-</dl>
 
-<h2>Environment</h2>
+  <dt>Namespace</dt>
+  <dd>A namespace is a list of names delimited by <i>::</i> characters.</dd>
+
+  <dt>Simple Name</dt>
+  <dd>
+    A simple name is the name of a symbol in a source file with no namespace
+    prefix.
+  </dd>
+
+  <dt>Fully Qualified Name</dt>
+  <dd>
+    A fully qualified name is the name of a symbol with a namespace prefixed to
+    it.
+  </dd>
+
+  <dt>Virtual Properties</dt>
+  <dd>
+    Virtual properties are properties which are declared on specific types that
+    do not exist in the same manner as properties on structs do. Rather they
+    serve as a label to access some part of a type that is not accessible
+    otherwise.
+  </dd>
+
+  <dt>Arithmetic type</dt>
+  <dd>
+    A broad term to encompass any data type that can be used to perform
+    arithmetic operations. This includes all integral types and all floating
+    point types, as defined in <chapter-ref target="inttypes"></chapter-ref> and
+    <chapter-ref target="floattypes"></chapter-ref>.
+  </dd>
+
+  <dt>Comparable types</dt>
+  <dd>
+    Two types which can be compared against each other, as defined in
+    <chapter-ref target="comp-semantics"></chapter-ref>.
+  </dd>
+</dl>
 
 <h2>Data Types</h2>
 <p>
   A data type is a specific unit of memory that holds data in a specific layout
   to represent some piece of information.
 </p>
+
+<h3>Type Categories</h3>
+<h4>Value Types</h4>
 <p>
-  In Tetral, types are divided into two categories: Value Data Types which are
-  stored by value and Reference Data Types, which are stored with a pointer that
-  references the type's value in memory.
+  Values types are types whose value is stored on the stack and whose lifetime
+  depends on the current stack scope.
+</p>
+<h4>Reference Types</h4>
+<p>
+  Reference types are types which exist in the heap and the user only receives a
+  reference to that type's data on the heap.
+</p>
+<p>
+  Value types can be temporarily converted into reference types. Doing so
+  disables all guarantees of validity for the referenced value.
 </p>
 
 <h3>The Boolean Type</h3>
@@ -239,7 +199,7 @@ noindent: true
   (false) or <code>1</code> (true) value.
 </p>
 
-<h3>Integral Types</h3>
+<h3 id="inttypes">Integral Types</h3>
 <p>
   Integral types are value types of varying sizes used to represent whole
   numbers. Integral types may be signed or unsigned.
@@ -252,24 +212,73 @@ noindent: true
   <thead>
   <tr>
     <th>Type Name</th>
-    <th>Size (bytes)</th>
-    <th>Alignment</th>
+    <th>Size and alignment</th>
     <th>Description</th>
+    <th>Minimum value</th>
+    <th>Maximum value</th>
   </tr>
   </thead>
   <tbody>
-  <tr><td><code>uint8</code></td><td>1</td><td>1</td><td>Unsigned 8-bit integer</td></tr>
-  <tr><td><code>int8</code></td><td>1</td><td>1</td><td>Signed 8-bit integer</td></tr>
-  <tr><td><code>uint16</code></td><td>2</td><td>2</td><td>Unsigned 16-bit integer</td></tr>
-  <tr><td><code>int16</code></td><td>2</td><td>2</td><td>Signed 16-bit integer</td></tr>
-  <tr><td><code>uint32</code></td><td>4</td><td>4</td><td>Unsigned 32-bit integer</td></tr>
-  <tr><td><code>int32</code></td><td>4</td><td>4</td><td>Signed 32-bit integer</td></tr>
-  <tr><td><code>uint64</code></td><td>8</td><td>8</td><td>Unsigned 64-bit integer</td></tr>
-  <tr><td><code>int64</code></td><td>8</td><td>8</td><td>Signed 64-bit integer</td></tr>
+  <tr>
+    <td><code>uint8</code></td>
+    <td>1</td>
+    <td>Unsigned 8-bit integer</td>
+    <td><code>0</code></td>
+    <td><code>255</code></td>
+  </tr>
+  <tr>
+    <td><code>int8</code></td>
+    <td>1</td>
+    <td>Signed 8-bit integer</td>
+    <td><code>-128</code></td>
+    <td><code>127</code></td>
+  </tr>
+  <tr>
+    <td><code>uint16</code></td>
+    <td>2</td>
+    <td>Unsigned 16-bit integer</td>
+    <td><code>0</code></td>
+    <td><code>65535</code></td>
+  </tr>
+  <tr>
+    <td><code>int16</code></td>
+    <td>2</td>
+    <td>Signed 16-bit integer</td>
+    <td><code>-32768</code></td>
+    <td><code>32767</code></td>
+  </tr>
+  <tr>
+    <td><code>uint32</code></td>
+    <td>4</td>
+    <td>Unsigned 32-bit integer</td>
+    <td><code>0</code></td>
+    <td><code>4294967295</code></td>
+  </tr>
+  <tr>
+    <td><code>int32</code></td>
+    <td>4</td>
+    <td>Signed 32-bit integer</td>
+    <td><code>-2147483648</code></td>
+    <td><code>2147483647</code></td>
+  </tr>
+  <tr>
+    <td><code>uint64</code></td>
+    <td>8</td>
+    <td>Unsigned 64-bit integer</td>
+    <td><code>0</code></td>
+    <td><code>18446744073709551615</code></td>
+  </tr>
+  <tr>
+    <td><code>int64</code></td>
+    <td>8</td>
+    <td>Signed 64-bit integer</td>
+    <td><code>-9223372036854775808</code></td>
+    <td><code>9223372036854775807</code></td>
+  </tr>
   </tbody>
 </table>
 
-<h3>Floating Point Types</h3>
+<h3 id="floattypes">Floating Point Types</h3>
 <p>
   Floating Point Types are value types of 2 sizes, either 32-bits or 64-bits.
 </p>
@@ -278,14 +287,13 @@ noindent: true
   <thead>
   <tr>
     <th>Type Name</th>
-    <th>Size (bytes)</th>
-    <th>Alignment</th>
+    <th>Size and alignment</th>
     <th>Description</th>
   </tr>
   </thead>
   <tbody>
-  <tr><td><code>float32</code></td><td>4</td><td>4</td><td>32-bit floating point type</td></tr>
-  <tr><td><code>float64</code></td><td>8</td><td>8</td><td>64-bit floating point type</td></tr>
+  <tr><td><code>float32</code></td><td>4</td><td>32-bit floating point type</td></tr>
+  <tr><td><code>float64</code></td><td>8</td><td>64-bit floating point type</td></tr>
   </tbody>
 </table>
 
@@ -297,11 +305,13 @@ noindent: true
 </p>
 <p>
   Arrays are reference types that declare a series of elements. Arrays are
-  prefixed with a 32-bit unsigned integer denoting the capacity of the array.
+  prefixed with a 32-bit unsigned integer denoting the length of the array. The
+  length value is the number of elements in the array.
 </p>
 <p>
   Array elements can be accessed with the index operator <literal>[]</literal>
-  and their length is accessible through the <literal>length</literal> property.
+  and their length is accessible through the <literal>.length</literal>
+  virtual property.
 </p>
 <p>
   The memory footprint of an array's heap memory depends on the size of its
@@ -310,55 +320,49 @@ noindent: true
 
 <h3>Struct Types</h3>
 <p>
-  Struct types are value types made up of data defined by programmers. Structs
+  Struct types are value types made up of data defined by users. Structs
   hold specific properties each of which has a pre-set type and alignment.
 </p>
 <p>
-  When a struct is declared, the largest data type that isn't larger than 8
-  bytes is used as the alignment of a struct.
+  Struct types cannot hold any properties that indirectly or directly reference
+  themselves.
 </p>
 <p>
-  Each struct property must be aligned to property type's alignment value.
+  See <chapter-ref target="align-semantics"></chapter-ref> for the semantics on
+  struct property alignment and padding.
 </p>
 
 <h3>Enum Types</h3>
 <p>
-  Enum types are a series of named constants with values declared in series.
-  Whether an enum type is a value type or a reference type depends on the
-  complexity of the enumeration type itself.
+  Enum types are value types that declare a list of named constant values with
+  the first always starting at value 0 and each subsequent value having a value
+  one higher than the last.
 </p>
 <p>
-  Each enum constant carries an <i>"ordinal"</i> value which is a value
-  starting at 0 and incrementing for each constant.
+  In memory, enums exist as a 16-bit unsigned integer, but semantically they are
+  a separate type.
 </p>
 <p>
-  The complexity of an enum type must be declared in a source file and
-  constraints then enforced on the type declaration depending on whether the
-  type is simple or complex.
+  To access the actual value of an enum, the <literal>.ordinal</literal> virtual
+  property can be used.
 </p>
-<h4>Simple Enum Types</h4>
+
+<h3>Variant Types</h3>
 <p>
-  Simple enum types are value types which define no properties for any enum
-  constant, meaning the enum holds no values apart from the ordinal itself.
-</p>
-<p>
-  This simplicity means the enum type are to be represented with an unsigned
-  32-bit integer that denotes the ordinal value of the enum constant.
-</p>
-<h4>Complex Enum Types</h4>
-<p>
-  Complex enum types behave almost identically to structs. They are reference
-  types which define a list of type variants and the properties that variant
-  holds.
+  Variant types are value types which define a list of type variants with each
+  one possessing 0 or more properties.
 </p>
 <p>
-  The first property of this generated enum variant type must always be the
-  ordinal itself, followed by the properties defined per variant.
+  Variant types act as union types prefixed with the variant's ordinal value.
+  Padding and alignment semantics are still applied to each property in the same
+  manner as struct types, with the exception that the alignment value of
+  variants must be at least the same value as a 16-bit unsigned integer's
+  alignment.
 </p>
 
 <h3>Interface Types</h3>
 <p>
-  An enum type is not an instatiable type, it is neither a value type nor a
+  An interface type is not an instatiable type, it is neither a value type nor a
   reference type, rather it's an outline for a class with functions that each
   implementing type must implement.
 </p>
@@ -396,6 +400,281 @@ noindent: true
   <chapter-ref target="limits"></chapter-ref>)
 </p>
 
+<h3>References</h3>
+<p>
+  References are types which are marked as a reference to a value. These types
+  are technically value types as they are a pointer which references the actual
+  object in memory.
+</p>
+<p>
+  References may not be null. When referring to types marked as a reference,
+  the term <i>"value-type-reference"</i> will be used.
+</p>
+
+<h3>Nullables</h3>
+<p>
+  A nullable is a special variant value type. Nullables may act differently
+  depending on what type they are being used on.
+</p>
+<p>
+  Arrays or strings cannot be declared as nullable, as they are treated
+  specially in null reference cases.
+</p>
+<p>
+  For reference types and value-type-references, a nullable is technically
+  opaque, it doesn't do anything aside from telling the compiler the reference
+  may be a null pointer.
+</p>
+<p>
+  For value types, the nullable type exists as a special variant type. It is
+  prefixed with either a 0 or 1 in the form a single 8-bit boolean value that
+  determines if a value is present or not, the value of this boolean will be
+  referred to as the <i>"presence state"</i> of the nullable value.
+</p>
+<p>
+  The data following the presence state boolean will always contain enough bits
+  to represent the type marked nullable. If the presence state is false, then
+  the bits following the prefix are all zeros and the value is considered
+  invalid. Otherwise, if the presence state is true, then the bits following the
+  prefix contain the data for the nullable object.
+</p>
+
+<h3>Type Compatibility</h3>
+<p>
+  Type compatibility determines if a type can be passed to a function, set as
+  the value of a variable or a struct/class property. The following table only
+  determines semantic compatibility, it does not list conversions that may or
+  not need to be performed when assigning a value of one type to an object of
+  another, compatible, type.
+</p>
+<table>
+  <caption>Type Compatibility Table</caption>
+  <thead>
+  <tr>
+    <th>Type</th>
+    <th>Can be assigned from</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Strings</td>
+    <td>Only other Strings.</td>
+  </tr>
+  <tr>
+    <td>Arrays</td>
+    <td>Only arrays of the same component type.</td>
+  </tr>
+  <tr>
+    <td>Unsigned Integers</td>
+    <td>Any unsigned integer of the same or smaller size.</td>
+  </tr>
+  <tr>
+    <td>Signed Integers</td>
+    <td>
+      Any signed integer of the same or smaller size, or or any unsigned integer
+      of a smaller size.
+    </td>
+  </tr>
+  <tr>
+    <td>Floating point numbers</td>
+    <td>
+      Any floating point of the same or smaller size, or any integer of the
+      same or smaller size.
+    </td>
+  </tr>
+  <tr>
+    <td>Structs</td>
+    <td>Only other values of the same struct type.</td>
+  </tr>
+  <tr>
+    <td>Enums</td>
+    <td>Only other values of the same enum type.</td>
+  </tr>
+  <tr>
+    <td>Variants</td>
+    <td>Only other values of the same variant type.</td>
+  </tr>
+  <tr>
+    <td>Interfaces</td>
+    <td>Any class which implements the interface.</td>
+  </tr>
+  <tr>
+    <td>Classes</td>
+    <td>Any value of the same class or a derived class.</td>
+  </tr>
+  <tr>
+    <td>Nullables</td>
+    <td>Only values of the same nullable type.</td>
+  </tr>
+  <tr>
+    <td>References</td>
+    <td>Only values of the same reference type.</td>
+  </tr>
+  </tbody>
+</table>
+
+<h3 id="type-conversions">Type Conversions</h3>
+<p>
+  This section defines the conversion operations that must occur between types.
+  If there is no conversion listed from one type to another in this section,
+  then it means that nothing must be done to convert from one type to another.
+</p>
+
+<h4>Implicit Conversions</h4>
+<p>
+  These conversions are done automatically without requiring an explicit cast
+  operation by a user of the language. When the term <i>"usual arithmetic
+  conversions"</i> are referenced, the following conversions are what they
+  reference.
+</p>
+<table>
+  <caption>Implicit conversion operations</caption>
+  <thead>
+  <tr>
+    <th>Source Type</th>
+    <th>Target Type</th>
+    <th>Conversion</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Any signed or unsigned integral type</td>
+    <td>A larger signed or integral type</td>
+    <td>
+      The value is converted from the smaller to the equivalent value in the
+      larger type.
+    </td>
+  </tr>
+  <tr>
+    <td>Any signed or unsigned integral type</td>
+    <td>A floating point type</td>
+    <td>
+      The value is converted from the integral type the closest possible
+      floating point value.
+    </td>
+  </tr>
+  <tr>
+    <td>A 32-bit floating point value</td>
+    <td>A 64-bit floating point value</td>
+    <td>
+      The value is converted to the closest value possible in the larger type.
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Explicit Conversions</h4>
+<p>
+  These conversions must be explicitly done by users by using a casting
+  expression.
+</p>
+<table>
+  <caption>Explicit conversions</caption>
+  <thead>
+  <tr>
+    <th>Source Type</th>
+    <th>Target Type</th>
+    <th>Conversion</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Any integral type</td>
+    <td>Any integral type of smaller size</td>
+    <td>
+      The resulting value is <i>r = a mod n</i>, where <i>r</i> is the result,
+      <i>a</i> is the larger integral type's value and <i>n</i> is the smaller
+      integral's maximum value.
+    </td>
+  </tr>
+  <tr>
+    <td>A 64-bit floating point value</td>
+    <td>A 32-bit floating point value</td>
+    <td>
+      The larger type's value is converted to the closest equivalent value of
+      the smaller type.
+    </td>
+  </tr>
+  <tr>
+    <td>Any floating point value</td>
+    <td>Any integral value</td>
+    <td>
+      The floating point value is first rounded down, then converted to the
+      equivalent integral value.
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<h4>Boolean Conversion</h4>
+<table>
+  <caption>Boolean conversions</caption>
+  <thead>
+  <tr>
+    <th>Value</th>
+    <th>Boolean Result</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>Any number type</td>
+    <td>0 values evaluate to false, non-zero values evaluate to true.</td>
+  </tr>
+  <tr>
+    <td>strings/arrays</td>
+    <td>
+      If the object is null or has a length of 0, evaulates to false. Otherwise
+      evaluates to true.
+    </td>
+  </tr>
+  <tr>
+    <td>Enums</td>
+    <td>
+      Enum values with the ordinal 0 evaluate to false, while other ordinals
+      evaluate to true.
+    </td>
+  </tr>
+  <tr>
+    <td>Variants</td>
+    <td>
+      Variants with the ordinal 0 evaluate to false, while other ordinals
+      evaluate to true.
+    </td>
+  </tr>
+  <tr>
+    <td>Interfaces</td>
+    <td colspan="3">Cannot be evaluated as a boolean value.</td>
+  </tr>
+  <tr><td>Classes</td></tr>
+  <tr><td>Structs</td></tr>
+  <tr><td>References</td></tr>
+  <tr>
+    <td>Nullables</td>
+    <td>
+      <p>
+        For nullable references, if the pointer value of the reference is a null
+        pointer, then it evaluates to a false value, otherwise it evaluates to
+        true.
+      </p>
+      <p>
+        Evaluate to a boolean value corresponding to the presence state of the
+        nullable.
+      </p>
+    </td>
+  </tr>
+  </tbody>
+</table>
+
+<h3>Type Parameters</h3>
+<p>
+  Type parameters allow for types to be specified with incomplete types,
+  allowing them to be filled in later.
+</p>
+<p>
+  Semantics regarding type parameters are to be defined as
+  lowest-common-denominator types. They cannot hold reference types.
+</p>
+
 <h2 id="limits">Limits</h2>
 <p>
   The following limits are defined for features and aspects of the Tetral
@@ -423,7 +702,11 @@ noindent: true
     <td>62</td>
   </tr>
   <tr>
-    <td>Maximum number of enum constants</td>
+    <td>Maximum number of enum constants per enum type</td>
+    <td>1024</td>
+  </tr>
+  <tr>
+    <td>Maximum number of type variants per type</td>
     <td>1024</td>
   </tr>
   <tr>
@@ -434,14 +717,18 @@ noindent: true
     <td>Maximum number of nested functions</td>
     <td>8</td>
   </tr>
+  <tr>
+    <td>Maximum length of an identifier</td>
+    <td>64</td>
+  </tr>
   </tbody>
 </table>
 <h3>Notes</h3>
 <ol>
   <li>
     The limits for call arguments is set to 62 instead of 64 is to give space
-    for the compiler to insert a closure argument and to insert the hidden
-    <code>this</code> argument for methods.
+    for the compiler to insert a closure argument for nested functions and to
+    insert the hidden <code>this</code> argument for methods.
   </li>
 </ol>
 
@@ -452,38 +739,7 @@ noindent: true
   sections.
 </p>
 
-<h3>Arithmetic Operations</h3>
-<p>
-  This section details constraints and semantics when performing arithmetic
-  operations on two arithmetic (numeric) types.
-</p>
-<p><b>Operand Conversion Constraints</b></p>
-<ol>
-  <li>
-    If both operands are integral types of the same size, but their signedness
-    state differs, then the operation is invalid and an explicit cast must be
-    specified.
-  </li>
-</ol>
-<p><b>Operand Conversion Semantics</b></p>
-<ol>
-  <li>
-    If one operand is a floating point value, then the other value must be
-    converted to the same floating point value.
-  </li>
-  <li>
-    If both operands are floating point values, but of different sizes (eg,
-    left operator is a <code>float32</code>, while the right is a
-    <code>float64</code>) then the smaller operand must be converted to the
-    larger operand's type.
-  </li>
-  <li>
-    If both operands are integral types, then the smaller operand is converted
-    to the larger operand's type.
-  </li>
-</ol>
-
-<h3>Identifier Semantics</h3>
+<h3 id="id-semantics">Identifier Semantics</h3>
 <p>
   An Identifier can denote a function, a struct, an interface, an enum, a class,
   a local variable or a global variable. An identifier with an identical value
@@ -500,59 +756,31 @@ noindent: true
   order being: Local Scope, Current Function Scope, Global Scope.
 </p>
 
-<h3 id="comp-semantics">Comparison And Equality Semantics</h3>
+<h3 id="comp-semantics">Comparison Semantics</h3>
+<p>
+  This section details the semantics for comparing two values of specific
+  types by considering two hypothetical operands: left and right.
+</p>
+<h4>Arithmetic Types</h4>
+<h6>Constraints</h6>
 <ol>
-  <li>Any two arithmetic values can be compared and their equality checked.</li>
-  <li>
-    Any two array values that have the same comparable component types can be
-    compared.
-  </li>
-  <li>
-    Any two array values that have the same component types can have their
-    equality checked.
-  </li>
-  <li>
-    String values can be compared with other string values and their equality
-    can be checked.
-  </li>
-  <li>
-    Struct values cannot be compared with other struct types, even structs of
-    the same type, but their equality can be checked.
-  </li>
+  <li>Both operands must be of compatible types.</li>
 </ol>
-<h5>Struct Equality Semantics</h5>
+<h6>Evaluation</h6>
 <ol>
-  <li>If both operands are represented by the same pointer, they are equal.</li>
-  <li>
-    If either operand is represented by a null pointer, they are not equal.
-  </li>
-  <li>
-    If any non-object-type property values in the operands are not equal,
-    then the structs are not equal.
-  </li>
-  <li>
-    For every object-type property in both structs, the appropriate equality
-    semantics apply.
-  </li>
+  <li>The usual arithmetic conversions are performed.</li>
+  <li>The values of both operands are then compared.</li>
 </ol>
-<h5>Array Equality Semantics</h5>
+<h4>Array And String Types</h4>
+<h6>Constraints</h6>
 <ol>
-  <li>If both operands are represented by the same pointer, they are equal.</li>
-  <li>If either operand's pointer is null, the arrays are not equal.</li>
-  <li>
-    If either operand's length does not equal the other's, the arrays are not
-    equal.
-  </li>
-  <li>
-    If any contained values in the operands are not equal, the arrays are not
-    equal.
-  </li>
+  <li>Both operands must be arrays of the same comparable type.</li>
 </ol>
-<h5>Array Comparison Semantics</h5>
+<h6>Evaluation</h6>
 <ol>
   <li>
-    If both arrays are represented by the same pointer, neither is greater nor
-    lesser, they are equal.
+    If both arrays are represented by the same pointer, they are equal and
+    neither is greater.
   </li>
   <li>If the left operand's length is 0, then the right operand is greater.</li>
   <li>If the right operand's length is 0, then the left operand is greater.</li>
@@ -569,6 +797,179 @@ noindent: true
     equivalent value in the right operand, the left operand is greater.
   </li>
 </ol>
+<h4>Struct, Variant and Class Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Struct, Variant and Class types cannot be compared.</li>
+</ol>
+<h4>Enum Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of the same enum type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    Enum comparison is performed identically to arithmetic type comparison,
+    with the ordinal value of both enums being used to compare them.
+  </li>
+</ol>
+<h4>Reference Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be references to the same type of value.</li>
+  <li>Both operands must be references to a comparable value.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    If both operands are represented by the same pointer, they are equal and
+    neither operand is greater.
+  </li>
+  <li>If either operand is a null pointer, that operand is lesser.</li>
+  <li>The operands are then compared by their referenced value.</li>
+</ol>
+<h4>Nullable Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must hold the same type of value.</li>
+  <li>Both operands must hold a comparable value.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    If bother operands have a presence state of false, they are equal and
+    neither is greater.
+  </li>
+  <li>If either operand has a false presence state, that operand is lesser.</li>
+  <li>The operands are then compared by their held value.</li>
+</ol>
+
+
+<h3>Equality Semantics</h3>
+<p>
+  This section details the semantics for checking the equality of two values of
+  specific types by considering two hypothetical operands: left and right.
+</p>
+<h4>Arithmetic/Boolean Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of compatible types.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>The usual arithmetic conversions are performed.</li>
+  <li>The values of both operands are then checked for equality.</li>
+</ol>
+<h4>Array And String Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be arrays of the same type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>If both arrays are represented by the same pointer, they are equal.</li>
+  <li>If the operand's lengths differ, the operands are not equal.</li>
+  <li>
+    If all component values in both operands are equal, they are equal.
+    Otherwise, they are not equal.
+  </li>
+</ol>
+<h4>Struct Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of the same type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    The value of each property of both operands are checked for equality.
+  </li>
+  <li>
+    If all properties in both operands are equal, the operands are equal.
+    Otherwise, they are not equal.
+  </li>
+</ol>
+<h4>Class/Interface Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of an assignable type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>If both operands are represented by the same pointer, they are equal.</li>
+  <li>If the operands are not of the same type, they are not equal.</li>
+  <li>The value of each property of both operands are checked for equality.</li>
+  <li>
+    If all properties in both operands are equal, the operands are equal.
+    Otherwise, they are not equal.
+  </li>
+</ol>
+<h4>Enum Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of the same enum type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>For two enum values to be equal, their ordinal values must be equal.</li>
+</ol>
+<h4>Variant Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be of the same variant type.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    If the operands' variant ordinal values are not the same, they are not
+    equal.
+  </li>
+  <li>Each variant property is then checked for equality in both operands.</li>
+  <li>
+    If all properties are equal, then the variant values are equal, otherwise
+    they are not.
+  </li>
+</ol>
+<h4>Reference Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must be references to the same type of value.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>
+    If both operands are represented by the same pointer, they are equal.
+    Otherwise, they are not.
+  </li>
+</ol>
+<h4>Nullable Types</h4>
+<h6>Constraints</h6>
+<ol>
+  <li>Both operands must hold the same type of value.</li>
+</ol>
+<h6>Evaluation</h6>
+<ol>
+  <li>If bother operands have a presence state of false, they are equal.</li>
+  <li>
+    If either operand has a false presence state, the operands are not equal.
+  </li>
+  <li>The operands then have their equality checked by their held value.</li>
+</ol>
+
+<h3 id="overflow">Overflow/Underflow Semantics</h3>
+<p>
+  Overflows and underflows happen when an arithmetic type's value exceeds its
+  maximum representable value, or when its value subceeds it's minimum
+  representable value.
+</p>
+<p>
+  In such cases, the value wraps around without any errors.
+</p>
+<p>
+  In cases where overflow or underflow is detectable by a compiler, the user
+  should be warned about it.
+</p>
 
 <h3 id="def-init">Default Initialization</h3>
 <p>
@@ -576,10 +977,15 @@ noindent: true
   declared with no value.
 </p>
 <p>
-  Numeric types are initialized to the type's equivalent of the value
-  <code>0</code>. Booleans to the value false. Array, string and nullable
-  reference types are initialized to an empty array. Enumeration types are
-  initialized to the enum value with the ordinal <code>0</code>.
+  Arithmetic types are initialized to the type's equivalent of the value
+  <code>0</code>. Booleans to the value false. Array, string, nullable
+  reference types and nullable value-reference-types are initialized to null.
+  Enumeration types are initialized to the enum value with the ordinal
+  <code>0</code>.
+</p>
+<p>
+  Variants are initialized to the variant with the ordinal 0. If the variant
+  with value 0 requires arguments, then the type cannot be default-initialized.
 </p>
 <p>
   Structs are initialized with all properties set to their default values as
@@ -587,18 +993,89 @@ noindent: true
 </p>
 <p>
   If a type cannot be default initialized, such as in the case of a class with
-  no no-argument constructors, enums where the 0 ordinal variant requires
-  properties or an interface type. Then the declaration is considered invalid
-  and a value must be explicitly set.
+  no no-argument constructors, variants where the 0 ordinal variant requires
+  property values to be specified or an interface type. Then the declaration
+  is considered invalid and a value must be explicitly set.
+</p>
+
+<h3 id="strconv">String Conversion Semantics</h3>
+<p>
+  This section details how certain types are converted to their string
+  representations. The string data type itself is omitted, as it does not need
+  to be converted to a string.
+</p>
+<h4>Booleans</h4>
+<p>
+  Booleans evaluate to a string with the value <i>"true"</i> or <i>"false"</i>
+  depending on the value of the boolean.
+</p>
+<h4>Arithmetic Types</h4>
+<p>
+  Arithmetic types are converted to string representation of their numerical
+  value in base 10.
+</p>
+<p>
+  For floating point, if required, scientific notation may be used.
+</p>
+<h4>Arrays</h4>
+<p>
+  Arrays evaluate to a comma-delimited string prefixed and suffixed with the
+  <i>"["</i> and <i>"]"</i> characters respectively.
+</p>
+<p>
+  Empty arrays evaluate to just <i>"[]"</i>.
+</p>
+<h4>Structs and Classes</h4>
+<p>
+  Structs and classes evaluate to a string prefixed with the simple name of
+  the type, followed by the <i>"{"</i> character.
+</p>
+<p>
+  Each property is then listed with its name, followed by a <i>": "</i>
+  sequence. After the delimiter, the property's value is converted to a string
+  and appended. Each property's string representation is delimited with a
+  <i>","</i> string. If the property is a string, the string value must be
+  prefixed and suffixed with double quotes.
+</p>
+<p>
+  Private fields on classes are included in the string.
+</p>
+<h4>Variant Types</h4>
+<p>
+  Variant types are prefixed with the simple name of the variant type, followed
+  by a <i>"."</i> and the simple name of the variant.
+</p>
+<p>
+  If the variant has declared properties, then append <i>"("</i> to the string
+  and append a string representation of each property's string representation to
+  the string, each property delimited with a <i>", "</i> sequence. The property
+  strings are then followed by a <i>")"</i>.
+</p>
+<h4>Enum Types</h4>
+<p>
+  Values of an enum type are converted to string by using the enum constant's
+  name as the string representation.
+</p>
+<h4>Reference Types</h4>
+<p>Convert the address of the reference to a string and use that.</p>
+<h4>Nullable Type</h4>
+<p>
+  If the value is a nullable-reference or a value-type-reference and the pointer
+  is null, then the string representation becomes <i>"null"</i>.
+</p>
+<p>
+  If the nullable's presence state is false, then the string representation is
+  <i>"&lt;empty&gt;"</i>. Otherwise, the string representation is the present
+  value's string representation.
 </p>
 
 <h3>Notation</h3>
 <p>
   References to other syntactic rules are in <i>italic</i>, literal values are
-  in <b>bold</b>. An italic syntactic rule followed by a colon <i>(:)</i>
-  defines the rule. Alternative definitions of the rule are defined on new
-  lines. Optional parts are described with the subscript <i>"opt"</i>. And
-  parts which may repeat and appear several times will be described with the
+  in <b><code>bold</code></b>. An italic syntactic rule followed by a colon
+  <i>(:)</i> defines the rule. Alternative definitions of the rule are defined
+  on new lines. Optional parts are described with the subscript <i>"opt"</i>.
+  And parts which may repeat and appear several times will be described with the
   suffix <i>"rep"</i>.
 </p>
 <figure>
@@ -611,6 +1088,7 @@ noindent: true
   Indicates a syntax element enclosed with <i>"()"</i> which might contain
   an expression, or several expressions.
 </p>
+
 <h3>Lexical Elements</h3>
 <grammar-def>
   <rule-def id="token">
@@ -621,26 +1099,35 @@ noindent: true
     <def><rule>operator</rule></def>
   </rule-def>
 </grammar-def>
+<h6>Lexical Analysis Rules</h6>
+<ol>
+  <li>
+    Lexical analysis shall consume the largest sequence of source characters that
+    constitutes a valid token.
+  </li>
+  <li>
+    Tokens, outside of character or string literals, ignore all white space.
+    White space is defined as any Unicode codepoint with the
+    <code>White_Space</code> binary property.
+  </li>
+  <li>
+    Any use of a literal (eg: <literal>const</literal>) in the definition of the
+    language grammar is case-sensitive and thus must match the keyword exactly.
+  </li>
+  <li>
+    No Unicode normalization is performed on the parsed tokens.
+  </li>
+</ol>
 
 <h4>Keywords</h4>
-<p>
-  Keyword tokens are divided into two separate categories: real and alias
-  keywords.
-</p>
-<p>
-  The difference between alias keywords and real keywords, is that while the
-  alias keywords are still reserved keywords, their internal token value is
-  mapped to the value that they are an alias for. For example, <b><code>ulong</code></b> is
-  an alias for <b><code>uint64</code></b>.
-</p>
-
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="keyword">
     <def><rule>real-keyword</rule></def>
     <def><rule>type-keyword</rule></def>
     <def><rule>alias-keyword</rule></def>
+    <def><rule>contextual-keyword</rule></def>
   </rule-def>
-
   <rule-def id="real-keyword" type="oneof">
     <oneof>
       <literal>if</literal>
@@ -667,7 +1154,24 @@ noindent: true
       <literal>constructor</literal>
       <literal>this</literal>
       <literal>super</literal>
-      <literal>null</literal>
+      <literal>class</literal>
+      <literal>enum</literal>
+      <literal>struct</literal>
+      <literal>interface</literal>
+      <literal>variant</literal>
+      <literal>cast</literal>
+      <literal>bitcast</literal>
+      <literal>extendable</literal>
+      <literal>new</literal>
+    </oneof>
+  </rule-def>
+  <rule-def id="contextual-keyword" type="oneof">
+    <oneof>
+      <literal>from</literal>
+      <literal>implements</literal>
+      <literal>extends</literal>
+      <literal>mutable</literal>
+      <literal>readonly</literal>
     </oneof>
   </rule-def>
   <rule-def id="type-keyword" type="oneof">
@@ -704,7 +1208,24 @@ noindent: true
     </oneof>
   </rule-def>
 </grammar-def>
-<table>
+<h6>Lexical Analysis Rules</h6>
+<ol>
+  <li>
+    When lexical analysis encounters a sequence which can be both a keyword or
+    an identifier, then keywords take precedence over identifiers.
+  </li>
+  <li>
+    After lexical analysis, alias keywords shall have the same syntactic meaning
+    as its corresponding real keyword. For alias token mappings, see
+    <table-ref target="aliasmappings"></table-ref>.
+  </li>
+  <li>
+    Contextual keywords are only keywords in specific contexts. Those contexts
+    are defined in the grammar as they appear. Outside the context which will
+    be defined, <rule>contextual-keywords</rule>'s are identifiers.
+  </li>
+</ol>
+<table id="aliasmappings">
   <caption>Alias token mappings</caption>
   <thead>
   <tr>
@@ -757,7 +1278,7 @@ noindent: true
 </table>
 
 <h4>Identifiers</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="identifier">
     <def>
@@ -789,9 +1310,36 @@ noindent: true
     </oneof>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    Identifiers must reference a valid symbol that is accessible in the current
+    semantic context. (Lookup semantics defined in
+    <chapter-ref target="id-semantics"></chapter-ref>.)
+  </li>
+  <li>
+    An identifier cannot be longer than the defined maximum length of an
+    identifier. (Defined in <chapter-ref target="limits"></chapter-ref>.)
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    A symbol lookup is performed as defined in
+    <chapter-ref target="id-semantics"></chapter-ref>.
+  </li>
+  <li>
+    The result of an identifier expression, is value of the symbol it is
+    referencing.
+  </li>
+  <li>
+    An identifier which references a valid semantic variable or a constant is a
+    valid lvalue.
+  </li>
+</ol>
 
 <h4>Constants</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="constant">
     <def><rule>integer-constant</rule></def>
@@ -802,31 +1350,103 @@ noindent: true
 </grammar-def>
 
 <h5>Integer Constants</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="integer-constant">
-    <def><rule>digit-sequence</rule></def>
-    <def><rule>octal-constant</rule></def>
-    <def><rule>hexadecimal-constant</rule></def>
-    <def><rule>binary-constant</rule></def>
+    <def>
+      <rule modifiers="opt">sign</rule>
+      <rule>decimal-integer-constant</rule>
+    </def>
+    <def>
+      <rule modifiers="opt">sign</rule>
+      <rule>octal-constant</rule>
+    </def>
+    <def>
+      <rule modifiers="opt">sign</rule>
+      <rule>hexadecimal-constant</rule>
+    </def>
+    <def>
+      <rule modifiers="opt">sign</rule>
+      <rule>binary-constant</rule>
+    </def>
+  </rule-def>
+
+  <rule-def id="sign" type="oneof">
+    <def><literal>+ -</literal></def>
+  </rule-def>
+
+  <rule-def id="integer-suffix" type="oneof">
+    <def>
+      <literal>i</literal>
+      <literal>I</literal>
+      <literal>u</literal>
+      <literal>U</literal>
+      <literal>l</literal>
+      <literal>L</literal>
+      <literal>UL</literal>
+      <literal>ul</literal>
+      <literal>uL</literal>
+      <literal>Ul</literal>
+      <literal>b</literal>
+      <literal>B</literal>
+      <literal>ub</literal>
+      <literal>UB</literal>
+      <literal>uB</literal>
+      <literal>Ub</literal>
+      <literal>s</literal>
+      <literal>S</literal>
+      <literal>us</literal>
+      <literal>US</literal>
+      <literal>uS</literal>
+      <literal>Us</literal>
+    </def>
   </rule-def>
 
   <rule-def id="octal-constant">
-    <def><literal>0o</literal> <rule modifiers="rep">octal-digit</rule></def>
-    <def><literal>0O</literal> <rule modifiers="rep">octal-digit</rule></def>
+    <def>
+      <literal>0o</literal>
+      <rule>octal-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
+    <def>
+      <literal>0O</literal>
+      <rule>octal-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
   </rule-def>
-
+  <rule-def id="octal-sequence" type="oneof">
+    <def><rule>octal-digit</rule></def>
+    <def>
+      <rule>octal-sequence</rule>
+      <rule modifiers="opt">underscore</rule>
+      <rule>octal-digit</rule>
+    </def>
+  </rule-def>
   <rule-def id="octal-digit" type="oneof">
     <def>
       <literal>0 1 2 3 4 5 6 7</literal>
     </def>
   </rule-def>
-
   <rule-def id="hexadecimal-constant">
-    <def><literal>0x</literal> <rule modifiers="rep">hexadecimal-digit</rule></def>
-    <def><literal>0X</literal> <rule modifiers="rep">hexadecimal-digit</rule></def>
+    <def>
+      <literal>0x</literal>
+      <rule modifiers="rep">hexadecimal-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
+    <def>
+      <literal>0X</literal>
+      <rule modifiers="rep">hexadecimal-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
   </rule-def>
-
+  <rule-def id="hexadecimal-sequence">
+    <def><rule>hexadecimal-digit</rule></def>
+    <def>
+      <rule>hexadecimal-sequence</rule>
+      <rule modifiers="opt">underscore</rule>
+      <rule>hexadecimal-digit</rule>
+    </def>
+  </rule-def>
   <rule-def id="hexadecimal-digit" type="oneof">
     <def>
       <literal>0 1 2 3 4 5 6 7 8 9 a b c d e f A B C D E F</literal>
@@ -834,16 +1454,37 @@ noindent: true
   </rule-def>
 
   <rule-def id="binary-constant">
-    <def><literal>0b</literal> <rule modifiers="rep">binary-digit</rule></def>
-    <def><literal>0B</literal> <rule modifiers="rep">binary-digit</rule></def>
+    <def>
+      <literal>0b</literal>
+      <rule modifiers="rep">binary-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
+    <def>
+      <literal>0B</literal>
+      <rule modifiers="rep">binary-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
   </rule-def>
-
+  <rule-def id="binary-sequence">
+    <def><rule>binary-digit</rule></def>
+    <def>
+      <rule>binary-sequence</rule>
+      <rule modifiers="opt">underscore</rule>
+      <rule>binary-digit</rule>
+    </def>
+  </rule-def>
   <rule-def id="binary-digit" type="oneof">
     <def>
       <literal>0 1</literal>
     </def>
   </rule-def>
 
+  <rule-def id="decimal-integer-constant">
+    <def>
+      <rule>digit-sequence</rule>
+      <rule modifiers="opt">integer-suffix</rule>
+    </def>
+  </rule-def>
   <rule-def id="digit-sequence">
     <def><rule>digit</rule></def>
     <def>
@@ -857,14 +1498,120 @@ noindent: true
     <def><literal>_</literal></def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    Unsuffixed integer constants cannot represent a value that exceeds the
+    maximum value of an unsigned 64-bit integer.
+  </li>
+  <li>
+    Suffixed integer constants cannot represent a value that exceeds the
+    suffix specifier's type. (See <table-ref target="intsuffixes"></table-ref>.)
+  </li>
+  <li>
+    Any integer constant with the value of <literal>-0</literal> is invalid.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    Unsuffixed integer constants result in one of three types of integral types
+    based on the smallest type that can hold the constant value. (See <table-ref target="unsuffixedints"></table-ref>.)
+  </li>
+  <li>
+    Suffixed integer constants result in a value with the integer type specified
+    by the suffix. (See <table-ref target="intsuffixes"></table-ref>.)
+  </li>
+</ol>
+<table id="intsuffixes">
+  <caption>Suffix type mappings</caption>
+  <thead>
+  <tr>
+    <th>Suffix</th>
+    <th>Mapped Type</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><literal>b</literal>, <literal>B</literal></td>
+    <td><code>int8</code></td>
+  </tr>
+  <tr>
+    <td><literal>s</literal>, <literal>s</literal></td>
+    <td><code>int16</code></td>
+  </tr>
+  <tr>
+    <td><literal>i</literal>, <literal>I</literal></td>
+    <td><code>int32</code></td>
+  </tr>
+  <tr>
+    <td><literal>l</literal>, <literal>L</literal></td>
+    <td><code>int64</code></td>
+  </tr>
+  <tr>
+    <td><literal>ub</literal>, <literal>UB</literal>, <literal>uB</literal>, <literal>Ub</literal></td>
+    <td><code>uint8</code></td>
+  </tr>
+  <tr>
+    <td><literal>us</literal>, <literal>US</literal>, <literal>uS</literal>, <literal>Us</literal></td>
+    <td><code>uint16</code></td>
+  </tr>
+  <tr>
+    <td><literal>ui</literal>, <literal>UI</literal>, <literal>uI</literal>, <literal>Ui</literal></td>
+    <td><code>uint32</code></td>
+  </tr>
+  <tr>
+    <td><literal>ul</literal>, <literal>UL</literal>, <literal>uL</literal>, <literal>Ul</literal></td>
+    <td><code>uint64</code></td>
+  </tr>
+  </tbody>
+</table>
+<table id="unsuffixedints" style="margin-top: 5mm;">
+  <caption>Unsuffixed integer types</caption>
+  <thead>
+  <tr>
+    <th>Minimum Value</th>
+    <th>Maximum Value</th>
+    <th>Resulting Type</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td>-2147483648</td>
+    <td>2147483647</td>
+    <td><code>int32</code></td>
+  </tr>
+  <tr>
+    <td>2147483648</td>
+    <td>4294967295</td>
+    <td><code>uint32</code></td>
+  </tr>
+  <tr>
+    <td>4294967296</td>
+    <td>9223372036854775807</td>
+    <td rowspan="2"><code>int64</code></td>
+  </tr>
+  <tr>
+    <td>-9223372036854775808</td>
+    <td>-2147483649</td>
+  </tr>
+  <tr>
+    <td>9223372036854775808</td>
+    <td>18446744073709551615</td>
+    <td><code>uint64</code></td>
+  </tr>
+  </tbody>
+</table>
 
 <h5>Floating Point Constants</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="floating-point-constant">
     <def>
+      <rule modifiers="opt">sign</rule>
       <rule>fractional-part</rule>
       <rule modifiers="opt">exponent-part</rule>
+      <rule modifiers="opt">floating-point-suffix</rule>
     </def>
   </rule-def>
 
@@ -898,13 +1645,63 @@ noindent: true
     </def>
   </rule-def>
 
-  <rule-def id="sign" type="oneof">
-    <def><literal>+ -</literal></def>
+  <rule-def id="floating-point-suffix" type="oneof">
+    <def>
+      <literal>f</literal>
+      <literal>F</literal>
+      <literal>d</literal>
+      <literal>D</literal>
+    </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    An unsuffixed floating point constant must contain a valid floating point
+    value that can be represented as a 64-bit floating point value.
+  </li>
+  <li>
+    A suffixed floating point constant must contain a valid floating value that
+    can be represented by the type specified by the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
+  </li>
+  <li>
+    Hexadecimal/Octal/Binary floating point numbers, are explicitly not
+    supported in Tetral grammar.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The result of an unsuffixed floating point constant is a 64-bit floating
+    point number.
+  </li>
+  <li>
+    The result of a suffixed floating point constant is a floating point value
+    of the type matching the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
+  </li>
+</ol>
+<table id="floatsuffixes">
+  <caption>Floating point suffix type table</caption>
+  <thead>
+  <tr>
+    <th>Suffixes</th>
+    <th>Type</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><literal>f</literal>, <literal>F</literal></td>
+    <td><code>float32</code></td>
+  </tr>
+  <tr>
+    <td><literal>d</literal>, <literal>D</literal></td>
+    <td><code>float64</code></td>
+  </tr>
+  </tbody>
+</table>
 
 <h5>Character Constants</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="character-constant">
     <def>
@@ -927,7 +1724,7 @@ noindent: true
   </rule-def>
 
   <rule-def id="simple-escape-sequence" type="oneof">
-    <def><literal>\' \" \\ \t \r \n \T \R \N</literal></def>
+    <def><literal>\' \" \\ \t \r \n \T \R \N \$</literal></def>
   </rule-def>
 
   <rule-def id="hex-escape-sequence">
@@ -941,60 +1738,174 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    A character constant's contained codepoint cannot be larger than one which
+    can be encoded in a single UTF-8 byte.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    Character constants result in a single unsigned 8-bit integer, equal to the
+    character constant's UTF-8 encoded byte value.
+  </li>
+  <li>
+    An escaped sequence leads to the escaped character's value being used. See
+    the table below for escaped character values.
+  </li>
+</ol>
+<table>
+  <caption>String/Character escape sequence values.</caption>
+  <thead>
+  <tr>
+    <th>Escape Sequence</th>
+    <th>Resulting codepoint name.</th>
+    <th>Unicode codepoint.</th>
+  </tr>
+  </thead>
+  <tbody>
+  <tr>
+    <td><literal>\'</literal></td>
+    <td>Single quote character</td>
+    <td>U+0027</td>
+  </tr>
+  <tr>
+    <td><literal>\"</literal></td>
+    <td>Double quote character</td>
+    <td>U+0022</td>
+  </tr>
+  <tr>
+    <td><literal>\\</literal></td>
+    <td>Slash character</td>
+    <td>U+002F</td>
+  </tr>
+  <tr>
+    <td><literal>\t</literal>, <literal>\T</literal></td>
+    <td>Tabulation character</td>
+    <td>U+0009</td>
+  </tr>
+  <tr>
+    <td><literal>\n</literal>, <literal>\N</literal></td>
+    <td>Linefeed character</td>
+    <td>U+000A</td>
+  </tr>
+  <tr>
+    <td><literal>\r</literal>, <literal>\R</literal></td>
+    <td>Carriage Return character</td>
+    <td>U+000D</td>
+  </tr>
+  <tr>
+    <td><literal>\$</literal></td>
+    <td>Dollar Sign character</td>
+    <td>U+0024</td>
+  </tr>
+  </tbody>
+</table>
 
 <h5>Predefined Constants</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="predefined-constant">
     <def><literal>true</literal></def>
     <def><literal>false</literal></def>
     <def><literal>null</literal></def>
+    <def><literal>nan</literal></def>
+    <def><literal>inf</literal></def>
+    <def><literal>-inf</literal></def>
+    <def><literal>+inf</literal></def>
   </rule-def>
 </grammar-def>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The result of the <literal>true</literal> and <literal>false</literal>
+    keywords are a boolean value of the corresponding value.
+  </li>
+  <li>
+    The result of the <literal>null</literal> value is a pointer with a null
+    value. A null value can be implicitly cast to any nullable reference type or
+    any nullable value-type-reference type. The <literal>null</literal> value
+    can also be assigned to any type marked as nullable with the
+    <literal>?</literal> keyword.
+  </li>
+  <li>
+    The result of the <literal>nan</literal> keyword is a 32-bit floating point
+    value with the special Not-A-Number value.
+  </li>
+  <li>
+    The result of the <literal>inf</literal>, <literal>-inf</literal> and
+    <literal>+inf</literal> keywords are a 32-bit floating point value with an
+    infinite value of the corresponding signedness. If no sign is specified,
+    then the result the same as with the <literal>+</literal> sign.
+  </li>
+</ol>
 
 <h4>Operators</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="operator" type="oneof">
     <def>
       <literal>
         ( ) { } [ ] : ; , . ... & &= && &&= | |= * *= / /= + += - -= ^ ^=
-        % %= << <<= >> >>= >>> >>>= < <= > >= ++ -- == != = ! ~ => ** **= || ||= ?
-        ?? ??=
+        % %= << <<= >> >>= < <= > >= ++ -- == != = ! ~ => ** **= || ||= ?
+        ?? ??= ?. !.
       </literal>
     </def>
   </rule-def>
 </grammar-def>
 
+<h4>Semicolons</h4>
+<h6>Syntax</h6>
+<grammar-def>
+  <rule-def id="semicolon">
+    <def><literal>;</literal></def>
+  </rule-def>
+</grammar-def>
+<h6>Lexical Analysis Rules</h6>
+<ol>
+  <li>
+    The semicolon as a marker for the end of an expression or for a statement is
+    completely optional and need not be used unless there may be ambiguity in
+    the syntax.
+  </li>
+  <li>
+    Certain syntactic elements (For example, the <rule>for-loop-statement</rule>)
+    explicitly use semicolons to delimit parts of the grammar. In such cases the
+    semicolon is required.
+  </li>
+</ol>
+
 <h4>Comments</h4>
 <p>
-  Except within a string or character literal, the characters <b>//</b> and
-  <b>#</b> denote the beginning of a line comment. The comment consumes the
+  Except within a string or character literal, the characters <literal>//</literal> and
+  <literal>#</literal> denote the beginning of a line comment. The comment consumes the
   rest of the source file's line, or until the end of input has
   been reached.
 </p>
 <p>
-  Except within a string or character literal, the characters <b>/*</b> denote
+  Except within a string or character literal, the characters <literal>/*</literal> denote
   the beginning of a block comment. The comment consumes input until a matching
-  <b>*/</b> sequence has been found, or until the end of input has
+  <literal>*/</literal> sequence has been found, or until the end of input has
   been reached.
 </p>
 <p>
-  Except within a string or character literal, the characters <b>/**</b> denote
-  the beginning of a documentation comment. The comment consumes input until a
-  matching <b>*/</b> sequence has been found, or until the end of input has
-  been reached.
+  Except within a string or character literal, the characters
+  <literal>/**</literal> denote the beginning of a documentation comment. The
+  comment consumes input until a matching <literal>*/</literal> sequence has
+  been found, or until the end of input has been reached.
 </p>
 <p>
   In almost all cases, comments are simply skipped over and ignored, except for
-  documentation comments (Starting with <b>/**</b>) which are linked to the
-  specific <rule>declaration</rule> that they prefix.
+  documentation comments (Starting with <literal>/**</literal>) which are linked
+  to the specific <rule>declaration</rule> that they prefix.
 </p>
 
 <h3>Expressions</h3>
 
 <h4>Primary Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="primary-expression">
     <def><rule>constant</rule></def>
@@ -1003,32 +1914,105 @@ noindent: true
     <def><rule>array-literal</rule></def>
     <def><rule>string-literal</rule></def>
     <def><rule>cast-expression</rule></def>
-    <def><rule>super-constructor-expression</rule></def>
     <def><rule>super-expression</rule></def>
     <def><rule>this-expression</rule></def>
-    <def><rule>null-expression</rule></def>
+    <def><rule>new-expression</rule></def>
     <def><literal>(</literal> <rule>expression</rule> <literal>)</literal></def>
   </rule-def>
 </grammar-def>
 
-<h5>'Super' Expression</h5>
-<p><b>Syntax</b></p>
+<h5>New Expression</h5>
+<h6>Syntax</h6>
 <grammar-def>
-  <rule-def id="this-expression">
+  <rule-def id="new-expression">
+    <def><rule>object-instantiation-expression</rule></def>
+    <def><rule>array-instantiation-expression</rule></def>
+  </rule-def>
+
+  <rule-def id="object-instantiation-expression">
+    <def><literal>new</literal> <rule>function-call</rule></def>
+    <def><literal>new</literal> <rule>type-name-expression</rule> <rule modifiers="opt">function-call</rule></def>
+  </rule-def>
+
+  <rule-def id="array-instantiation-expression">
     <def>
-      <literal>this</literal>
+      <literal>new</literal>
+      <rule modifiers="opt">type-expression</rule>
+      <literal>[</literal>
+      <rule>expression</rule>
+      <literal>]</literal>
+    </def>
+    <def>
+      <literal>new</literal>
+      <rule modifiers="opt">type-expression</rule>
+      <literal>[</literal>
+      <rule>expression</rule>
+      <literal>]</literal>
+      <rule>function-call</rule>
     </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    New expressions can only be used to instantiate structs, classes and arrays.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>Instantiates a new instance of a specific type.</li>
+  <li>
+    If the type name was not specified, the type must be inferred from the
+    surrounding context.
+  </li>
+</ol>
+<h6>Object Instantiation</h6>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    The specified arguments must match a constructor that exists on the type.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>Instantiates an object by calling the appropriate constructor.</li>
+</ol>
+<h6>Array Instantiation</h6>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    The specified expression must result in an unsigned 32-bit integer, this
+    expression's result will be referred to as the instantiated array's length.
+  </li>
+  <li>The array type must be default initialize-able.</li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    Instantiates an array of the defined length and initializes each value in
+    the created array to the array type's default initialized value.
+  </li>
+  <li>
+    If the specified length of the array is 0, then the array is not allocated
+    and is instead assigned to a null pointer, aka, an empty array.
+  </li>
+</ol>
 
-<p><b>Constraints</b></p>
+<h5>'Super' Expression</h5>
+<h6>Syntax</h6>
+<grammar-def>
+  <rule-def id="super-expression">
+    <def><literal>super</literal></def>
+  </rule-def>
+</grammar-def>
+<h6>Constraints</h6>
 <ol>
   <li>
     May only be used inside a class or interface method declaration or a class
     constructor declaration.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The result of the expression is a pointer to the <literal>this</literal>
@@ -1036,54 +2020,30 @@ noindent: true
   </li>
 </ol>
 
-<h5>Super-Type Constructor Expression</h5>
-<sub>subtest</sub>
-<p><b>Syntax</b></p>
-<grammar-def>
-  <rule-def id="super-constructor-expression">
-    <def>
-      <literal>super</literal>
-      <literal>(</literal>
-      <rule modifiers="opt">arguments-list</rule>
-      <literal>)</literal>
-    </def>
-  </rule-def>
-</grammar-def>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>May only be used inside a class constructor.</li>
-  <li>May only be used when a class extends another class.</li>
-  <li>Must be the first statement in a class constructor.</li>
-</ol>
-
 <h5>'This' Expression</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="this-expression">
-    <def>
-      <literal>this</literal>
-    </def>
+    <def><literal>this</literal></def>
   </rule-def>
 </grammar-def>
-
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
-    May only be used inside a class or interface method declaration or a class
-    constructor declaration.
+    May only be used inside a class, struct or interface method declaration or
+    a class constructor declaration.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    The result of the expression is a pointer to the <literal>this</literal>
-    object in the current context.
+    The result of the expression is a reference to the <literal>this</literal>
+    object in the semantic context in which it used.
   </li>
 </ol>
 
 <h5>Cast Expression</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="cast-expression">
     <def><rule>value-cast-expression</rule></def>
@@ -1112,41 +2072,49 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
-    Cast expressions can only cast from one primitive type to another, for
-    example, they can be used cast from a floating point to an integral type.
+    Cast expressions can only cast between types which have a defined implicit
+    or explicit conversion. (See
+    <chapter-ref target="type-conversions"></chapter-ref>.)
+  </li>
+  <li>
+    Bit-casting can only be performed on arithmetic types.
+  </li>
+  <li>
+    Bit-casting can only cast from one type to another type of the same size.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>Casts a value returned by an expression to a different type.</li>
   <li>
-    In the event an integral type is being cast to a floating point type, the
-    integer should be transformed such that the value of the resulting floating
-    point number is equal to the integral number's value.
+    Regular casting operations are defined in
+    <chapter-ref target="type-conversions"></chapter-ref>.
   </li>
   <li>
-    In the event a floating point type is being cast to an integral type, the
-    floating point value should be transformed such that the value of the
-    resulting integral number is the rounded down value of the floating point
-    number.
-  </li>
-  <li>
-    In any case other than the two aforementioned ones, the expression need not
-    be handled by the compiler and can be treated as if it doesn't exist.
+    Bit-casing only treats the expression's value as a different type, no
+    conversion operations are performed.
   </li>
 </ol>
 
 <h5>Object Literals</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="object-literal">
     <def>
       <literal>{</literal>
-      <rule modifiers="opt rep">object-literal-property</rule>
+      <rule modifiers="opt">object-literal-property-list</rule>
       <literal>}</literal>
+    </def>
+  </rule-def>
+  <rule-def id="object-literal-property-list">
+    <def><rule>object-literal-property</rule></def>
+    <def>
+      <rule>object-literal-property-list</rule>
+      <literal>,</literal>
+      <rule>object-literal-property</rule>
     </def>
   </rule-def>
   <rule-def id="object-literal-property">
@@ -1157,9 +2125,32 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    If an object literal's struct type cannot be inferred from the surrounding
+    context, then the expression is invalid.
+  </li>
+  <li>
+    An object literal may only initialize properties that exist on the struct
+    type.
+  </li>
+  <li>An object literal may not declare any duplicate properties.</li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The type of struct initialized by an object literal must be inferred from
+    the surrounding context.
+  </li>
+  <li>
+    Semantically, an object literal is identical to constructing the struct
+    type and setting each property separately.
+  </li>
+</ol>
 
 <h5>Array Literals</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
  <rule-def id="array-literal">
    <def>
@@ -1179,7 +2170,7 @@ noindent: true
 </grammar-def>
 
 <h5>String Literals</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="string-literal">
     <def><rule>line-string-literal</rule></def>
@@ -1249,14 +2240,14 @@ noindent: true
     <def><rule>escape-sequence</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     All expressions and identifiers declared inside a string must return a
     non-void value.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     A string literal will always result in a value of a <code>string</code>
@@ -1268,10 +2259,24 @@ noindent: true
     start of each line. Since indentation can vary from line to line, the amount
     indentation removed depends on the line with the least indentation.
   </li>
+  <li>
+    The template expressions <literal>$</literal><rule>identifier</rule> and
+    <literal>${</literal><rule>expression</rule><literal>}</literal> with an
+    identifier as the expression are semantically identical.
+  </li>
+  <li>
+    For templated strings, each templated expression is evaluated in declaration
+    order and appended to the resulting string. (See
+    <chapter-ref target="strconv"></chapter-ref>.)
+  </li>
+  <li>
+    Semantically, a templated string literal is identical to declaring each part
+    of the string as its own separate expression and concatenating it together.
+  </li>
 </ol>
 
 <h4>Trail Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="trail-expression">
     <def><rule>primary-expression</rule></def>
@@ -1283,7 +2288,7 @@ noindent: true
 </grammar-def>
 
 <h4>Index Access Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="index-access-expression">
     <def>
@@ -1294,27 +2299,36 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The type returned by the target <rule>trail-expression</rule> must be an
-    indexable type. (See below table)
+    indexable type. (See <table-ref target="typeindexing"></table-ref>)
   </li>
   <li>
     The indexing <i>expression</i> must be a type used to index into the
-    target expression's type. (See below table)
+    target expression's type. (See <table-ref target="typeindexing"></table-ref>)
   </li>
   <li>
     If the type being accessed is a <code>string</code>, then the index may not
     be written to.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>Accesses an indexable element in an indexable value.</li>
+  <li>A valid index access expression is a valid lvalue.</li>
+  <li>Accessing a non-readonly array is a valid mutable lvalue.</li>
+</ol>
+<h6>Runtime Errors</h6>
+<ol>
+  <li>
+    It is a runtime error if the index being accessed is beyond the length of
+    the indexed operand.
+  </li>
 </ol>
 
-<table>
+<table id="typeindexing">
   <caption>Type Indexing</caption>
   <thead>
   <tr>
@@ -1338,7 +2352,7 @@ noindent: true
 </table>
 
 <h4>Property Access Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="property-access-expression">
     <def>
@@ -1346,47 +2360,63 @@ noindent: true
       <literal>.</literal>
       <rule>identifier</rule>
     </def>
+    <def>
+      <rule>trail-expression</rule>
+      <literal>?.</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <rule>trail-expression</rule>
+      <literal>!.</literal>
+      <rule>identifier</rule>
+    </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>The property being accessed must exist on the specified type.</li>
+  <li>The property being accessed must exist on the object operand.</li>
+  <li>A property access must not violate class/interface access semantics.</li>
   <li>
-    If the property being accessed is an array's or string's length property,
-    the property may not be written to.
-  </li>
-  <li>
-    The property being accessed would result in access to a private class symbol
-    from outside that class, then the expression is invalid.
-  </li>
-  <li>
-    The property being accessed would result in access to a protected class
-    symbol from outside that class or from outside a derived type of that
-    class, then the expression is invalid.
+    The <literal>.</literal> operator cannot be used on the object operand.
+    Either the <literal>!.</literal> or <literal>?.</literal> operator must be
+    used by the user to acknowledge the nullability value.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    The expression returns a value of the type of the property being accessed.
+    The result of the <literal>.</literal> and <literal>!.</literal> operator
+    is a copy of the value of the property or virtual property being accessed.
   </li>
   <li>
-    For <code>string</code> and array types, the only accessible property is the
-    <code>length</code> property and it returns the number of elements in the
-    object.
+    The result of the <literal>?.</literal> operator is a nullable copy of the
+    value of the property or virtual property being accessed. If the object
+    operand is a null reference type or empty value-type-reference, then the
+    resulting value is an empty nullable.
+  </li>
+  <li>A valid property access expression is a valid lvalue.</li>
+</ol>
+<h6>Runtime Error</h6>
+<ol>
+  <li>
+    It is a runtime error if the object operand is an empty nullable value.
   </li>
 </ol>
 
 <h4>Function Call Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="function-call-expression">
     <def>
       <rule>trail-expression</rule>
-      <literal>(</literal>
-      <rule modifiers="opt">arguments-list</rule>
-      <literal>)</literal>
+      <rule>function-call</rule>
     </def>
+  </rule-def>
+  <rule-def id="function-call">
+    <rule modifiers="opt">type-parameter-instatiation</rule>
+    <literal>(</literal>
+    <rule modifiers="opt">arguments-list</rule>
+    <literal>)</literal>
   </rule-def>
   <rule-def id="arguments-list">
     <def><rule>expression</rule></def>
@@ -1397,7 +2427,7 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The value returned by the target <i>trail-expression</i> must be a function.
@@ -1407,17 +2437,23 @@ noindent: true
     declared arguments.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>Invokes a function with the specified arguments.</li>
+  <li>Calling arguments are evaluated from left to right.</li>
   <li>
     The value returned by the expression is dependent on the return type of the
     function being invoked.
   </li>
+  <li>
+    When the <rule>trail-expression</rule> matches multiple overloading
+    functions, the one that would require the least number of type conversions
+    is selected.
+  </li>
 </ol>
 
 <h4>Coalescence Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="coalescence-expression">
     <def><rule>trail-expression</rule></def>
@@ -1428,53 +2464,108 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>
-    It must be possible to resolve the left-hand-side expression to a
-    boolean-like value.
-  </li>
-  <li>
-    The values of both the left-hand-side expression and the right-hand-side
-    must be of a compatible type.
-  </li>
+  <li>The left operand must be a boolean-assignable value.</li>
+  <li>Both operands must be of a compatible type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    Evaluates the left-hand-side expression, and if it's boolean-like value
-    results in a false value, the right-hand-side is evaluated.
+    The result of the <literal>??</literal> operator is the left operand if it
+    evaluates to a true value. Otherwise, the result of the expression is the
+    right operand.
+  </li>
+  <li>
+    If the left operand is returned, the right operand must not be evaluated.
   </li>
 </ol>
 
 <h4>Unary Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-expression">
     <def><rule>trail-expression</rule></def>
     <def><rule>reference-expression</rule></def>
+    <def><rule>dereference-expression</rule></def>
     <def><rule>unary-increment-expression</rule></def>
     <def><rule>unary-decrement-expression</rule></def>
     <def><rule>unary-arithmetic-expression</rule></def>
-    <def><rule>unary-bitwise-negation-expression</rule>
-    </def><def><rule>unary-logical-negation-expression</rule>
-  </def>
+    <def><rule>unary-bitwise-negation-expression</rule></def>
+    <def><rule>unary-logical-negation-expression</rule></def>
   </rule-def>
 </grammar-def>
 
 <h5>Reference Expression</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="reference-expression">
     <def>
       <literal>&</literal>
       <rule>unary-expression</rule>
     </def>
+    <def>
+      <literal>&</literal>
+      <literal>mutable</literal>
+      <rule>unary-expression</rule>
+    </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>The operand must be a value type.</li>
+  <li>The operand must be a valid lvalue.</li>
+  <li>
+    The <literal>&mutable</literal> operator cannot be used if the operand
+    object is a constant field, constant struct property, constant variable,
+    variant property or virtual property.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The result of <literal>&</literal> operator is an immutable reference to
+    the operand's value.
+  </li>
+  <li>
+    The result of <literal>&mutable</literal> operator is a mutable reference to
+    the operand's value.
+  </li>
+</ol>
+
+<h5>Dereference Expression</h5>
+<h6>Syntax</h6>
+<grammar-def>
+  <rule-def id="dereference-expression">
+    <def>
+      <literal>*</literal>
+      <rule>unary-expression</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>The operand must be a value-reference-type.</li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The result of the unary <literal>*</literal> operator is a copy of the
+    referenced value.
+  </li>
+  <li>
+    Reference types by definition disable the object lifetime system and as
+    such, accessing memory which has been freed or reused is undefined
+    behavior.
+  </li>
+  <li>
+    The result of a valid dereference expression is a valid lvalue. If the
+    operand is a mutable reference, then the result is a valid mutable lvalue.
+  </li>
+</ol>
 
 <h5>Unary Increment Expressions</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-increment-expression">
     <def>
@@ -1487,12 +2578,12 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>The operand must be a valid lvalue that can be modified.</li>
   <li>The operand must be of an integral or floating point type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     If the increment operator is placed before the operand, the result is the
@@ -1507,7 +2598,7 @@ noindent: true
 </ol>
 
 <h5>Unary Decrement Expressions</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-decrement-expression">
     <def>
@@ -1520,12 +2611,12 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>The operand must be a valid lvalue that can be modified.</li>
   <li>The operand must be of an integral or floating point type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     If the decrement operator is placed before the operand, the result is the
@@ -1540,19 +2631,25 @@ noindent: true
 </ol>
 
 <h5>Unary Arithmetic Expressions</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-arithmetic-expression">
     <def><literal>-</literal> <rule>unary-expression</rule></def>
     <def><literal>+</literal> <rule>unary-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>The operand must be a valid lvalue.</li>
-  <li>The operand must be of an integral or floating point type.</li>
+  <li>
+    For the <literal>-</literal> operator, the operand must be of an
+    arithmetic type.
+  </li>
+  <li>
+    For the <literal>+</literal> operator, the operand must be of an
+    arithmetic type or a boolean. (Not boolean-assignable, an explicit boolean.)
+  </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The result of the <b>-</b> operator is the negative of the operand's value,
@@ -1560,23 +2657,28 @@ noindent: true
     type an unsigned type, the resulting type is a signed type of the same size.
   </li>
   <li>
-    The result of the <b>+</b> operator is the value of the operand.
+    The result of the <b>+</b> operator, for arithmetic values, is the value of
+    the operand.
+  </li>
+  <li>
+    The result of the <b>+</b> operator, for boolean values, is the value 0, if
+    the boolean value is false, otherwise the result is 1.
   </li>
 </ol>
 
 <h5>Unary Bitwise Negation Expressions</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-bitwise-negation-expression">
     <def><literal>~</literal> <rule>unary-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>The operand must be a valid lvalue.</li>
   <li>The operand must be of an integral type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The result of the expression is the value of the operand with all the
@@ -1585,38 +2687,40 @@ noindent: true
 </ol>
 
 <h5>Unary Logical Negation Expressions</h5>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="unary-logical-negation-expression">
     <def><literal>!</literal> <rule>unary-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
-<ol>
-  <li>The operand must be a valid lvalue.</li>
-  <li>The operand must be of an integral type.</li>
-</ol>
-<p><b>Semantics</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
-    The result of the expression is the value of the operand with all the
-    bits flipped (All zeroes set to ones and vice versa)
+    The operand's value must be boolean compatible. (Defined in
+    <chapter-ref target="boolean-conversion"></chapter-ref>.)
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>
+    The result of the <literal>!</literal> operator is the value of the operand,
+    converted to a boolean, and then the value inverted.
   </li>
 </ol>
 
 <h4>Power (POW) Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="power-expression">
     <def><rule>unary-expression</rule></def>
     <def><rule>power-expression</rule> <literal>**</literal> <rule>unary-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a compatible arithmetic type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>The usual arithmetic conversions are applied.</li>
   <li>
@@ -1626,7 +2730,7 @@ noindent: true
 </ol>
 
 <h4>Multiplicative Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="multiplicative-expression">
     <def><rule>power-expression</rule></def>
@@ -1635,29 +2739,38 @@ noindent: true
     <def><rule>multiplicative-expression</rule> <literal>%</literal> <rule>power-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a compatible arithmetic type.</li>
+  <li>
+    In the case of the <literal>*</literal> operator, if the left operator is
+    a string, the right operand must be an integral.
+  </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>The usual arithmetic conversions are applied.</li>
   <li>
-    The result of the <b>*</b> operator is the left operand multiplied by the
+    The result of the <literal>*</literal> operator, when applied to two arithmetic types,
+    is the left operand multiplied by the right operand.
+  </li>
+  <li>
+    The result of the <literal>*</literal> operator, when applies to a string operand and
+    an integral operand, is the value of the string operand with its content
+    repeated an amount of times specified by the integral operand.
+  </li>
+  <li>
+    The result of the <literal>/</literal> operator is the left operand divided by the
     right operand.
   </li>
   <li>
-    The result of the <b>/</b> operator is the left operand divided by the
-    right operand.
-  </li>
-  <li>
-    The result of the <b>%</b> operator is the remainder of dividing the left
+    The result of the <literal>%</literal> operator is the remainder of dividing the left
     operand by the right operand.
   </li>
 </ol>
 
 <h4>Additive Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="additive-expression">
     <def><rule>multiplicative-expression</rule></def>
@@ -1665,25 +2778,39 @@ noindent: true
     <def><rule>additive-expression</rule> <literal>-</literal> <rule>multiplicative-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a compatible arithmetic type.</li>
+  <li>
+    For the <literal>-</literal> operator, both operands must be a compatible
+    arithmetic type.
+  </li>
+  <li>
+    For the <literal>+</literal> operator, either both operands must be of a
+    compatible arithmetic type, or the left operand must be a string, and the
+    other operand must be a non-void value.
+  </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>The usual arithmetic conversions are applied.</li>
   <li>
-    The result of the <b>+</b> operator is the left operand plus the right
-    operand.
+    The result of the <literal>+</literal> operator, when both operands are arithmetic, is
+    the left operand plus the right operand.
   </li>
   <li>
-    The result of the <b>-</b> operator is the left operand minus the right
+    The result of the <literal>+</literal> operator, when the left operand is a string, is
+    the string operand's string value concatenated with the string
+    representation of the other operand. (See
+    <chapter-ref target="strconv"></chapter-ref>.)
+  </li>
+  <li>
+    The result of the <literal>-</literal> operator is the left operand minus the right
     operand.
   </li>
 </ol>
 
 <h4>Shift Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="bitshift-expression">
     <def><rule>additive-expression</rule></def>
@@ -1691,11 +2818,11 @@ noindent: true
     <def><rule>bitshift-expression</rule> <literal>&gt;&gt;</literal> <rule>additive-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a compatible integral type.</li>
+  <li>Both operands must be of an integral type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The result of the <b>&lt;&lt;</b> operator is the value of the left operand
@@ -1705,10 +2832,14 @@ noindent: true
     The result of the <b>&gt;&gt;</b> operator is the value of the left operand
     with its bits shifted to the right by the value of the right operand.
   </li>
+  <li>
+    In the case the right operand is a negative value, the operation acts as the
+    inverse operation: left shift becomes right shift and vice versa.
+  </li>
 </ol>
 
 <h4>Relational Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="relational-expression">
     <def><rule>bitshift-expression</rule></def>
@@ -1718,11 +2849,11 @@ noindent: true
     <def><rule>relational-expression</rule> <literal>&gt;=</literal> <rule>bitshift-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a compatible comparable type (See <chapter-ref target="comp-semantics"></chapter-ref>.)</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     If both operands are compatible arithmetic types, then the usual arithmetic
@@ -1749,7 +2880,7 @@ noindent: true
 </ol>
 
 <h4>Identity Equality Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="identity-expression">
     <def><rule>relational-expression</rule></def>
@@ -1757,11 +2888,14 @@ noindent: true
     <def><rule>identity-expression</rule> <literal>!==</literal> <rule>relational-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a compatible reference type.</li>
+  <li>
+    Both operands must be of a compatible reference type or a compatible
+    value-type-reference. Nullability of the operands does not matter.
+  </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The result of the <b>===</b> operator is a boolean true value if the left
@@ -1774,7 +2908,7 @@ noindent: true
 </ol>
 
 <h4>Equality Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="equality-expression">
     <def><rule>identity-expression</rule></def>
@@ -1782,11 +2916,11 @@ noindent: true
     <def><rule>equality-expression</rule> <literal>!=</literal> <rule>identity-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a compatible type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     If both operands are compatible arithmetic types, then the usual arithmetic
@@ -1803,20 +2937,20 @@ noindent: true
 </ol>
 
 <h4>XOR Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="xor-expression">
     <def><rule>equality-expression</rule></def>
     <def><rule>xor-expression</rule> <literal>^</literal> <rule>equality-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a valid integral type</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
-  <li>The usual arithmetic conversions are applied</li>
+  <li>The usual arithmetic conversions are applied.</li>
   <li>
     The result of the <b><code>^</code></b> operator is the value of the left
     operand with every bit set to true if and only if the corresponding bit is
@@ -1825,20 +2959,20 @@ noindent: true
 </ol>
 
 <h4>Bitwise AND Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="bitwise-and-expression">
     <def><rule>xor-expression</rule></def>
     <def><rule>bitwise-and-expression</rule> <literal>&</literal> <rule>xor-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a valid integral type</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
-  <li>The usual arithmetic conversions are applied</li>
+  <li>The usual arithmetic conversions are applied.</li>
   <li>
     The result of the <b><code>&</code></b> operator is the value of the left
     operand with every bit set to true if the corresponding bit in the right
@@ -1847,20 +2981,20 @@ noindent: true
 </ol>
 
 <h4>Bitwise OR Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="bitwise-or-expression">
     <def><rule>bitwise-and-expression</rule></def>
     <def><rule>bitwise-or-expression</rule> <literal>|</literal> <rule>bitwise-and-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Both operands must be of a valid integral type</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
-  <li>The usual arithmetic conversions are applied</li>
+  <li>The usual arithmetic conversions are applied.</li>
   <li>
     The result of the <b><code>|</code></b> operator is the value of the left
     operand with every bit set to true if the bit is set in either the left
@@ -1869,63 +3003,63 @@ noindent: true
 </ol>
 
 <h4>Logical AND Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="logical-and-expression">
     <def><rule>bitwise-or-expression</rule></def>
     <def><rule>logical-and-expression</rule> <literal>&&</literal> <rule>bitwise-or-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a valid integral or boolean-like type</li>
+  <li>Both operands must be of a valid integral or boolean-assignable type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    The usual arithmetic conversions are applied if both operands are integral
+    The usual arithmetic conversions are applied if both operands are arithmetic
     types.
   </li>
   <li>
     The result of the <b><code>&&</code></b> operator is a boolean true value
-    if both operands are a truthy value.
+    if both operands evaluate to a true value.
   </li>
   <li>
-    If the left operands evaluates to a falsey value, the right operand must
+    If the first operand evaluates to a false value, the second operator must
     not be evaluated.
   </li>
 </ol>
 
 <h4>Logical OR Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="logical-or-expression">
     <def><rule>logical-and-expression</rule></def>
     <def><rule>logical-or-expression</rule> <literal>||</literal> <rule>logical-and-expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a valid integral or boolean-like type</li>
+  <li>Both operands must be of a valid integral or boolean-assignable type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    The usual arithmetic conversions are applied if both operands are integral
+    The usual arithmetic conversions are applied if both operands are arithmetic
     types.
   </li>
   <li>
     The result of the <b><code>||</code></b> operator is a boolean true value
-    if at least one of the operands are a truthy value.
+    if at least one of the operands are a boolean true value.
   </li>
   <li>
-    If the left operands evaluates to a truthy value, the right operand must
-    not be evaluated.
+    If the left operand evaluates to a true value, the right operand must not be
+    evaluated.
   </li>
 </ol>
 
 <h4>Conditional Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="conditional-expression">
     <def><rule>logical-or-expression</rule></def>
@@ -1938,12 +3072,12 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>The condition expression must result in a boolean-like value.</li>
   <li>Both the left and the right operands must result in a compatible type.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The condition operand is evaluated first, if it results in a true value,
@@ -1957,7 +3091,7 @@ noindent: true
 </ol>
 
 <h4>Assignment Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="assignment-expression">
     <def><rule>conditional-expression</rule></def>
@@ -1972,7 +3106,7 @@ noindent: true
 </grammar-def>
 
 <h4>Top Level Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="expression">
     <def><rule>assignment-expression</rule></def>
@@ -1980,21 +3114,21 @@ noindent: true
 </grammar-def>
 
 <h4>Loop Condition Expression</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="loop-condition-expression">
     <def><literal>(</literal> <rule>expression</rule> <literal>)</literal></def>
     <def><rule>expression</rule></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     Loop condition expressions must always result in a value that can be
     assigned in some way to a true/false value.
   </li>
 </ol>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Loop condition expressions declare an expression that may or may not be
   surrounded by parentheses. Loop condition expressions declared with
@@ -2002,7 +3136,7 @@ noindent: true
 </p>
 
 <h3>Type Expressions</h3>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="type-expression">
     <def><rule>array-type-expression</rule></def>
@@ -2010,7 +3144,7 @@ noindent: true
 </grammar-def>
 
 <h4>Const Type Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="const-type-expression">
     <def><rule>type-keyword</rule></def>
@@ -2019,20 +3153,29 @@ noindent: true
 </grammar-def>
 
 <h4>Type Name Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="type-name-expression">
     <def><rule>const-type-expression</rule></def>
     <def><rule>identifier</rule></def>
+    <def>
+      <rule>module-name</rule>
+      <literal>::</literal>
+      <rule>identifier</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
 <h4>Parameterized Type Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="parameterized-type-expression">
     <def><rule>type-name-expression</rule></def>
-    <def><rule>type-name-expression</rule> <literal>&lt;</literal> <rule>type-expression-list</rule> <literal>&gt;</literal></def>
+    <def><rule>type-name-expression</rule> <rule>type-parameter-instatiation</rule></def>
+  </rule-def>
+
+  <rule-def id="type-parameter-instatiation">
+    <literal>&lt;</literal> <rule>type-expression-list</rule> <literal>&gt;</literal>
   </rule-def>
 
   <rule-def id="type-expression-list">
@@ -2042,56 +3185,47 @@ noindent: true
 </grammar-def>
 
 <h4>Reference Type Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="reference-type-expression">
     <def><rule>parameterized-type-expression</rule></def>
     <def><rule>parameterized-type-expression</rule> <literal>&</literal></def>
     <def>
       <rule>parameterized-type-expression</rule>
-      <literal>readonly</literal>
+      <literal>mutable</literal>
       <literal>&</literal>
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     Nested reference types cannot exist, such as a reference to a reference.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     Declares a that value of a type is passed not by value or original pointer,
     but by a pointer that references that value.
   </li>
   <li>
-    If the <literal>readonly</literal> keyword was used, it declares that the
-    value referenced by the reference type will not be modified by way of a
-    symbol declared with a <literal>readonly</literal> modifier reference.
+    Unless the <literal>mutable</literal> keyword was used, it declares that the
+    value referenced by the reference type won't be modified.
   </li>
 </ol>
 
 <h4>Nullable Type Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="nullable-type-expression">
     <def><rule>reference-type-expression</rule></def>
     <def><rule>reference-type-expression</rule> <literal>?</literal></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Semantics</h6>
 <ol>
-  <li>
-    Nullable type expressions cannot be used for non-reference data types.
-  </li>
-</ol>
-<p><b>Semantics</b></p>
-<ol>
-  <li>
-    Declares that a value of a reference data type may be a null pointer.
-  </li>
+  <li>Declares a type to be nullable.</li>
   <li>
     Variables, properties, fields or function arguments marked as nullable may
     be set as <literal>null</literal>.
@@ -2099,7 +3233,7 @@ noindent: true
 </ol>
 
 <h4>Array Type Expressions</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="array-type-expression">
     <def><rule>nullable-type-expression</rule></def>
@@ -2109,13 +3243,15 @@ noindent: true
 </grammar-def>
 
 <h3>Declarations</h3>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="declaration">
     <def><rule>function-declaration</rule></def>
+    <def><rule>extension-function-declaration</rule></def>
     <def><rule>variable-declaration</rule></def>
     <def><rule>struct-declaration</rule></def>
     <def><rule>enum-declaration</rule></def>
+    <def><rule>variant-type-declaration</rule></def>
     <def><rule>interface-declaration</rule></def>
     <def><rule>class-declaration</rule></def>
   </rule-def>
@@ -2133,7 +3269,7 @@ noindent: true
 </grammar-def>
 
 <h4>Declaration Modifiers</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="declaration-modifiers">
     <def>
@@ -2145,13 +3281,13 @@ noindent: true
     <def><literal>native export const</literal></def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>No declaration modifier may be set more than once.</li>
 </ol>
 
 <h4>Type Parameter Lists</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="type-arguments">
     <def>
@@ -2173,11 +3309,31 @@ noindent: true
       <literal>extends</literal>
       <rule>type-expression</rule>
     </def>
+    <def>
+      <literal>class</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <literal>enum</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <literal>variant</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <literal>interface</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <literal>struct</literal>
+      <rule>identifier</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
 <h4>Module Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="module-declaration">
     <def><rule>regular-module-declaration</rule></def>
@@ -2185,7 +3341,11 @@ noindent: true
   </rule-def>
 
   <rule-def id="regular-module-declaration">
-    <def><literal>module</literal> <rule>module-name</rule></def>
+    <def>
+      <literal>module</literal>
+      <rule>module-name</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
   </rule-def>
 
   <rule-def id="native-module-declaration">
@@ -2195,10 +3355,11 @@ noindent: true
       <rule>module-name</rule>
       <literal>from</literal>
       <rule>line-string-literal</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Concepts</b></p>
+<h6>Concepts</h6>
 <dl>
   <dt>Module name</dt>
   <dd>
@@ -2210,11 +3371,11 @@ noindent: true
     The string literal declared after the <b><code>from</code></b> keyword in a
     native module declaration. It is a file name for the dynamically-loadable
     native C/C++ library that any native functions declared in the file will be
-    linked to. The string must not include the file suffix.
+    linked to. The string must not include the file extension.
     (eg: <code>.dll</code>)
   </dd>
 </dl>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The file name/path referenced by the native library path, if present, must
@@ -2226,7 +3387,7 @@ noindent: true
     file it's declared in. Multiple files may share the same namespace.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     A module declaration is used by import statements to know from which file
@@ -2240,14 +3401,18 @@ noindent: true
 </ol>
 
 <h4>Import Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="import-declaration">
-    <def><literal>import</literal> <rule>module-name</rule></def>
+    <def>
+      <literal>import</literal>
+      <rule>module-name</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The import statement must result in at least one symbol being included in
@@ -2256,11 +3421,11 @@ noindent: true
   </li>
 </ol>
 
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
-    Import all symbols with the specified module name namespace into the source
-    file.
+    Import all export symbols with the specified module name namespace into
+    the source file.
   </li>
   <li>
     All IR, or source files, the compiler is able to find that share the
@@ -2279,7 +3444,7 @@ noindent: true
 </ol>
 
 <h4>Function Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="function-declaration">
     <def>
@@ -2321,7 +3486,7 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The name and parameter types must not match a function that already exists
@@ -2341,13 +3506,13 @@ noindent: true
     a function body.
   </li>
 </ol>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Declares a function that will be accessible in the current scope.
 </p>
 
 <h4>Extension Function Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="extension-function-declaration">
     <def>
@@ -2365,7 +3530,7 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The type referenced in the <rule>extension-function-name</rule> must be a
@@ -2376,20 +3541,21 @@ noindent: true
     type if it is a class type.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   Declares a function which can be called and accessed as though it were a
   method belonging to any arbitrary type.
 </ol>
 
 <h4>Variable Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="variable-declaration">
     <def>
       <rule>declaration-modifiers</rule>
       <rule>type-expression</rule>
       <rule>identifier</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <rule>declaration-modifiers</rule>
@@ -2397,10 +3563,11 @@ noindent: true
       <rule>identifier</rule>
       <literal>=</literal>
       <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     Must not have the name of an already accessible variable in the current
@@ -2438,7 +3605,7 @@ noindent: true
     explicitly specified. (See <chapter-ref target="def-init"></chapter-ref>)
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     Declares a variable or a constant that will be accessible in the current
@@ -2458,7 +3625,7 @@ noindent: true
 </ol>
 
 <h4>Struct Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="struct-declaration">
     <def>
@@ -2474,20 +3641,21 @@ noindent: true
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
       <literal>=</literal>
       <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
-    A struct must not be declared with the either <b><code>native</code></b>
-    or <b><code>const</code></b> modifier.
+    A struct must not be declared with the <literal>native</literal> modifier.
   </li>
   <li>Struct's must only be declared in the main scope of a source file.</li>
   <li>Each struct property must have a unique name.</li>
@@ -2497,16 +3665,16 @@ noindent: true
   </li>
   <li>
     Struct properties may not directly or indirectly reference the declared
-    struct type unless the reference is through a nullable type.
+    struct type unless through a nullable value-type-reference.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>Declares a struct data type and its properties.</li>
 </ol>
 
 <h4>Enum Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="enum-declaration">
     <def>
@@ -2514,6 +3682,7 @@ noindent: true
       <rule>enum-prefix</rule>
       <literal>{</literal>
       <rule>enum-constant-declaration-list</rule>
+      <rule modifiers="opt">semicolon</rule>
       <literal>}</literal>
     </def>
   </rule-def>
@@ -2522,20 +3691,69 @@ noindent: true
     <def>
       <literal>enum</literal>
       <rule>identifier</rule>
-      <rule modifiers="opt">type-arguments</rule>
     </def>
   </rule-def>
 
   <rule-def id="enum-constant-declaration-list">
-    <def><rule>enum-constant-declaration</rule></def>
+    <def><rule>identifier</rule></def>
     <def>
       <rule>enum-constant-declaration-list</rule>
       <literal>,</literal>
-      <rule>enum-constant-declaration</rule>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <rule>enum-constant-declaration-list</rule>
+      <literal>,</literal>
+      <rule>identifier</rule>
+      <literal>,</literal>
     </def>
   </rule-def>
+</grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    An enum type may not be declared with the same name as an existing
+    interface, enum, struct, class or function in the same namespace.
+  </li>
+  <li>Each enum constant declaration must have a unique name.</li>
+</ol>
+<h6>Semantics</h6>
 
-  <rule-def id="enum-constant-declaration">
+<h4>Variant Declarations</h4>
+<h6>Syntax</h6>
+<grammar-def>
+  <rule-def id="variant-type-declaration">
+    <def>
+      <rule>declaration-modifiers</rule>
+      <rule>variant-prefix</rule>
+      <literal>{</literal>
+      <rule>variant-declaration-list</rule>
+      <rule modifiers="opt">semicolon</rule>
+      <literal>}</literal>
+    </def>
+  </rule-def>
+  <rule-def id="variant-prefix">
+    <def>
+      <literal>variant</literal>
+      <rule>identifier</rule>
+      <rule modifiers="opt">type-arguments</rule>
+    </def>
+  </rule-def>
+  <rule-def id="variant-declaration-list">
+    <def><rule>variant-declaration</rule></def>
+    <def>
+      <rule>variant-declaration-list</rule>
+      <literal>,</literal>
+      <rule>identifier</rule>
+    </def>
+    <def>
+      <rule>variant-declaration-list</rule>
+      <literal>,</literal>
+      <rule>identifier</rule>
+      <literal>,</literal>
+    </def>
+  </rule-def>
+  <rule-def id="variant-declaration">
     <def><rule>identifier</rule></def>
     <def>
       <rule>identifier</rule>
@@ -2545,26 +3763,31 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
-    A struct type may not be declared with the same name as an existing
-    interface, struct, class or function in the same namespace.
+    A Variant may not be declared with the same name as an existing declaration
+    in the same namespace.
   </li>
-  <li>Each enum constant declaration must have a unique name.</li>
+  <li>
+    Each declared variant of a variant type declaration must have a unique name.
+  </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
+<ol>
+  <li>Declares a variant type with the specified name and variants.</li>
+  <li>Declares each variant's properties.</li>
+</ol>
 
 <h4>Interface Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="interface-declaration">
     <def>
       <rule>declaration-modifiers</rule>
       <rule>interface-prefix</rule>
       <literal>{</literal>
-      <rule modifiers="rep opt">interface-method</rule>
+      <rule modifiers="rep opt">interface-method-declaration</rule>
       <literal>}</literal>
     </def>
   </rule-def>
@@ -2605,15 +3828,15 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Interfaces can only be declared in a source file's global scope.</li>
 </ol>
 
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 
 <h4>Class Declarations</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="class-declaration">
     <def>
@@ -2681,11 +3904,15 @@ noindent: true
   </rule-def>
 
   <rule-def id="class-field-declaration">
-    <def><rule>class-property-prefix</rule></def>
+    <def>
+      <rule>class-property-prefix</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
     <def>
       <rule>class-property-prefix</rule>
       <literal>=</literal>
       <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 
@@ -2708,7 +3935,7 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Classes may only be declared in a file's global scope.</li>
   <li>
@@ -2735,7 +3962,7 @@ noindent: true
     cycle.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     The same padding and alignment semantics apply to classes as do to structs.
@@ -2743,7 +3970,7 @@ noindent: true
 </ol>
 
 <h5>Class Fields</h5>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Classes may not have 2 or more fields with the same name.</li>
   <li>
@@ -2755,13 +3982,13 @@ noindent: true
     results in a type compatible with the field's type.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>Declares an accessible property.</li>
 </ol>
 
 <h5>Class Constructors</h5>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     Classes may not have 2 or more constructors with the same function
@@ -2782,13 +4009,13 @@ noindent: true
     initialize the base type with a <rule>super-constructor-expression</rule>.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li></li>
 </ol>
 
 <h5>Class Methods</h5>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>The declared return type must be a valid type.</li>
   <li>
@@ -2817,7 +4044,7 @@ noindent: true
     use the modifier <literal>override</literal>.
   </li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     Declares a member function that belongs to the class the method was
@@ -2826,11 +4053,11 @@ noindent: true
 </ol>
 
 <h5>Class Access Modifiers</h5>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Each modifier is mutually exclusive to another access modifier.</li>
 </ol>
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     Access modifiers modify how fields and methods may be accessed from outside
@@ -2856,7 +4083,7 @@ noindent: true
 </ol>
 
 <h3>Statements</h3>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="statement">
     <def><rule>labeled-statement</rule></def>
@@ -2872,12 +4099,15 @@ noindent: true
     <def><rule>return-statement</rule></def>
     <def><rule>control-flow-statement</rule></def>
     <def><rule>assert-statement</rule></def>
-    <def><rule>expression</rule></def>
+    <def>
+      <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
 <h4>Block Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="block-statement">
     <def>
@@ -2888,7 +4118,7 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Declares a list of statements delimited by <b><code>{</code></b> and
   <b><code>}</code></b> characters.
@@ -2899,15 +4129,23 @@ noindent: true
 </p>
 
 <h4>Loop Flow Control Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="control-flow-statement">
-    <def><literal>continue</literal> <rule modifiers="opt">identifier</rule></def>
-    <def><literal>break</literal> <rule modifiers="opt">identifier</rule></def>
+    <def>
+      <literal>continue</literal>
+      <rule modifiers="opt">identifier</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
+    <def>
+      <literal>break</literal>
+      <rule modifiers="opt">identifier</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Influences the way a loop executes. Continue statements instruct the loop to
   move on to the next iteration of execution, while break statements cause
@@ -2920,7 +4158,7 @@ noindent: true
   behaves. If a label is set, then it controls how the referenced loop behaves.
 </p>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>Can only be used inside a loop</li>
   <li>
@@ -2930,7 +4168,7 @@ noindent: true
 </ol>
 
 <h4>If Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="if-statement">
     <def>
@@ -2948,13 +4186,13 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Evaluates a condition and executes either a body, an else statement or moves
   on without executing.
 </p>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The if statement's condition must result in a value that can be assigned to
@@ -2963,9 +4201,9 @@ noindent: true
 </ol>
 
 <h4>Labeled Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
-  <rule-def id="labelled-statement">
+  <rule-def id="labeled-statement">
     <def><rule>identifier</rule> <literal>:</literal> <rule>for-loop-statement</rule></def>
     <def><rule>identifier</rule> <literal>:</literal> <rule>do-while-statement</rule></def>
     <def><rule>identifier</rule> <literal>:</literal> <rule>while-statement</rule></def>
@@ -2973,16 +4211,46 @@ noindent: true
 </grammar-def>
 
 <h4>For Loop Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="for-loop-statement">
     <def>
       <literal>for</literal>
       <literal>(</literal>
-      <rule>variable-declaration</rule>
+      <rule modifiers="opt">variable-declaration</rule>
       <literal>;</literal>
-      <rule>expression</rule>
+      <rule modifiers="opt">expression</rule>
       <literal>;</literal>
+      <rule modifiers="opt">expression</rule>
+      <literal>)</literal>
+      <rule>body-statement</rule>
+    </def>
+  </rule-def>
+</grammar-def>
+<h6>Terminology</h6>
+<p>
+  A for loop has three operands, the first, second and third operand. The first,
+  if present, declares a variable, the second evaluates a condition, and a third
+  expression performs some operation to move the for-loop forward.
+</p>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    The second operand, if present, must result in a boolean-assignable value.
+  </li>
+</ol>
+<h6>Semantics</h6>
+
+<h4>For-Each Loop Statement</h4>
+<h6>Syntax</h6>
+<grammar-def>
+  <rule-def id="foreach-loop-statement">
+    <def>
+      <literal>for</literal>
+      <literal>(</literal>
+      <rule>type-expression</rule>
+      <rule>identifier</rule>
+      <literal>:</literal>
       <rule>expression</rule>
       <literal>)</literal>
       <rule>body-statement</rule>
@@ -2990,23 +4258,8 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<p><b>Description</b></p>
-<p>
-  Declares a variable and iterates until the 2nd expression, the loop condition
-  evaluates to a false value. After each iteration the third expression is
-  executed as well.
-</p>
-
-<p><b>Constraints</b></p>
-<ol>
-  <li>
-    The for loop's second expression must result in a value that can be
-    evaluated as a boolean.
-  </li>
-</ol>
-
 <h4>Do While Loop Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="do-while-statement">
     <def>
@@ -3017,13 +4270,13 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The loop's condition must result in a value that can be evaluated as a boolean.
   </li>
 </ol>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Evaluates a block of code until the defined loop condition results in a false
   value. The loop's block will be evaluated at least once until the condition
@@ -3031,7 +4284,7 @@ noindent: true
 </p>
 
 <h4>Regular While Loop Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="while-statement">
     <def>
@@ -3041,13 +4294,13 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The loop's condition must result in a value that can be evaluated as a boolean.
   </li>
 </ol>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   Evaluates a block of code until the defined loop condition results in a false
   value. If the condition results in a false value when the loop is first
@@ -3055,20 +4308,21 @@ noindent: true
 </p>
 
 <h4>Return Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="return-statement">
     <def>
       <literal>return</literal>
       <rule modifiers="opt">expression</rule>
+      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
 
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>Causes the current function to halt execution and return to the caller.</p>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     Can only be used inside a function body.
@@ -3088,15 +4342,24 @@ noindent: true
 </ol>
 
 <h4>Assert Statements</h4>
-<p><b>Syntax</b></p>
+<h6>Syntax</h6>
 <grammar-def>
   <rule-def id="assert-statement">
-    <def><literal>assert</literal> <rule>expression</rule></def>
-    <def><literal>assert</literal> <rule>expression</rule> <literal>:</literal> <rule>expression</rule></def>
+    <def>
+      <literal>assert</literal>
+      <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule></def>
+    <def>
+      <literal>assert</literal>
+      <rule>expression</rule>
+      <literal>:</literal>
+      <rule>expression</rule>
+      <rule modifiers="opt">semicolon</rule>
+    </def>
   </rule-def>
 </grammar-def>
 
-<p><b>Semantics</b></p>
+<h6>Semantics</h6>
 <ol>
   <li>
     Evaluates the condition operand. If the condition results in a true
@@ -3117,7 +4380,7 @@ noindent: true
   </li>
 </ol>
 
-<p><b>Constraints</b></p>
+<h6>Constraints</h6>
 <ol>
   <li>
     The expression the assert statement evaluates must always result in a
@@ -3128,7 +4391,7 @@ noindent: true
   </li>
 </ol>
 
-<p><b>Message Generation</b></p>
+<h6>Message Generation</h6>
 <p>
   The messages used by assert statements, if one is not explicitly provided,
   should be composed of the values of each variable used in the expression,
@@ -3142,16 +4405,16 @@ noindent: true
 assert foo == 10 : "foo == 10, foo: ${foo}"
 {{</highlight>}}
 
-<p><b>Examples</b></p>
+<h6>Examples</h6>
 {{<highlight java>}}
 assert true // Does nothing
 assert false // Assertion failed!
 assert false : "message" // Assertion failed: message
 {{</highlight>}}
 
-<h3>Script File Statement</h3>
+<h3>Translation Unit</h3>
 <grammar-def>
-  <rule-def id="script-file-statement">
+  <rule-def id="translation-unit">
     <def><rule>module-header-declarations</rule> <rule modifiers="rep">declaration</rule></def>
     <def><rule modifiers="rep">declaration</rule></def>
   </rule-def>
@@ -3690,12 +4953,37 @@ assert false : "message" // Assertion failed: message
 <h2>Interpreter</h2>
 
 <h2>The Standard Library</h2>
+<p>
+  This section defines the modules that are part of the Tetral Standard Library.
+  Whether any function defined in the following sections is implemented natively
+  or within Tetral itself is explicitly left up to implementations to decide on.
+</p>
 
 <h3>The <code>std</code> Module</h3>
 <p>
   The most basic standard library functions that would be required by a
   program.
 </p>
+
+<h4 tocignore>The <code>Optional</code> Variant</h4>
+<code class="qs">
+  <keyw>variant</keyw> <id>Optional</id>&lt;<id>T</id>&gt; {
+  <br><ident></ident>EMPTY,
+  <br><ident></ident>PRESENT(<id>T</id> value)
+  <br>}
+</code>
+<p>
+  The optional type is monadic type to represent a value which either is
+  present or empty.
+</p>
+
+<h4 tocignore>The <code>Result</code> Variant</h4>
+<code class="qs">
+  <keyw>variant</keyw> <id>Result</id>&lt;<id>V</id>, <id>E</id>&gt; {
+  <br><ident></ident>ERROR(<id>E</id> err),
+  <br><ident></ident>SUCCESS(<id>V</id> value)
+  <br>}
+</code>
 
 <h4 tocignore>The <code>readln</code> Function</h4>
 <code class="qs">
@@ -3746,23 +5034,76 @@ assert false : "message" // Assertion failed: message
 
 <h4 tocignore>Numeric Parsing Functions</h4>
 <code class="qs">
-<quoted>Optional</quoted>&lt;<keyw>int32</keyw>&gt; <id>parseInt</id>(<keyw>string</keyw> s)
+<keyw>int32</keyw>? <id>parseInt</id>(<keyw>string</keyw> s)
 <br>
-<quoted>Optional</quoted>&lt;<keyw>uint32</keyw>&gt; <id>parseUint</id>(<keyw>string</keyw> s)
+<keyw>uint32</keyw>? <id>parseUint</id>(<keyw>string</keyw> s)
 <br>
-<quoted>Optional</quoted>&lt;<keyw>int64</keyw>&gt; <id>parseInt64</id>(<keyw>string</keyw> s)
+<keyw>int64</keyw>? <id>parseInt64</id>(<keyw>string</keyw> s)
 <br>
-<quoted>Optional</quoted>&lt;<keyw>uint64</keyw>&gt; <id>parseUint64</id>(<keyw>string</keyw> s)
+<keyw>uint64</keyw>? <id>parseUint64</id>(<keyw>string</keyw> s)
 <br>
-<quoted>Optional</quoted>&lt;<keyw>float32</keyw>&gt; <id>parseFloat</id>(<keyw>string</keyw> s)
+<keyw>float32</keyw>? <id>parseFloat</id>(<keyw>string</keyw> s)
 <br>
-<quoted>Optional</quoted>&lt;<keyw>float64</keyw>&gt; <id>parseFloat64</id>(<keyw>string</keyw> s)
+<keyw>float64</keyw>? <id>parseFloat64</id>(<keyw>string</keyw> s)
 </code>
 <p>
   Every one of these functions takes a string as an input and parses the
   beginning of that string into a number of the equivalent value of the
   respective type.
 </p>
+
+<h3>The <code>std::strings</code> Module</h3>
+<code class="qs">
+<keyw>string</keyw> <id>stringFromUtf8</id>(<keyw>uint8</keyw>[] utf8bytes)
+<br><keyw>string</keyw> <id>stringFromUtf16</id>(<keyw>uint16</keyw>[] utf16bytes)
+<br><keyw>string</keyw> <id>stringFromUtf32</id>(<keyw>uint32</keyw>[] codepoints)
+<br>
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>trim</id>()
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>trimLeft</id>()
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>trimRight</id>()
+<br>
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>substring</id>(<keyw>uint32</keyw> start)
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>substring</id>(<keyw>uint32</keyw> start, <keyw>uint32</keyw> end)
+<br>
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>uint8</keyw> utf8char)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>uint8</keyw> utf8char, <keyw>uint32</keyw> start)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>uint32</keyw> codepoint)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>uint32</keyw> codepoint, <keyw>uint32</keyw> start)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>string</keyw> other)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>indexOf</id>(<keyw>string</keyw> other, <keyw>uint32</keyw> start)
+<br>
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>uint8</keyw> utf8char)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>uint8</keyw> utf8char, <keyw>uint32</keyw> end)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>uint32</keyw> codepoint)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>uint32</keyw> codepoint, <keyw>uint32</keyw> end)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>string</keyw> other)
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>lastIndexOf</id>(<keyw>string</keyw> other, <keyw>uint32</keyw> end)
+<br>
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>uint8</keyw> utf8char)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>uint8</keyw> utf8char, <keyw>uint32</keyw> end)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>uint32</keyw> codepoint)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>uint32</keyw> codepoint, <keyw>uint32</keyw> end)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>string</keyw> other)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>contains</id>(<keyw>string</keyw> other, <keyw>uint32</keyw> end)
+<br>
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>replace</id>(<keyw>string</keyw> sequence, <keyw>string</keyw> with)
+<br>
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>startsWith</id>(<keyw>string</keyw> other)
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>endsWith</id>(<keyw>string</keyw> other)
+<br>
+<br><keyw>uint32</keyw>? <keyw>string</keyw>::<id>codepointAt</id>(<keyw>uint32</keyw> index)
+<br><keyw>uint32</keyw> <keyw>string</keyw>::<id>codepoints</id>()
+<br>
+<br><keyw>uint32</keyw>[] <keyw>string</keyw>::<id>toUtf32</id>()
+<br><keyw>uint16</keyw>[] <keyw>string</keyw>::<id>toUtf16</id>()
+<br><keyw>uint8</keyw>[] <keyw>string</keyw>::<id>toUtf8</id>()
+<br>
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>isEmpty</id>()
+<br><keyw>bool</keyw> <keyw>string</keyw>::<id>isBlank</id>()
+<br>
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>toUpperCase</id>()
+<br><keyw>string</keyw> <keyw>string</keyw>::<id>toLowerCase</id>()
+</code>
 
 <h3>The <code>std::math</code> Module</h3>
 <h3>The <code>std::io</code> Module</h3>
@@ -3784,11 +5125,11 @@ tetral [OPTIONS] [COMMAND] [COMMAND ARGUMENTS]
 <h3>Commands</h3>
 
 <h4>The <code>compile</code> Command</h4>
-<p><b>Command Usage</b></p>
+<h6>Command Usage</h6>
 <code><pre>
 tetral [OPTIONS] compile [IN FILES]
 </pre></code>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   The compile command takes in a list of file paths that are parsed and then
   compiled into one single bytecode format. The files in the list can be source
@@ -3796,11 +5137,11 @@ tetral [OPTIONS] compile [IN FILES]
 </p>
 
 <h4>The <code>run</code> Command</h4>
-<p><b>Command Usage</b></p>
+<h6>Command Usage</h6>
 <code><pre>
 tetral [OPTIONS] run [PROGRAM FILE] [RUNTIME ARGUMENTS]
 </pre></code>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   The run command takes in the name of a single program file to execute and
   runs it. The <code>[RUNTIME ARGUMENTS]</code> arguments may be omitted. These
@@ -3809,11 +5150,11 @@ tetral [OPTIONS] run [PROGRAM FILE] [RUNTIME ARGUMENTS]
 </p>
 
 <h4>The <code>test</code> Command</h4>
-<p><b>Command Usage</b></p>
+<h6>Command Usage</h6>
 <code><pre>
 tetral [OPTIONS] test [TEST DIRECTORY]
 </pre></code>
-<p><b>Description</b></p>
+<h6>Description</h6>
 <p>
   The test command takes in a file path to a directory of Tetral program files
   and executes each after another.
@@ -3823,7 +5164,7 @@ tetral [OPTIONS] test [TEST DIRECTORY]
   are checked against a list of <i>"expected"</i> errors.
 </p>
 
-<p><b>Test Execution</b></p>
+<h6>Test Execution</h6>
 <p>For each valid test file:</p>
 <ol>
   <li>
@@ -3884,8 +5225,8 @@ tetral [OPTIONS] test [TEST DIRECTORY]
   <dt>The <code>--lib-directory</code> Value Flag</dt>
   <dd>
     <p>
-      The flag specifies a file path that will be used as a file path from which
-      Tetral can load libraries during compilation or interpretation.
+      The flag specifies a file path from which Tetral can load libraries during
+      compilation or execution.
     </p>
     <p>
       The flag can be specified multiple times to append more library
@@ -4187,7 +5528,7 @@ tetral [OPTIONS] test [TEST DIRECTORY]
     <td>Native functions cannot have a function body</td>
   </tr>
   <tr>
-    <td><code>parser.invalidlabelled</code></td>
+    <td><code>parser.invalidlabeled</code></td>
     <td>Fatal Parser Error</td>
     <td>Illegal statement following loop label</td>
   </tr>
