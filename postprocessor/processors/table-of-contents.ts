@@ -12,7 +12,7 @@ export function processTableOfContents(doc: Document, headers: CollectedHeader[]
       continue
     }
 
-    let a = doc.createElement("a")
+    const a = doc.createElement("a")
 
     a.setAttribute("href", `#${h.element.id}`)
     a.setAttribute("class", "toc-element")
@@ -21,6 +21,8 @@ export function processTableOfContents(doc: Document, headers: CollectedHeader[]
     if (h.level > 2) {
       const leftPad = (h.level - 2) * 3
       a.setAttribute("style", `padding-left: ${leftPad}mm;`)
+    } else {
+      a.setAttribute("style", `padding-top: 2mm;`)
     }
 
     a.innerHTML = `${createNumbersSpan(h.numbers)}${h.element.innerHTML.replaceAll(/id="[^"]*"/gi, "")}`

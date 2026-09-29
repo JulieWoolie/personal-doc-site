@@ -7,9 +7,10 @@ import { processHeadings } from "./processors/link-achors.ts";
 import { processFigures } from "./processors/figure-processor.ts";
 import { processChapterRefs } from "./processors/chapter-refs.ts";
 import { processFootnotes } from "./processors/footnotes.ts";
+import { processTables } from "./processors/table-processor.ts";
 
 function collectHeaders(content: Element): CollectedHeader[] {
-  const headings = content.querySelectorAll(":is(h2, h3, h4, h5, h6)")
+  const headings = content.querySelectorAll(":is(h2, h3, h4, h5)")
   const result: CollectedHeader[] = []
 
   for (const h of headings) {
@@ -44,6 +45,8 @@ export function processHtml(htmlString: string, mimeType: string): string {
   processHeadings(document, headings)
 
   processFootnotes(document)
+
+  processTables(document, content)
 
   return document.documentElement?.outerHTML ?? ""
 }

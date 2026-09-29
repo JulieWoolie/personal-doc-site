@@ -1,6 +1,8 @@
 import { processHtml } from "./postprocess.ts";
 
-const HUGO_URL = "http://127.0.0.1:1313"
+const HUGO_PORT = 3333
+const SERVER_PORT = 1313
+const HUGO_URL = `http://127.0.0.1:${HUGO_PORT}`
 
 let hugoProcess: Deno.ChildProcess | null = null
 let server: Deno.HttpServer | null = null
@@ -45,7 +47,7 @@ interface ShutdownHandler {
 
 function startServer() {
   const cmd = new Deno.Command("hugo", {
-    args: ["server"],
+    args: ["server", "--port", `${HUGO_PORT}`],
     cwd: Deno.realPathSync("..")
   })
 
@@ -53,7 +55,7 @@ function startServer() {
 
   console.log("Started Hugo server, starting HTTP middle man thing")
 
-  server = Deno.serve(handleRequest)
+  server = Deno.serve({port: SERVER_PORT}, handleRequest)
 
   const shutdownHandlers: ShutdownHandler[] = []
 
