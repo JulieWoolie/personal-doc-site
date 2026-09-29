@@ -189,12 +189,18 @@ sup a {
     margin-inline-start: 5mm;
   }
 
-  :is(h1,h2,h3,h4,h5,h6)+p {
+  :is(h1,h2,h3,h4,h5)+p {
     margin-block-start: 2em;
   }
 
   h2, h3, h4, h5, h6 {
     text-align: left;
+  }
+  h6 {
+    display: block;
+    margin-bottom: 1em;
+    margin-top: 1em;
+    font-size: 14pt;
   }
 
   h1 {
@@ -209,7 +215,7 @@ sup a {
     margin-top: 4rem;
     font-size: 1.5em;
   }
-  :is(h4, h5, h6) {
+  :is(h4, h5) {
     margin-top: 3rem;
     font-size: 1.25em;
   }
@@ -470,10 +476,6 @@ a:active {
 
 li:not(:first-child) {
   margin-top: 3mm;
-}
-
-h5, h6 {
-  font-size: 100%;
 }
 
 .linkslist {
