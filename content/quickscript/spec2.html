@@ -3344,7 +3344,6 @@ noindent: true
     <def>
       <literal>module</literal>
       <rule>module-name</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 
@@ -3355,7 +3354,6 @@ noindent: true
       <rule>module-name</rule>
       <literal>from</literal>
       <rule>line-string-literal</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -3407,7 +3405,6 @@ noindent: true
     <def>
       <literal>import</literal>
       <rule>module-name</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -3555,7 +3552,6 @@ noindent: true
       <rule>declaration-modifiers</rule>
       <rule>type-expression</rule>
       <rule>identifier</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <rule>declaration-modifiers</rule>
@@ -3563,7 +3559,6 @@ noindent: true
       <rule>identifier</rule>
       <literal>=</literal>
       <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -3641,14 +3636,12 @@ noindent: true
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <rule>type-expression</rule>
       <rule>identifier</rule>
       <literal>=</literal>
       <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -3682,7 +3675,6 @@ noindent: true
       <rule>enum-prefix</rule>
       <literal>{</literal>
       <rule>enum-constant-declaration-list</rule>
-      <rule modifiers="opt">semicolon</rule>
       <literal>}</literal>
     </def>
   </rule-def>
@@ -3728,7 +3720,6 @@ noindent: true
       <rule>variant-prefix</rule>
       <literal>{</literal>
       <rule>variant-declaration-list</rule>
-      <rule modifiers="opt">semicolon</rule>
       <literal>}</literal>
     </def>
   </rule-def>
@@ -3906,13 +3897,11 @@ noindent: true
   <rule-def id="class-field-declaration">
     <def>
       <rule>class-property-prefix</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <rule>class-property-prefix</rule>
       <literal>=</literal>
       <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 
@@ -4093,6 +4082,7 @@ noindent: true
   <rule-def id="body-statement">
     <def><rule>block-statement</rule></def>
     <def><rule>for-loop-statement</rule></def>
+    <def><rule>for-each-loop-statement</rule></def>
     <def><rule>do-while-statement</rule></def>
     <def><rule>while-statement</rule></def>
     <def><rule>if-statement</rule></def>
@@ -4101,7 +4091,6 @@ noindent: true
     <def><rule>assert-statement</rule></def>
     <def>
       <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -4135,12 +4124,10 @@ noindent: true
     <def>
       <literal>continue</literal>
       <rule modifiers="opt">identifier</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
     <def>
       <literal>break</literal>
       <rule modifiers="opt">identifier</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -4205,6 +4192,7 @@ noindent: true
 <grammar-def>
   <rule-def id="labeled-statement">
     <def><rule>identifier</rule> <literal>:</literal> <rule>for-loop-statement</rule></def>
+    <def><rule>identifier</rule> <literal>:</literal> <rule>for-each-loop-statement</rule></def>
     <def><rule>identifier</rule> <literal>:</literal> <rule>do-while-statement</rule></def>
     <def><rule>identifier</rule> <literal>:</literal> <rule>while-statement</rule></def>
   </rule-def>
@@ -4257,6 +4245,25 @@ noindent: true
     </def>
   </rule-def>
 </grammar-def>
+<h6>Constraints</h6>
+<ol>
+  <li>
+    The right operand, after the <rule>identifier</rule>, must result in an
+    array or a string.
+  </li>
+  <li>
+    The variable declaration must be of the type that the right operand
+    contains.
+  </li>
+</ol>
+<h6>Semantics</h6>
+<ol>
+  <li>Iterates over each element of the right operand and performs some operation.</li>
+  <li>
+    The element being iterated over is the one declared in the
+    <rule>identifier</rule> and must be available as a variable.
+  </li>
+</ol>
 
 <h4>Do While Loop Statements</h4>
 <h6>Syntax</h6>
@@ -4314,7 +4321,6 @@ noindent: true
     <def>
       <literal>return</literal>
       <rule modifiers="opt">expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
@@ -4347,14 +4353,12 @@ noindent: true
   <rule-def id="assert-statement">
     <def>
       <literal>assert</literal>
-      <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule></def>
+      <rule>expression</rule></def>
     <def>
       <literal>assert</literal>
       <rule>expression</rule>
       <literal>:</literal>
       <rule>expression</rule>
-      <rule modifiers="opt">semicolon</rule>
     </def>
   </rule-def>
 </grammar-def>
