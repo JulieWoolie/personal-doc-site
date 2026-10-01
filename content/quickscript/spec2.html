@@ -147,28 +147,6 @@ noindent: true
     A fully qualified name is the name of a symbol with a namespace prefixed to
     it.
   </dd>
-
-  <dt>Virtual Properties</dt>
-  <dd>
-    Virtual properties are properties which are declared on specific types that
-    do not exist in the same manner as properties on structs do. Rather they
-    serve as a label to access some part of a type that is not accessible
-    otherwise.
-  </dd>
-
-  <dt>Arithmetic type</dt>
-  <dd>
-    A broad term to encompass any data type that can be used to perform
-    arithmetic operations. This includes all integral types and all floating
-    point types, as defined in <chapter-ref target="inttypes"></chapter-ref> and
-    <chapter-ref target="floattypes"></chapter-ref>.
-  </dd>
-
-  <dt>Comparable types</dt>
-  <dd>
-    Two types which can be compared against each other, as defined in
-    <chapter-ref target="comp-semantics"></chapter-ref>.
-  </dd>
 </dl>
 
 <h2>Data Types</h2>
@@ -178,31 +156,22 @@ noindent: true
 </p>
 
 <h3>Type Categories</h3>
-<h4>Value Types</h4>
 <p>
   Values types are types whose value is stored on the stack and whose lifetime
   depends on the current stack scope.
 </p>
-<h4>Reference Types</h4>
 <p>
   Reference types are types which exist in the heap and the user only receives a
   reference to that type's data on the heap.
 </p>
-<p>
-  Value types can be temporarily converted into reference types. Doing so
-  disables all guarantees of validity for the referenced value.
-</p>
 
 <h3>The Boolean Type</h3>
-<p>
-  The boolean type is a single byte value type representing a <code>0</code>
-  (false) or <code>1</code> (true) value.
-</p>
+<p>The boolean type represents a false/true state.</p>
 
 <h3 id="inttypes">Integral Types</h3>
 <p>
-  Integral types are value types of varying sizes used to represent whole
-  numbers. Integral types may be signed or unsigned.
+  Integral types are arithmetic value types of varying sizes used to represent
+  whole numbers. Integral types may be signed or unsigned.
 </p>
 <p>
   Tetral provides the following integral types:
@@ -280,7 +249,8 @@ noindent: true
 
 <h3 id="floattypes">Floating Point Types</h3>
 <p>
-  Floating Point Types are value types of 2 sizes, either 32-bits or 64-bits.
+  The floating-point types are arithmetic types which hold a number value
+  according to the corresponding IEEE-745 standard format.
 </p>
 <table>
   <caption>Tetral Floating Point Types</caption>
@@ -289,48 +259,45 @@ noindent: true
     <th>Type Name</th>
     <th>Size and alignment</th>
     <th>Description</th>
+    <th>IEEE Format</th>
   </tr>
   </thead>
   <tbody>
-  <tr><td><code>float32</code></td><td>4</td><td>32-bit floating point type</td></tr>
-  <tr><td><code>float64</code></td><td>8</td><td>64-bit floating point type</td></tr>
+  <tr><td><code>float32</code></td><td>4</td><td>32-bit floating point type</td><td>binary32</td></tr>
+  <tr><td><code>float64</code></td><td>8</td><td>64-bit floating point type</td><td>binary64</td></tr>
   </tbody>
 </table>
 
-<h3>Array and String Types</h3>
+<h3>Array Types</h3>
 <p>
-  Array and string types are both in this section since they exist virtually
-  identically in memory. A string is just an array of unsigned 8-bit UTF-8
-  encoded code units.
+  Array types are reference types which hold a sequential list of a specific
+  data type.
 </p>
 <p>
-  Arrays are reference types that declare a series of elements. Arrays are
-  prefixed with a 32-bit unsigned integer denoting the length of the array. The
-  length value is the number of elements in the array.
+  Each unit of data contained in an array is referred to as an <i>"element,"</i>
+  and the amount of items the array holds is called its <i>"length."</i>
 </p>
 <p>
-  Array elements can be accessed with the index operator <literal>[]</literal>
-  and their length is accessible through the <literal>.length</literal>
-  virtual property.
+  An array's length cannot be changed after creation, but all items within an
+  array are mutable unless declared otherwise by a user.
+</p>
+
+<h3>The String Type</h3>
+<p>
+  The String type is a reference type which holds a sequential list of UTF-8
+  code units.
 </p>
 <p>
-  The memory footprint of an array's heap memory depends on the size of its
-  elements.
+  The string type is immutable, none of its elements can be changed. The amount
+  of UTF-8 code units stored in a string is called its <i>"length."</i>
 </p>
 
 <h3>Struct Types</h3>
 <p>
-  Struct types are value types made up of data defined by users. Structs
-  hold specific properties each of which has a pre-set type and alignment.
+  Struct types are value types made up of <i>"properties,"</i> each of which has
+  a name and a pre-set type, determined by the user.
 </p>
-<p>
-  Struct types cannot hold any properties that indirectly or directly reference
-  themselves.
-</p>
-<p>
-  See <chapter-ref target="align-semantics"></chapter-ref> for the semantics on
-  struct property alignment and padding.
-</p>
+<p>Structs cannot hold any properties that directly reference itself.</p>
 
 <h3>Enum Types</h3>
 <p>
@@ -339,41 +306,43 @@ noindent: true
   one higher than the last.
 </p>
 <p>
-  In memory, enums exist as a 16-bit unsigned integer, but semantically they are
-  a separate type.
-</p>
-<p>
-  To access the actual value of an enum, the <literal>.ordinal</literal> virtual
-  property can be used.
+  The name for the underlying value of an enum's named constant is its
+  <i>"ordinal"</i> value.
 </p>
 
 <h3>Variant Types</h3>
 <p>
-  Variant types are value types which define a list of type variants with each
-  one possessing 0 or more properties.
+  Variant types are a value type which define a list of variants the variant
+  type itself can take the form of.
 </p>
 <p>
-  Variant types act as union types prefixed with the variant's ordinal value.
-  Padding and alignment semantics are still applied to each property in the same
-  manner as struct types, with the exception that the alignment value of
-  variants must be at least the same value as a 16-bit unsigned integer's
-  alignment.
+  Each variant of a variant type can declare 0 or more properties, each of which
+  has a name and a pre-set type.
+</p>
+<p>
+  The index of a variant in a variant type is referred to as its
+  <i>"ordinal"</i> value.
+</p>
+<p>
+  Variant types can hold type parameters.
 </p>
 
 <h3>Interface Types</h3>
 <p>
-  An interface type is not an instatiable type, it is neither a value type nor a
-  reference type, rather it's an outline for a class with functions that each
-  implementing type must implement.
+  An interface type is a reference type, but not a type which can itself be
+  instantiated.
 </p>
 <p>
-  Interfaces can declare methods with a body, but nothing can prevent these
-  from being overridden in derived types. And further, an instance of an
-  interface cannot exist without being implemented by a class.
+  Interfaces declare 0 or more methods which must be defined by any class
+  wishing to implement the interface.
 </p>
 <p>
-  Any class implementing an interface is considered a valid instance of the
-  interface.
+  Implementing an interface means declaring a class as being an implementer of
+  an interface type and defining a function body for each of the methods the
+  interface declares.
+</p>
+<p>
+  Interfaces can hold type parameters.
 </p>
 
 <h3>Class Types</h3>
@@ -399,53 +368,23 @@ noindent: true
   interfaces as described in the limits section (See
   <chapter-ref target="limits"></chapter-ref>)
 </p>
-
-<h3>References</h3>
 <p>
-  References are types which are marked as a reference to a value. These types
-  are technically value types as they are a pointer which references the actual
-  object in memory.
-</p>
-<p>
-  References may not be null. When referring to types marked as a reference,
-  the term <i>"value-type-reference"</i> will be used.
+  Class types can hold type parameters.
 </p>
 
 <h3>Nullables</h3>
 <p>
-  A nullable is a special variant value type. Nullables may act differently
-  depending on what type they are being used on.
-</p>
-<p>
-  Arrays or strings cannot be declared as nullable, as they are treated
-  specially in null reference cases.
-</p>
-<p>
-  For reference types and value-type-references, a nullable is technically
-  opaque, it doesn't do anything aside from telling the compiler the reference
-  may be a null pointer.
-</p>
-<p>
-  For value types, the nullable type exists as a special variant type. It is
-  prefixed with either a 0 or 1 in the form a single 8-bit boolean value that
-  determines if a value is present or not, the value of this boolean will be
-  referred to as the <i>"presence state"</i> of the nullable value.
-</p>
-<p>
-  The data following the presence state boolean will always contain enough bits
-  to represent the type marked nullable. If the presence state is false, then
-  the bits following the prefix are all zeros and the value is considered
-  invalid. Otherwise, if the presence state is true, then the bits following the
-  prefix contain the data for the nullable object.
+  A nullable type is a value type which marks another type as nullable, meaning
+  its value may not exist.
 </p>
 
-<h3>Type Compatibility</h3>
+<h3>Type Compatibility And Assignability</h3>
 <p>
   Type compatibility determines if a type can be passed to a function, set as
-  the value of a variable or a struct/class property. The following table only
-  determines semantic compatibility, it does not list conversions that may or
-  not need to be performed when assigning a value of one type to an object of
-  another, compatible, type.
+  the value of a variable, a variant/struct property, or a class field. The
+  following table only determines semantic compatibility, it does not list
+  conversions that may or not need to be performed when assigning a value of
+  one type to an object of another, compatible, type.
 </p>
 <table>
   <caption>Type Compatibility Table</caption>
@@ -471,16 +410,13 @@ noindent: true
   <tr>
     <td>Signed Integers</td>
     <td>
-      Any signed integer of the same or smaller size, or or any unsigned integer
+      Any signed integer of the same or smaller size, or any unsigned integer
       of a smaller size.
     </td>
   </tr>
   <tr>
     <td>Floating point numbers</td>
-    <td>
-      Any floating point of the same or smaller size, or any integer of the
-      same or smaller size.
-    </td>
+    <td>Any floating point of the same or smaller size, or any integer.</td>
   </tr>
   <tr>
     <td>Structs</td>
@@ -517,14 +453,16 @@ noindent: true
 <p>
   This section defines the conversion operations that must occur between types.
   If there is no conversion listed from one type to another in this section,
-  then it means that nothing must be done to convert from one type to another.
+  then it means that nothing must be done to convert from one type to another,
+  or that the conversion is not possible. See the previous section for type
+  compatibility and assignability.
 </p>
 
 <h4>Implicit Conversions</h4>
 <p>
-  These conversions are done automatically without requiring an explicit cast
+  These conversions must be done implicitly without requiring an explicit cast
   operation by a user of the language. When the term <i>"usual arithmetic
-  conversions"</i> are referenced, the following conversions are what they
+  conversions"</i> is referenced, the following conversions are what they
   reference.
 </p>
 <table>
@@ -566,7 +504,7 @@ noindent: true
 <h4>Explicit Conversions</h4>
 <p>
   These conversions must be explicitly done by users by using a casting
-  expression.
+  expression (Defined in the language grammar).
 </p>
 <table>
   <caption>Explicit conversions</caption>
@@ -582,9 +520,10 @@ noindent: true
     <td>Any integral type</td>
     <td>Any integral type of smaller size</td>
     <td>
-      The resulting value is <i>r = a mod n</i>, where <i>r</i> is the result,
-      <i>a</i> is the larger integral type's value and <i>n</i> is the smaller
-      integral's maximum value.
+      The resulting value is the larger integral's value reduced <i>modulo 2<sup>N</sup></i>,
+      where <i>N</i> is the number of value bits in the target type. The
+      resulting bit pattern is interpreted according to the target type's
+      signedness.
     </td>
   </tr>
   <tr>
@@ -607,6 +546,12 @@ noindent: true
 </table>
 
 <h4>Boolean Conversion</h4>
+<p>
+  The following table defines how values of different types are to be converted
+  to boolean values. Unless it is stated that a type cannot be converted to a
+  boolean value in the following table, then any value of that type is
+  <i>"boolean-assignable."</i>
+</p>
 <table>
   <caption>Boolean conversions</caption>
   <thead>
@@ -617,21 +562,25 @@ noindent: true
   </thead>
   <tbody>
   <tr>
-    <td>Any number type</td>
+    <td>Boolean value</td>
+    <td>No conversion needed.</td>
+  </tr>
+  <tr>
+    <td>Any arithmetic type</td>
     <td>0 values evaluate to false, non-zero values evaluate to true.</td>
   </tr>
   <tr>
     <td>strings/arrays</td>
     <td>
-      If the object is null or has a length of 0, evaulates to false. Otherwise
+      If the array/string has a length of 0, evaluates to false. Otherwise,
       evaluates to true.
     </td>
   </tr>
   <tr>
     <td>Enums</td>
     <td>
-      Enum values with the ordinal 0 evaluate to false, while other ordinals
-      evaluate to true.
+      Enum values with the ordinal value 0 evaluate to false, while non-zero
+      ordinal values evaluate to true.
     </td>
   </tr>
   <tr>
@@ -643,23 +592,15 @@ noindent: true
   </tr>
   <tr>
     <td>Interfaces</td>
-    <td colspan="3">Cannot be evaluated as a boolean value.</td>
+    <td colspan="2">Cannot be evaluated as a boolean value.</td>
   </tr>
   <tr><td>Classes</td></tr>
   <tr><td>Structs</td></tr>
-  <tr><td>References</td></tr>
   <tr>
     <td>Nullables</td>
     <td>
-      <p>
-        For nullable references, if the pointer value of the reference is a null
-        pointer, then it evaluates to a false value, otherwise it evaluates to
-        true.
-      </p>
-      <p>
-        Evaluate to a boolean value corresponding to the presence state of the
-        nullable.
-      </p>
+      Evaluate to a boolean value corresponding to the presence state of the
+      nullable.
     </td>
   </tr>
   </tbody>
@@ -670,10 +611,24 @@ noindent: true
   Type parameters allow for types to be specified with incomplete types,
   allowing them to be filled in later.
 </p>
+
+<h3>Type Comparability</h3>
 <p>
-  Semantics regarding type parameters are to be defined as
-  lowest-common-denominator types. They cannot hold reference types.
+  This section defines which types are compatible with each other. For
+  comparison semantics see <chapter-ref target="comp-semantics"></chapter-ref>.
+  Thus, this section also defines the term <i>"comparable type."</i>
 </p>
+<p>
+  If a data type is not listed here, it cannot be compared to any other type.
+</p>
+<ul>
+  <li>Booleans.</li>
+  <li>Arithmetic Types (integral and floating-point types.)</li>
+  <li>Arrays which hold a comparable type are comparable.</li>
+  <li>Strings.</li>
+  <li>Enums.</li>
+  <li>Variants.</li>
+</ul>
 
 <h2 id="limits">Limits</h2>
 <p>
@@ -706,8 +661,8 @@ noindent: true
     <td>1024</td>
   </tr>
   <tr>
-    <td>Maximum number of type variants per type</td>
-    <td>1024</td>
+    <td>Maximum number of variants per variant type</td>
+    <td>256</td>
   </tr>
   <tr>
     <td>Maximum call stack depth</td>
@@ -719,18 +674,10 @@ noindent: true
   </tr>
   <tr>
     <td>Maximum length of an identifier</td>
-    <td>64</td>
+    <td>256</td>
   </tr>
   </tbody>
 </table>
-<h3>Notes</h3>
-<ol>
-  <li>
-    The limits for call arguments is set to 62 instead of 64 is to give space
-    for the compiler to insert a closure argument for nested functions and to
-    insert the hidden <code>this</code> argument for methods.
-  </li>
-</ol>
 
 <h2>Language</h2>
 <p>
@@ -764,29 +711,33 @@ noindent: true
 <h4>Arithmetic Types</h4>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of compatible types.</li>
+  <li>The right operand must be assignable to the left operand's type.</li>
 </ol>
 <h6>Evaluation</h6>
 <ol>
   <li>The usual arithmetic conversions are performed.</li>
-  <li>The values of both operands are then compared.</li>
+  <li>
+    If the left operand's value is lesser than the right operand's, then the
+    right operand is greater.
+  </li>
+  <li>
+    If the left operand's value is greater than the right operand's, then the
+    left operand is greater.
+  </li>
+  <li>If both operands have an equal value, neither is greater.</li>
 </ol>
 <h4>Array And String Types</h4>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be arrays of the same comparable type.</li>
+  <li>Both operands must be arrays of the same, comparable type.</li>
 </ol>
 <h6>Evaluation</h6>
 <ol>
-  <li>
-    If both arrays are represented by the same pointer, they are equal and
-    neither is greater.
-  </li>
   <li>If the left operand's length is 0, then the right operand is greater.</li>
   <li>If the right operand's length is 0, then the left operand is greater.</li>
   <li>
-    If all component values in both operands are equal, neither operand is
-    greater or lesser, they are equal.
+    If all elements in both operands are equal, neither operand is greater or
+    lesser, they are equal.
   </li>
   <li>
     If the first non-equal value in the left operand is lesser than the
@@ -814,21 +765,6 @@ noindent: true
     with the ordinal value of both enums being used to compare them.
   </li>
 </ol>
-<h4>Reference Types</h4>
-<h6>Constraints</h6>
-<ol>
-  <li>Both operands must be references to the same type of value.</li>
-  <li>Both operands must be references to a comparable value.</li>
-</ol>
-<h6>Evaluation</h6>
-<ol>
-  <li>
-    If both operands are represented by the same pointer, they are equal and
-    neither operand is greater.
-  </li>
-  <li>If either operand is a null pointer, that operand is lesser.</li>
-  <li>The operands are then compared by their referenced value.</li>
-</ol>
 <h4>Nullable Types</h4>
 <h6>Constraints</h6>
 <ol>
@@ -854,21 +790,20 @@ noindent: true
 <h4>Arithmetic/Boolean Types</h4>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of compatible types.</li>
+  <li>The right operand must be assignable to the left operand's type.</li>
 </ol>
 <h6>Evaluation</h6>
 <ol>
   <li>The usual arithmetic conversions are performed.</li>
-  <li>The values of both operands are then checked for equality.</li>
+  <li>If the values of both operands are equal, they are equal.</li>
 </ol>
 <h4>Array And String Types</h4>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be arrays of the same type.</li>
+  <li>Both operands must be of the same type.</li>
 </ol>
 <h6>Evaluation</h6>
 <ol>
-  <li>If both arrays are represented by the same pointer, they are equal.</li>
   <li>If the operand's lengths differ, the operands are not equal.</li>
   <li>
     If all component values in both operands are equal, they are equal.
@@ -893,11 +828,10 @@ noindent: true
 <h4>Class/Interface Types</h4>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of an assignable type.</li>
+  <li>The right operand must be assignable to the left operand's type.</li>
 </ol>
 <h6>Evaluation</h6>
 <ol>
-  <li>If both operands are represented by the same pointer, they are equal.</li>
   <li>If the operands are not of the same type, they are not equal.</li>
   <li>The value of each property of both operands are checked for equality.</li>
   <li>
@@ -929,18 +863,6 @@ noindent: true
   <li>
     If all properties are equal, then the variant values are equal, otherwise
     they are not.
-  </li>
-</ol>
-<h4>Reference Types</h4>
-<h6>Constraints</h6>
-<ol>
-  <li>Both operands must be references to the same type of value.</li>
-</ol>
-<h6>Evaluation</h6>
-<ol>
-  <li>
-    If both operands are represented by the same pointer, they are equal.
-    Otherwise, they are not.
   </li>
 </ol>
 <h4>Nullable Types</h4>
@@ -1056,8 +978,6 @@ noindent: true
   Values of an enum type are converted to string by using the enum constant's
   name as the string representation.
 </p>
-<h4>Reference Types</h4>
-<p>Convert the address of the reference to a string and use that.</p>
 <h4>Nullable Type</h4>
 <p>
   If the value is a nullable-reference or a value-type-reference and the pointer
@@ -1065,14 +985,14 @@ noindent: true
 </p>
 <p>
   If the nullable's presence state is false, then the string representation is
-  <i>"&lt;empty&gt;"</i>. Otherwise, the string representation is the present
+  <i>"none"</i>. Otherwise, the string representation is the present
   value's string representation.
 </p>
 
 <h3>Notation</h3>
 <p>
   References to other syntactic rules are in <i>italic</i>, literal values are
-  in <b><code>bold</code></b>. An italic syntactic rule followed by a colon
+  in <literal>bold</literal>. An italic syntactic rule followed by a colon
   <i>(:)</i> defines the rule. Alternative definitions of the rule are defined
   on new lines. Optional parts are described with the subscript <i>"opt"</i>.
   And parts which may repeat and appear several times will be described with the
@@ -1081,7 +1001,7 @@ noindent: true
 <figure>
   <figcaption>Basic Syntax Notation Example</figcaption>
   <center>
-    <b>(</b> <i>expression</i><sub><i>opt rep</i></sub> <b>)</b>
+    <literal>(</literal> <rule modifiers="opt rep">expression</rule> <literal>)</literal>
   </center>
 </figure>
 <p>
@@ -1216,7 +1136,7 @@ noindent: true
   </li>
   <li>
     After lexical analysis, alias keywords shall have the same syntactic meaning
-    as its corresponding real keyword. For alias token mappings, see
+    as their corresponding real keywords. For alias token mappings, see
     <table-ref target="aliasmappings"></table-ref>.
   </li>
   <li>
@@ -2391,12 +2311,15 @@ noindent: true
   <li>
     The result of the <literal>?.</literal> operator is a nullable copy of the
     value of the property or virtual property being accessed. If the object
-    operand is a null reference type or empty value-type-reference, then the
-    resulting value is an empty nullable.
+    operand is an empty nullable, then the resulting value is an empty nullable.
+  </li>
+  <li>
+    Accessing a property of a nullable type with the <literal>?.</literal>
+    operator causes the nullable to be flattened.
   </li>
   <li>A valid property access expression is a valid lvalue.</li>
 </ol>
-<h6>Runtime Error</h6>
+<h6>Runtime Errors</h6>
 <ol>
   <li>
     It is a runtime error if the object operand is an empty nullable value.
@@ -2466,15 +2389,17 @@ noindent: true
 </grammar-def>
 <h6>Constraints</h6>
 <ol>
-  <li>The left operand must be a boolean-assignable value.</li>
-  <li>Both operands must be of a compatible type.</li>
+  <li>The left operand must be a nullable value.</li>
+  <li>
+    The right operand must be assignable to the left operand, or be a
+    non-nullable value of an assignable type to the left operand.
+  </li>
 </ol>
 <h6>Semantics</h6>
 <ol>
   <li>
     The result of the <literal>??</literal> operator is the left operand if it
-    evaluates to a true value. Otherwise, the result of the expression is the
-    right operand.
+    is present. Otherwise, the result of the operator is the right operand.
   </li>
   <li>
     If the left operand is returned, the right operand must not be evaluated.
@@ -2486,8 +2411,6 @@ noindent: true
 <grammar-def>
   <rule-def id="unary-expression">
     <def><rule>trail-expression</rule></def>
-    <def><rule>reference-expression</rule></def>
-    <def><rule>dereference-expression</rule></def>
     <def><rule>unary-increment-expression</rule></def>
     <def><rule>unary-decrement-expression</rule></def>
     <def><rule>unary-arithmetic-expression</rule></def>
@@ -2495,74 +2418,6 @@ noindent: true
     <def><rule>unary-logical-negation-expression</rule></def>
   </rule-def>
 </grammar-def>
-
-<h5>Reference Expression</h5>
-<h6>Syntax</h6>
-<grammar-def>
-  <rule-def id="reference-expression">
-    <def>
-      <literal>&</literal>
-      <rule>unary-expression</rule>
-    </def>
-    <def>
-      <literal>&</literal>
-      <literal>mutable</literal>
-      <rule>unary-expression</rule>
-    </def>
-  </rule-def>
-</grammar-def>
-<h6>Constraints</h6>
-<ol>
-  <li>The operand must be a value type.</li>
-  <li>The operand must be a valid lvalue.</li>
-  <li>
-    The <literal>&mutable</literal> operator cannot be used if the operand
-    object is a constant field, constant struct property, constant variable,
-    variant property or virtual property.
-  </li>
-</ol>
-<h6>Semantics</h6>
-<ol>
-  <li>
-    The result of <literal>&</literal> operator is an immutable reference to
-    the operand's value.
-  </li>
-  <li>
-    The result of <literal>&mutable</literal> operator is a mutable reference to
-    the operand's value.
-  </li>
-</ol>
-
-<h5>Dereference Expression</h5>
-<h6>Syntax</h6>
-<grammar-def>
-  <rule-def id="dereference-expression">
-    <def>
-      <literal>*</literal>
-      <rule>unary-expression</rule>
-    </def>
-  </rule-def>
-</grammar-def>
-<h6>Constraints</h6>
-<ol>
-  <li>The operand must be a value-reference-type.</li>
-</ol>
-<h6>Semantics</h6>
-<ol>
-  <li>
-    The result of the unary <literal>*</literal> operator is a copy of the
-    referenced value.
-  </li>
-  <li>
-    Reference types by definition disable the object lifetime system and as
-    such, accessing memory which has been freed or reused is undefined
-    behavior.
-  </li>
-  <li>
-    The result of a valid dereference expression is a valid lvalue. If the
-    operand is a mutable reference, then the result is a valid mutable lvalue.
-  </li>
-</ol>
 
 <h5>Unary Increment Expressions</h5>
 <h6>Syntax</h6>
@@ -2646,7 +2501,7 @@ noindent: true
   </li>
   <li>
     For the <literal>+</literal> operator, the operand must be of an
-    arithmetic type or a boolean. (Not boolean-assignable, an explicit boolean.)
+    arithmetic type or a boolean. (Not boolean-like, an explicit boolean.)
   </li>
 </ol>
 <h6>Semantics</h6>
@@ -2879,41 +2734,13 @@ noindent: true
   </li>
 </ol>
 
-<h4>Identity Equality Expressions</h4>
-<h6>Syntax</h6>
-<grammar-def>
-  <rule-def id="identity-expression">
-    <def><rule>relational-expression</rule></def>
-    <def><rule>identity-expression</rule> <literal>===</literal> <rule>relational-expression</rule></def>
-    <def><rule>identity-expression</rule> <literal>!==</literal> <rule>relational-expression</rule></def>
-  </rule-def>
-</grammar-def>
-<h6>Constraints</h6>
-<ol>
-  <li>
-    Both operands must be of a compatible reference type or a compatible
-    value-type-reference. Nullability of the operands does not matter.
-  </li>
-</ol>
-<h6>Semantics</h6>
-<ol>
-  <li>
-    The result of the <b>===</b> operator is a boolean true value if the left
-    operand's pointer is the same value as the right operand's pointer.
-  </li>
-  <li>
-    The result of the <b>!==</b> operator is the inverse of the <b>===</b>
-    operator's value.
-  </li>
-</ol>
-
 <h4>Equality Expressions</h4>
 <h6>Syntax</h6>
 <grammar-def>
   <rule-def id="equality-expression">
-    <def><rule>identity-expression</rule></def>
-    <def><rule>equality-expression</rule> <literal>==</literal> <rule>identity-expression</rule></def>
-    <def><rule>equality-expression</rule> <literal>!=</literal> <rule>identity-expression</rule></def>
+    <def><rule>relational-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>==</literal> <rule>relational-expression</rule></def>
+    <def><rule>equality-expression</rule> <literal>!=</literal> <rule>relational-expression</rule></def>
   </rule-def>
 </grammar-def>
 <h6>Constraints</h6>
@@ -3012,7 +2839,7 @@ noindent: true
 </grammar-def>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a valid integral or boolean-assignable type.</li>
+  <li>Both operands must be of a valid integral or boolean-like type.</li>
 </ol>
 <h6>Semantics</h6>
 <ol>
@@ -3040,7 +2867,7 @@ noindent: true
 </grammar-def>
 <h6>Constraints</h6>
 <ol>
-  <li>Both operands must be of a valid integral or boolean-assignable type.</li>
+  <li>Both operands must be of a valid integral or boolean-like type.</li>
 </ol>
 <h6>Semantics</h6>
 <ol>
@@ -3148,7 +2975,6 @@ noindent: true
 <grammar-def>
   <rule-def id="const-type-expression">
     <def><rule>type-keyword</rule></def>
-    <def><rule>alias-keyword</rule></def>
   </rule-def>
 </grammar-def>
 
@@ -3184,43 +3010,12 @@ noindent: true
   </rule-def>
 </grammar-def>
 
-<h4>Reference Type Expressions</h4>
-<h6>Syntax</h6>
-<grammar-def>
-  <rule-def id="reference-type-expression">
-    <def><rule>parameterized-type-expression</rule></def>
-    <def><rule>parameterized-type-expression</rule> <literal>&</literal></def>
-    <def>
-      <rule>parameterized-type-expression</rule>
-      <literal>mutable</literal>
-      <literal>&</literal>
-    </def>
-  </rule-def>
-</grammar-def>
-<h6>Constraints</h6>
-<ol>
-  <li>
-    Nested reference types cannot exist, such as a reference to a reference.
-  </li>
-</ol>
-<h6>Semantics</h6>
-<ol>
-  <li>
-    Declares a that value of a type is passed not by value or original pointer,
-    but by a pointer that references that value.
-  </li>
-  <li>
-    Unless the <literal>mutable</literal> keyword was used, it declares that the
-    value referenced by the reference type won't be modified.
-  </li>
-</ol>
-
 <h4>Nullable Type Expressions</h4>
 <h6>Syntax</h6>
 <grammar-def>
   <rule-def id="nullable-type-expression">
-    <def><rule>reference-type-expression</rule></def>
-    <def><rule>reference-type-expression</rule> <literal>?</literal></def>
+    <def><rule>parameterized-type-expression</rule></def>
+    <def><rule>parameterized-type-expression</rule> <literal>?</literal></def>
   </rule-def>
 </grammar-def>
 <h6>Semantics</h6>
@@ -4224,7 +4019,7 @@ noindent: true
 <h6>Constraints</h6>
 <ol>
   <li>
-    The second operand, if present, must result in a boolean-assignable value.
+    The second operand, if present, must result in a boolean-like value.
   </li>
 </ol>
 <h6>Semantics</h6>
