@@ -389,15 +389,15 @@ input:not([type="radio"]) {
   width: 100%;
 }
 
+:is(h1,h2,h3,h4,h5,h6):hover > .copy-header-ref {
+  visibility: visible;
+}
+
 .copy-header-ref {
   visibility: hidden;
   margin-inline-start: 2mm;
   text-decoration: none;
   font-size: 0.75em;
-}
-
-:hover > .copy-header-ref {
-  visibility: visible;
 }
 
 .tool {
