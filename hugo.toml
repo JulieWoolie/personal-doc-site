@@ -3,6 +3,12 @@ languageCode = 'en-us'
 title = 'My New Hugo Site'
 enableGitInfo = true
 
+[params]
+disableGTag = true
+
 [markup.highlight]
 noClasses = false
 lineNos = true
+
+[markup.goldmark.renderer]
+unsafe = true
