@@ -1,0 +1,4 @@
+{{- $level := math.Min (add .Level 1) 6 -}}
+<h{{ $level }} id="{{ .Anchor }}">
+{{- .Text -}}
+</h{{ $level }}>
