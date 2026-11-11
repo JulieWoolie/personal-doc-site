@@ -1,4 +1,4 @@
-\---
+---
 title: "Tetral Language Specification"
 subtitle: "Technical Specification for the Tetral Language"
 weight: 40
@@ -6,169 +6,120 @@ publish_date: '2026-09-20 15:00:00 +0200 UTC'
 author: Julie
 toc: true
 noindent: true
-\---
+---
 
 # Status
-
-This document is a work-in-progress. This document is subject to change and
+This document is a work-in-progress and is subject to change and
 its current state does not represent a final document.
 
 # Introduction
-
 Tetral, from the Greek word for *"four,"* is a scripting language intended
-to be interpreted to provide a platform-agnostic execution system and which is
-intended to be executed fast with little checks on the IR past the initial
-compilation.
+to be executed by an interpreter, or virtual machine, and to provide a 
+platform-agnostic execution system. This document will serve as the 
+specification for this language and outline key aspects of its grammar, type 
+system and code execution.
 
 ## Core Principles
+Tetral is designed with the following 4 core principles in mind.
 
-Additionally, Tetral is designed with the following 4 core principles in mind,
-hence the name.
+Statically Typed
+: Types must be specified and known at compile-time to allow for execution
+environments to optimize as much as possible and to provide easy readability
+for programmers.
 
-<dl>
-  <dt>Statically Typed</dt>
-  <dd>
-    Types must be specified and known at compile-time to allow for the compiler
-    to optimize as much as possible and to provide easy readability for
-    programmers.
-  </dd>
+Platform-Agnostic
+: As long as an interpreter exists, it shouldn't matter how the IR was
+compiled, it should be possible to execute it.
 
-  <dt>Compiled</dt>
-  <dd>
-    Compiled to an intermediate representation (also referred to as a bytecode,)
-    which can be executed on any platform as long as an interpreter exists for
-    the platform.
-  </dd>
+Explicit Null Control
+: Values should never be allowed to be null, unless explicitly stated to be 
+otherwise.
 
-  <dt>Interpreted</dt>
-  <dd>
-    Interpreted by a native interpreter which performs next to checks on the
-    bytecode and executes it to ensure fast execution speed.
-  </dd>
-
-  <dt>Platform-Agnostic</dt>
-  <dd>
-    As long as an interpreter exists, it shouldn't matter how the IR was
-    compiled, it should be possible to execute it.
-  </dd>
-</dl>
-
-## Other Principles
-
-There are more principles this language was designed around, but they aren't
-as flashy.
-
-<dl>
-  <dt>No Memory Interaction</dt>
-  <dd>
-    A programmer should never have to care about memory or be able to interact
-    with raw memory.
-  </dd>
-
-  <dt>Explicit Null Control</dt>
-  <dd>
-    <p>
-      This idea is that reference types, should never be null, unless a null
-      value is explicitly allowed. For example, if a variable is declared of
-      an object type, it should be initialized to a value, rather than null.
-      And you shouldn't be able to assign a null value to a non-null type.
-    </p>
-    <p>
-      This only goes for object types, primitives are initialized to a zero
-      value, while strings and arrays always null-initialized by default, but
-      null arrays and strings are just treated as having a length of
-      <code>0</code>.
-    </p>
-  </dd>
-</dl>
+Memory Safety
+: Users of the language should not have to worry about freeing or allocating 
+memory manually, and should not worry about the objects they're using becoming
+de-allocated as they're using them.
 
 # Scope
 
-This document defines the Tetral (Also referred to as TetralScript, or
-TetralLang) programming language and the Tetral Bytecode format.
+This document defines the Tetral scripting language (Also referred to as 
+_TetralScript_, or _TetralLang_) and the Tetral Bytecode format.
 
 # Terms, Concepts and Definitions
 
-<dl>
-  <dt>Source File</dt>
-  <dd>A text file that contains Tetral source code.</dd>
+Source File
+: A text file containing Tetral source code.
 
-  <dt>Bytecode/IR/Intermediate Representation</dt>
-  <dd>
-    These terms will be used interchangeably in this document, but they all
-    refer to the compiled representation of Tetral source code.
-  </dd>
+Bytecode / Intermediate Representation (IR)
+: The compiled representation of Tetral source code. The terms "bytecode," "IR," 
+and "intermediate representation" are used interchangeably throughout this document.
 
-  <dt>Program</dt>
-  <dd>
-    Either a valid Tetral source file or a Tetral bytecode file that can be
-    executed by the interpreter.
-  </dd>
+Program
+: A valid Tetral source file or Tetral bytecode file that can be executed by 
+a Tetral execution environment.
 
-  <dt>Access</dt>
-  <dd>To read or modify the value of something.</dd>
-  <dt>Bit</dt>
-  <dd>A single 0 or 1 value.</dd>
-  <dt>Byte</dt>
-  <dd>A sequence of 8 bits. Constitues addressable memory</dd>
-  <dt>Alignment</dt>
-  <dd>
-    The alignment of a specific type on a memory address that is a multiple of
-    that type's alignment value.
-  </dd>
-  <dt>Padding</dt>
-  <dd>
-    Empty space in memory to ensure a value is aligned to a correct memory
-    address multiple.
-  </dd>
+Access
+: To read or modify the value of an object.
 
-  <dt>Native</dt>
-  <dd>
-    A feature, function, variable or library defined in natively in a lower
-    level language such as C or C++.
-  </dd>
+Bit
+: A single binary digit, having a value of either 0 or 1.
 
-  <dt>Symbol</dt>
-  <dd>
-    <p>
-      A symbol is an object which can be referred to with a specified name.
-      Examples of symbols include, but are not limited to:
-    </p>
-    <ul>
-      <li>Functions</li>
-      <li>Structs</li>
-      <li>Enums</li>
-      <li>Classes</li>
-      <li>Local Variables</li>
-      <li>Global Variables</li>
-      <li>Imported Symbols</li>
-    </ul>
-  </dd>
+Byte
+: A sequence of 8 bits. The byte is the smallest addressable unit of memory.
 
-  <dt>Namespace</dt>
-  <dd>A namespace is a list of names delimited by <i>::</i> characters.</dd>
+Alignment
+: The requirement that a value of a given type be stored at a memory address 
+that is a multiple of that type's alignment value.
 
-  <dt>Simple Name</dt>
-  <dd>
-    A simple name is the name of a symbol in a source file with no namespace
-    prefix.
-  </dd>
+Padding
+: Unused space inserted in memory to ensure that a value is stored at a 
+correctly aligned address.
 
-  <dt>Fully Qualified Name</dt>
-  <dd>
-    A fully qualified name is the name of a symbol with a namespace prefixed to
-    it.
-  </dd>
+Native
+: Describes a feature, function, variable, or library implemented in a 
+lower-level language, such as C or C++, rather than in Tetral.
 
-  <dt>Module</dt>
-  <dd>
-    A collection of functions, types and variables declared with a specific
-    namespace.
-  </dd>
+Symbol
+: An entity that can be referred to by a name. Symbols include, but are not 
+limited to:
+  - Functions
+  - Structs
+  - Enums
+  - Classes
+  - Local variables
+  - Global variables
+  - Imported symbols
 
-  <dt>Implicit Import</dt>
-  <dd>A module, imported without explicitly being imported by a user.</dd>
-</dl>
+Namespace
+: A named scope that groups related symbols. Namespace names are written as a 
+sequence of identifiers delimited by `::`.
+
+Simple Name
+: The name of a symbol as written in a source file, without a namespace prefix.
+
+Fully Qualified Name
+: The name of a symbol prefixed by its namespace.
+
+Binary Name
+: The name of a symbol in compiled Tetral IR.
+
+Module
+: A collection of functions, types, and variables declared within a specific 
+namespace.
+
+Implicit Import
+: A module that is imported without being explicitly imported by the user. 
+Implicit imports vary by execution environment.
+
+Code unit
+: An encoded unit of data corresponding to a Unicode encoding.
+
+Code point
+: A Unicode code point. For more info on codepoints, please see the Unicode 
+Standard.
+
+Character
+: Unless stated otherwise, this term refers to a _code point_.
 
 # Conformance
 
@@ -228,38 +179,79 @@ that the environment must implement.
 Native-level bindings are not pre-defined for embedded environments are
 defined by the program embedding the Tetral execution environment.
 
-# Language
-
-## Data Types
-
+# Data Types
 A data type is a specific unit of memory that holds data in a specific layout
 to represent some piece of information.
 
-### Type Categories
+This section defines the data types implementations must support and the kinds
+of data types that can be declared by users of the language. Additional 
+terminology and information may be defined for each data type in its 
+corresponding section. 
 
-Values types are types whose value is stored on the stack and whose lifetime
-depends on the current stack scope.
+Each section will also define the following properties for its data type: 
+- Whether the data type can be _default-initialized_. Default initialization 
+  determines whether an object of that data type can be initialized without a 
+  value being explicitly declared. 
+- The data type's string representation. The string representation of a data 
+  type's value is used in string templating and when concatenating a data type's
+  value with a string.
+- Whether the data type can be compared with other data types and if so, how 
+  that comparison is done. If a data type states is can be compared, then it is 
+  considered a _comparable type_.
+- Which types of values the data type can be equal to and how equality is 
+  established.
 
-Reference types are types which exist in the heap and the user only receives a
-reference to that type's data on the heap.
+Data types additionally exist in two categories. The first category is *value 
+types*. When value types are passed to a callable object or assigned, the value 
+is copied to the destination. *Reference types*, on the other hand, only pass a 
+reference to the data type's value.
 
-### The Boolean Type
+Data types may be referred to more simply as just *types*.
 
-The boolean type represents a false/true state.
+## The Boolean Type
+The boolean data type shall be a value data type which represents a false/true 
+state.
 
-### The Void Type
+The boolean data type must be represented by a single byte in memory. If the 
+byte's value is 0, then the boolean value is false, otherwise it is true.
 
-The Void type represents a non-existent type. Used for functions/methods which
-return no value.
+Boolean values shall be _default-initialized_. The default boolean value shall 
+be _false._
 
-<h4 id="inttypes">Integral Types</h4>
+A boolean value's string representation shall be either _"true"_ if the value 
+is not false, otherwise it's string representation shall be _"false."_
 
-Integral types are arithmetic value types of varying sizes used to represent
-whole numbers. Integral types may be signed or unsigned.
+Boolean values shall be compared only to other boolean values. A boolean value 
+shall be considered _"less than"_ another boolean value if it's value is false, 
+and the other boolean value is true. A boolean value shall be _equal to_ another 
+boolean value if both hold the same true/false state.
+
+## The Void Type
+The void data type represents a non-existent value. Used for functions/methods 
+which return no value. This data type shall only be used in specifying the 
+return type of callable objects. No variables, properties or class fields shall
+use the void data type.
+
+The void type's string representation shall be _"void"_. Since the void type 
+must not exist as a value, it cannot be compared to another type, nor shall it 
+be possible to establish equality with any value of any type.
+
+<h3 id="inttypes">Integral Types</h3>
+Integral types shall be value types of varying sizes used to represent whole 
+numbers.
+
+Integral types shall be _default-initialized_. Each integral type's default 
+value shall be its equivalent of the value 0.
+
+Each integral value's string representation shall be its numerical value 
+converted to a base-10 string. If the integral value is signed and is negative,
+the string representation shall be prefixed with a _"-"_.
+
+Integral value comparability and equality Semantics are stated in the next 
+section.
 
 The following is a table of the integral types which implementations must
-support along with the maximum and minimum possible values of each integral
-type.
+support along with the range of values of each integral type.
 
 <table>
   <caption>Tetral Integral Types</caption>
@@ -332,10 +324,15 @@ type.
   </tbody>
 </table>
 
-<h4 id="floattypes">Floating Point Types</h4>
-
-The floating-point types are arithmetic types which hold a number value
+<h3 id="floattypes">Floating Point Types</h3>
+The floating-point types shall be value types which hold a numeric value 
 according to the corresponding IEEE-745 standard format.
+
+Floating point values shall be _default-initialized_. Each floating point type's 
+default value shall be that type's 0 value.
+
+Each floating point type's string representation is it's numerical value 
+converted to a base-10 ASCII string.
 
 <table>
   <caption>Tetral Floating Point Types</caption>
@@ -359,111 +356,275 @@ All floating point types and integral types are collectively referred to as
 All floating point types, integral types and the boolean type are collectively
 referred to as *primitive types.*
 
-### Array Types
+Arithmetic values shall only be compared to other arithmetic values. An arithmetic
+value shall be considered less than another arithmetic value if and only if the 
+numeric value it represents is lesser than the other value's represented numeric 
+value.
 
-Array types are reference types which hold a list of a specific data type.
+Arithmetic value equality shall only be established between any two arithmetic 
+values. An arithmetic value shall be equal to another if it's represented numeric
+value is equal to the other arithmetic value's represented numeric value.
 
-Each unit of data contained in an array is referred to as an *"element,"*
-and the amount of items the array holds is called its *"length."*
+## Array Types
 
-The data type contained by an array type is referred to as its
+Array types shall be a kind of reference type which hold a sequential list of a 
+specific data type.
+
+Each unit of data contained in an array shall be referred to as an *"element,"*
+and the amount of items the array holds shall be called its *"length."*
+
+The data type contained by an array type shall be referred to as its
 *component type*.
 
-Arrays exist in two separate kinds: mutable and immutable. Elements in an
+Arrays shall exist in two separate kinds: mutable and immutable. Elements in an
 immutable array cannot be changed, while in a mutable array, they can.
 
-An array's length cannot be changed after creation, but all items within an
-array are mutable unless declared otherwise by a user.
+Regardless of an array's mutability kind, an array's length shall be fixed and 
+cannot be modified after creation.
 
-### The String Type
+Array types shall be _default-initialized_. An array type's default value shall 
+be an empty array, an array with length 0.
 
-The String type is a reference type which holds a sequential list of UTF-8
+The string representation of an array value shall be a string prefixed with 
+_\"[\"_ followed by the string representation of each of its elements, delimited
+by _\", \"_ and then followed with _\"]\"_. The string representation of an 
+empty array shall be _"[]"_.
+
+Equality between array values shall only be established between two array 
+values of the same component type. If the lengths of two arrays differ, they 
+shall not be equal, then if every element of one array is equal to the 
+corresponding element in another array, the arrays shall be equal.
+
+Array values shall only be compared if both arrays are of the same, comparable 
+type. The first _N_ elements of both arrays are compared, with _N_ being the 
+length of the smaller array. The first element that is greater than or less than 
+the corresponding element in another array determines how the arrays compare. 
+If no element is greater than or less than a corresponding element in another 
+array, then the array with the smaller capacity is lesser. If both arrays are of 
+the same length, the arrays are equal. 
+
+## The String Type
+
+The String type shall be a reference type which holds a sequential list of UTF-8
 code units.
 
-The string type is immutable, none of its elements can be changed. The amount
-of UTF-8 code units stored in a string is called its *"length."*
+The string type shall be immutable, none of its elements can be changed. 
+The amount of UTF-8 code units stored in a string shall be called its 
+*"length."*
 
-### Struct Types
+Array and string types collectively constitute the _"indexable"_ types. This 
+means these types can be accessed with the index operator. (`[]`)
 
-Struct types are value types made up of *"properties,"* each of which has
-a name and a pre-set type, determined by the user.
+The string type shall be _default-initialized_. Its default value shall be an 
+empty string, a string with length 0.
 
-Structs cannot hold any properties that directly or indirectly reference the
+The string representation of a string shall be the string itself.
+
+String value equality shall only be established between two string values. 
+Likewise, strings shall only be compared with other strings. The Semantics for 
+both string equality and comparability is the same as Array equality and 
+comparability.
+
+## Struct Types
+
+Struct types shall be a kind of value type, which are made up of 
+*"properties,"* each of which shall have a name and a pre-set data type, 
+determined by the user.
+
+Structs shall not hold any properties that directly or indirectly reference the
 struct itself.
 
-### Enum Types
+A struct type may be _default-initialized_. If each property's type in a struct
+can be _default-initialized_, then so can the struct. Otherwise, if all
+properties which cannot _default-initialized_ have a default value specified,
+then the struct shall be _default-initialized_. Otherwise, if a struct contains
+properties which are not of a _default-initialized_ type and do not have a 
+specified default value, the struct shall not be _default-initialized._ 
 
-Enum types are value types that declare a list of named constant integer
-values with the first always starting at value 0 and each subsequent value
-having a value one higher than the last.
+The string representation of a struct shall be a string prefixed with _"{"_ 
+followed by the name and value of each property. The name of a property shall be 
+separated from its value with a _" = "_ sequence and each pair of property name 
+and value delimited with _", "_. The string shall finally be suffixed with a 
+_"}"_ sequence.
 
-The underlying value of an enum's named constant will be referred to as its
+Struct equality shall only be established between two struct values of the same 
+struct type. If every property's value in a struct is equal to another, then the
+struct values shall be equal.
+
+Struct values shall not be comparable.
+
+For example this struct:
+
+<code class="qs">
+<keyw>struct</keyw> <id>A</id> {
+<br><ident></ident><keyw>uint32</keyw> a = <quoted>0</quoted>
+<br><ident></ident><keyw>float64</keyw> b = <quoted>0</quoted>
+<br>}
+</code>
+
+Defines two properties:
+- The first property is named 'a' with a 32-bit unsigned integer as its data type.
+- The second property is named 'b' with a 64-bit floating point number as its data type.
+
+Both properties are initialized to a default value of 0.
+
+## Enum Types
+
+Enum types shall be a kind of value type that declare a list of named constant 
+integer values. Each constant value will be referred to as an _enum-constant_.
+
+The underlying value of an enum constant shall be referred to as its
 *"ordinal"* value.
 
-### Variant Types
+Enum constants may have a value explicitly declared, but this is not required. 
+If an enum constant's value is not declared explicitly, then it's value shall be
+the value of the previous enum constant plus 1. Enum constants may declare the 
+same value as another enum constant in the same enum type.
 
-Variant types are a value type which define a list of variants the variant
-type itself can take the form of.
+The maximum possible ordinal value an enum constant may hold is 2147483647 and 
+the smallest possible value is -2147483648.
 
-Each variant of a variant type can declare 0 or more properties, each of which
-has a name and a pre-set type.
+An enum type may be _default-initialized_, if there exists an enum constant in 
+that enum type with the ordinal value 0. Otherwise, it shall not be 
+_default-initialized_.
+
+The string representation of an enum constant shall be the string representation
+of the ordinal value of the enum constant.
+
+Enum values shall only be compared to other enum values of the same enum type. 
+An enum value shall be less than another enum value if it's ordinal value is 
+less than another enum's ordinal value.
+
+Enum value equality shall only be established with enum values of the same enum 
+type. An enum value shall only be equal to another enum value if it's ordinal 
+value is identical to another enum value's ordinal value.
+
+For example the enum declaration:
+
+<code class="qs">
+<keyw>enum</keyw> <id>E</id> {
+<br><ident></ident>CONST_A = <quoted>1</quoted>,
+<br><ident></ident>CONST_B,
+<br><ident></ident>CONST_C = <quoted>0</quoted>,
+<br><ident></ident>CONST_D,
+<br>}
+</code>
+
+In this enum declaration:
+- The enum constant `CONST_A` has the explicit ordinal value of 1.
+- The enum constant `CONST_B` has the implicit ordinal value of 2.
+- The enum constant `CONST_C` has the explicit ordinal value of 0.
+- The enum constant `CONST_D` has the implicit ordinal value of 1.
+
+## Variant Types
+
+Variant types shall be a kind of value type which define a list of variants the 
+variant type itself can take the form of.
+
+Variant types will be referred to as *variant types*, while each
+declared variant will be referred to as a *variant of the variant type*,
+or more simply as just *variant.*
+
+Each variant of a variant type shall declare 0 or more properties, each of which
+must have a name and a pre-set data type.
 
 The index of a variant in a variant type is referred to as its
 *"ordinal"* value.
 
 Variant types can hold type parameters.
 
-Variant types will be referred to as *variant types*, while each
-declared variant will be referred to as a *variant of the variant type*,
-or more simply as just *variant.*
+Variant types shall be _default-initialized_ if the variant with ordinal 0 has 
+no properties.
 
-### Interface Types
+The string representation of a variant shall be a string prefixed with the name 
+of the variant type of the value and then followed by a string representation of 
+each of its properties in the same manner as the string representation of 
+structs.
 
-An interface type is a reference type, but not a type which can itself be
-instantiated.
+Variant values shall not be comparable.
 
-Interfaces declare 0 or more methods which must be defined by any class
+Establishing equality of variant type values shall only be possible with variant
+type values of the same variant type. Equality shall first depend on the variant
+type values having identical ordinal values. If the variant declares any 
+properties, all property values must be equal between the variant values. If 
+no properties were specified, then the variant type values shall only be equal if 
+their ordinal values are identical.
+
+For example the variant declaration:
+
+<code class="qs">
+<keyw>variant</keyw> <id>Optional</id>&lt;<id>T</id>&gt; {
+<br><ident></ident>Empty(),
+<br><ident></ident>Present(<id>T</id> value),
+<br>}
+</code>
+
+Has two variant types:
+- The first is named _Empty_ and has no properties, thus this variant can be _default-initialized_.
+- The second is named _Present_ has one property, the type parameter property.
+
+## Interface Types
+
+An interface type shall be a kind of reference type, but not a type which can 
+itself be instantiated.
+
+Interfaces shall declare 0 or more methods which must be defined by any class
 wishing to implement the interface.
 
-Implementing an interface means declaring a class as being an implementer of
-an interface type and defining a function body for each of the methods the
+Implementing an interface shall mean declaring a class as being an implementer 
+of an interface type and defining a function body for each of the methods the
 interface declares.
 
-Interfaces can hold type parameters.
+Interfaces may hold type parameters.
 
-### Class Types
+Interface types shall not be _default-initialized_.
 
-Class types are reference types which define class members. Class members are
-either constructors, methods or fields.
+Interface equality and comparability Semantics shall be the same as those for 
+class types.
 
-Methods are functions that exist within the namespace of a class. Methods are
-also divided into two separate types: static and non-static. Static methods
-belong to the class, while non-static methods belong to a class instance.
+## Class Types
 
-Class members can, like methods, be declared either static or non-static in
-which case the same rules for ownership apply.
+Class types shall be a kind of reference type which define class members. Class 
+members are either constructors, methods or fields.
 
-Members are like the properties of structs.
+Constructors are functions which shall be invoked upon the creation of a class 
+type's value. Constructs may, like functions and methods, require certain 
+arguments to correctly initialize the class instance.
 
-Classes can extend one other class and can implement as many non-conflicting
-interfaces as described in the limits section (See
-<chapter-ref target="limits"></chapter-ref>.)
+Methods shall be functions that exist within the namespace of a class. Methods 
+shall also be divided into two separate types: static and non-static. Static 
+methods belong to the class, while non-static methods belong to a class 
+instance. Methods inside classes and interfaces shall have access to the `this` 
+keyword that shall refer to the instance of the class the method belongs to. For
+static methods, the keyword shall not be available.
 
-Class extensions means the extending class gains access to all its public
-and protected members, functions and constructors. Classes can also override
-any non-const methods of its extended class.
+Fields shall be the properties that belong either to class instances, or for 
+static fields, to the class itself. Non-static Fields shall be subject to the 
+same padding and alignment Semantics as struct properties. Non-static fields may
+be referred to as _"instance fields"_ and static fields referred to as 
+_"class members."_
 
-Unless specified otherwise, the terms *extend* will be used for classes
+Classes may extend one other class and can implement as many non-conflicting
+interfaces as described in the limits section (See <chapter-ref target="limits"></chapter-ref>.) 
+Non-conflicting shall mean that none of the implemented interfaces have 
+themselves declared methods, or inherited methods from another extended 
+interface, whose function signatures are in conflict. Two function signatures 
+are in conflict if their argument types and name are the same, but not their 
+return types.
+
+Class extension shall mean the extending class gains access to all its public
+and protected members. Classes can also override any non-const methods of its 
+extended class.
+
+Unless specified otherwise, the term *extend* will be used for classes
 implementing interface as well.
 
 Classes and interfaces will be referred to collectively as
 *object types.*
 
 An object type extended by another object type is referred to as
-the *parent* of the extending object type.
-
-An object type extending another object type is referred to as the *child*
-type of the extended object type.
+the *parent* of the extending object type. An object type extending another 
+object type is referred to as the *child* type of the extended object type.
 
 A type which directly or indirectly extends another type (by way of its parent
 extending the type, for example) is referred to as a *derived* object
@@ -471,32 +632,79 @@ type of the extended object type. Vice versa, the term *super* will be
 used for an object type which is extended indirectly or directly by another
 object type.
 
-Class types can hold type parameters.
+Class types may hold type parameters.
 
 Functions, and methods on object types are collectively referred to as
 *callable objects*, or just *callables.*
 
+Classes may _override_ any non-static methods of their super types that are 
+not marked as _const_. Overriding shall mean that all calls to the super type's 
+method instead go to the derived object type's method.
+
+Class types shall not be _default-initialized_.
+
+The string representation of a class type value shall be a string prefixed with 
+the name of the class type followed by the string representation of each of its 
+properties, regardless of access modifier, in the same fashion as the string 
+representation of structs.
+
+Class type values shall not be comparable.
+
+Class type value equality shall only be established between class values of 
+identical class types or between class types where one is a derived type of the 
+other. If two class values are not of the same class type, they shall not be 
+equal. Otherwise, the value of each instance field must be equal to the 
+corresponding instance field.
+
 ### Function Types
 
-A function type is a reference type which outlines the argument types and
-returned type of a callable object.
+A function type shall be a kind of reference type which outlines the argument 
+types and returned type of a callable object.
 
-Function types cannot be instantiated.
+Function types shall not be instantiated nor shall they be 
+_default-initialized_.
+
+The string representation of a function type shall be a string prefixed _"("_, 
+followed by a _", "_-delimited list of the names of each argument's data type.
+The string is then suffixed with _") -> "_ followed by the name of the returned 
+type.
+
+Function types shall not be comparable to any value of any type.
+
+Function value equality shall be possible to establish with other function 
+values of the same function signature. Function type values shall only be equal
+if they refer to the same function.
 
 ### Nullables
 
-A nullable type is a value type which marks another type as nullable, meaning
-its value may or may not exist.
+A nullable type shall be a value type which marks another type as nullable, 
+meaning its value may or may not exist.
 
 The value existence state of a nullable value is referred to as it's
-*presence state*.
+*presence state*. And the type a nullable type is being used on shall be 
+referred to as the _"nulled type."_
+
+Nullable values shall be _default-initialized_. Nullable values shall be 
+initialized to a value with a false presence state by default.
+
+The string representation of a nullable shall be either the string _"null"_ if 
+the presence state of the nullable value is false, or the string representation 
+of the nulled type's value, if it's value is present.
+
+Nullable values shall not be comparable to any value of any type.
+
+Nullable value equality shall only be established between nullable values of 
+the same nulled type, or between a nullable value and a non-nullable value of 
+the same nulled type. If both nullable values have a false presence state, they 
+shall be equal. Otherwise, the nullable value's nulled type's values must be 
+equal in order to establish equality.
 
 ### Type Compatibility And Assignability
 
-Type compatibility determines if a type can be passed as a function argument,
-set as the value of a variable, a variant/struct property, or a class field.
-The following table only determines semantic compatibility, it does not list
-conversions that may or not need to be performed when assigning a value of
+Type compatibility shall determine if a type can be passed as an argument to a 
+callable, set as the value of a variable, a variant/struct property, or a class 
+field. The following table only determines semantic compatibility, it does not 
+list conversions that may or not need to be performed when assigning a value of
 one type to an object of another, compatible, type.
 
 <table>
@@ -565,8 +773,8 @@ one type to an object of another, compatible, type.
   <tr>
     <td>Nullables</td>
     <td>
-      For non-object types, the nullable's type must be identical. For object
-      types, the assigned nullable's type must be a compatible type to the
+      For non-object types, the nulled type must be identical. For object
+      types, the assigned nulled type must be a compatible type with the
       target nullable's type.
     </td>
   </tr>
@@ -574,9 +782,9 @@ one type to an object of another, compatible, type.
 </table>
 
 For types with type parameters, all the type parameters must be set to the
-same exact value.
+same exact type.
 
-<h4 id="type-conversions">Type Conversions</h4>
+<h3 id="type-conversions">Type Conversions</h3>
 
 This section defines the conversion operations that must occur between types.
 If there is no conversion listed from one type to another in this section,
@@ -584,7 +792,7 @@ then it means that nothing must be done to convert from one type to another,
 or that the conversion is not possible. See the previous section for type
 compatibility and assignability.
 
-#### Implicit Conversions
+### Implicit Conversions
 
 These conversions must be done implicitly without requiring an explicit cast
 operation by a user of the language. When the term *"usual arithmetic
@@ -627,7 +835,7 @@ reference.
   </tbody>
 </table>
 
-#### Explicit Conversions
+### Explicit Conversions
 
 These conversions must be explicitly done by users by using a casting
 expression (Defined in the language grammar).
@@ -671,18 +879,17 @@ expression (Defined in the language grammar).
   </tbody>
 </table>
 
-<h5 id="boolean-conversion">Boolean Conversions</h5>
+<h4 id="boolean-conversion">Boolean Conversions</h4>
 
 The following table defines how values of different types are to be converted
 to boolean values. Unless it is stated that a type cannot be converted to a
 boolean value in the following table, then any value of that type is
 *"boolean-assignable."*
 
-Additionally, boolean conversion is not implicit if a value is being assigned
-to an expression, being passed as an argument to a function, method or
-constructor, being set as the value of a class member or a struct property. In
-such cases, boolean conversion must be explicit. In all other cases, boolean
-conversion is implicit.
+Boolean conversion is not implicit if a value is being assigned to a variable, 
+being passed as an argument to a function, method or constructor, being set as 
+the value of a class member or a struct property. In such cases, boolean 
+conversion must be explicit. In all other cases, boolean conversion is implicit.
 
 <table>
   <caption>Boolean conversions</caption>
@@ -711,7 +918,7 @@ conversion is implicit.
   <tr>
     <td>Enums</td>
     <td>
-      Enum values with the ordinal value zero evaluate to false, while non-zero
+      Enum constants with the ordinal value zero evaluate to false, while non-zero
       ordinal values evaluate to true.
     </td>
   </tr>
@@ -738,66 +945,7 @@ conversion is implicit.
   </tbody>
 </table>
 
-<h5 id="strconv">String Conversions</h5>
-
-This section details how certain types are converted to their string
-representations. The string data type itself is omitted, as it does not need
-to be converted to a string.
-
-##### Booleans
-
-Booleans evaluate to a string with the value *"true"* or *"false"*
-depending on the value of the boolean.
-
-##### Arithmetic Types
-
-Arithmetic types are converted to string representation of their numerical
-value in base 10.
-
-For floating point, if required, scientific notation may be used.
-
-##### Arrays
-
-Arrays evaluate to a comma-delimited string prefixed and suffixed with the
-*"\["* and *"\]"* characters respectively.
-
-Empty arrays evaluate to just *"\[\]"*.
-
-##### Structs and Classes
-
-Structs and classes evaluate to a string prefixed with the simple name of
-the type, followed by the *"{"* character.
-
-Each property is then listed with its name, followed by a *": "*
-sequence. After the delimiter, the property's value is converted to a string
-and appended. Each property's string representation is delimited with a
-*","* string. If the property is a string, the string value must be
-prefixed and suffixed with double quotes.
-
-Private fields on classes are included in the string.
-
-##### Variant Types
-
-Variant types are prefixed with the simple name of the variant type, followed
-by a *"."* and the simple name of the variant.
-
-If the variant has declared properties, then append *"("* to the string
-and append a string representation of each property's string representation to
-the string, each property delimited with a *", "* sequence. The property
-strings are then followed by a *")"*.
-
-##### Enum Types
-
-Values of an enum type are converted to string by using the enum constant's
-name as the string representation.
-
-##### Nullable Type
-
-If the nullable's presence state is false, then the string representation is
-*"null"*. Otherwise, the string representation is the present
-value's string representation.
-
-### Type Parameters
+## Type Parameters
 
 Type parameters allow for types to be specified with incomplete types,
 allowing them to be filled in later.
@@ -806,24 +954,9 @@ When a type is stated to support type parameters it means the type can be
 declared with a list of type parameters that act as non-instatiable types.
 
 Type parameters can be limited to which types can be used. These limits are
-referred to as *type parameter constraints.*
+referred to as *type parameter Constraints.*
 
-### Type Comparability
-
-This section defines which types are compatible with each other. For
-comparison semantics see <chapter-ref target="comp-semantics"></chapter-ref>.
-Thus, this section also defines the term *"comparable type."*
-
-If a data type is not listed here, it cannot be compared to any other type.
-
-- Booleans.
-- Arithmetic Types
-- Arrays which hold a comparable type are comparable.
-- Strings.
-- Identical Enum Types.
-- Identical Variant Types.
-
-<h3 id="limits">Limits</h3>
+<h2 id="limits">Limits</h2>
 
 The following limits are defined for features and aspects of the Tetral
 Language.
@@ -864,177 +997,22 @@ Language.
   </tbody>
 </table>
 
-<h3 id="id-semantics">Identifier Semantics</h3>
+# Language
 
-An Identifier can denote a function, a struct, an interface, an enum, a class,
-a local variable or a global variable. An identifier with an identical value
-can reference a different symbol at different points in a program.
+<h3 id="id-Semantics">Identifier Semantics</h3>
+
+An Identifier may denote a function, a struct, an interface, an enum, a variant 
+type, a class, a local variable or a global variable. An identifier with an 
+identical value may reference a different symbol at different points in a 
+program.
 
 A difference must be made between the identifiers used in
 <rule>primary-expression</rule>s and identifiers used in other contexts. In a
-primary expression, the identifier serves as a symbol that references a
+primary expression, the identifier shall serve as a name that references a
 previously declared or imported symbol.
 
-Symbol lookup is performed in ascending scopes from the current scopes. The
-order being: Local Scope, Current Function Scope, Global Scope.
-
-<h3 id="comp-semantics">Comparison Semantics</h3>
-
-This section details the semantics for comparing two values of specific
-types by considering two hypothetical operands: left and right.
-
-### Arithmetic Types
-
-##### CONSTRAINTS
-
-1. The right operand must be assignable to the left operand's type.
-
-##### EVALUATION
-
-1. The usual arithmetic conversions are performed.
-2. If the left operand's value is lesser than the right operand's, then the
-   right operand is greater.
-3. If the left operand's value is greater than the right operand's, then the
-   left operand is greater.
-4. If both operands have an equal value, neither is greater.
-
-### Array And String Types
-
-##### CONSTRAINTS
-
-1. Both operands must be arrays of the same, comparable type.
-
-##### EVALUATION
-
-1. If the left operand's length is 0, then the right operand is greater.
-2. If the right operand's length is 0, then the left operand is greater.
-3. If all elements in both operands are equal, neither operand is greater or
-   lesser, they are equal.
-4. If the first non-equal value in the left operand is lesser than the
-   equivalent value in the right operand, the right operand is greater.
-5. If the first non-equal value in the left operand is greater than the
-   equivalent value in the right operand, the left operand is greater.
-
-### Struct, Variant and Class Types
-
-##### CONSTRAINTS
-
-1. Struct, Variant and Class types cannot be compared.
-
-### Enum Types
-
-##### CONSTRAINTS
-
-1. Both operands must be of the same enum type.
-
-##### EVALUATION
-
-1. Enum comparison is performed identically to arithmetic type comparison,
-   with the ordinal value of both enums being used to compare them.
-
-### Nullable Types
-
-##### CONSTRAINTS
-
-1. Both operands must hold the same type of value.
-2. Both operands must hold a comparable value.
-
-##### EVALUATION
-
-1. If bother operands have a presence state of false, they are equal and
-   neither is greater.
-2. If either operand has a false presence state, that operand is lesser.
-3. The operands are then compared by their held value.
-
-
-## Equality Semantics
-
-This section details the semantics for checking the equality of two values of
-specific types by considering two hypothetical operands: left and right.
-
-### Arithmetic/Boolean Types
-
-##### CONSTRAINTS
-
-1. The right operand must be assignable to the left operand's type.
-
-##### EVALUATION
-
-1. The usual arithmetic conversions are performed.
-2. If the values of both operands are equal, they are equal.
-
-### Array And String Types
-
-##### CONSTRAINTS
-
-1. Both operands must be of the same type.
-
-##### EVALUATION
-
-1. If the operand's lengths differ, the operands are not equal.
-2. If all component values in both operands are equal, they are equal.
-   Otherwise, they are not equal.
-
-### Struct Types
-
-##### CONSTRAINTS
-
-1. Both operands must be of the same type.
-
-##### EVALUATION
-
-1. The value of each property of both operands are checked for equality.
-2. If all properties in both operands are equal, the operands are equal.
-   Otherwise, they are not equal.
-
-### Class/Interface Types
-
-##### CONSTRAINTS
-
-1. The right operand must be assignable to the left operand's type.
-
-##### EVALUATION
-
-1. If the operands are not of the same type, they are not equal.
-2. The value of each property of both operands are checked for equality.
-3. If all properties in both operands are equal, the operands are equal.
-   Otherwise, they are not equal.
-
-### Enum Types
-
-##### CONSTRAINTS
-
-1. Both operands must be of the same enum type.
-
-##### EVALUATION
-
-1. For two enum values to be equal, their ordinal values must be equal.
-
-### Variant Types
-
-##### CONSTRAINTS
-
-1. Both operands must be of the same variant type.
-
-##### EVALUATION
-
-1. If the operands' variant ordinal values are not the same, they are not
-   equal.
-2. Each variant property is then checked for equality in both operands.
-3. If all properties are equal, then the variant values are equal, otherwise
-   they are not.
-
-### Nullable Types
-
-##### CONSTRAINTS
-
-1. Both operands must hold the same type of value.
-
-##### EVALUATION
-
-1. If bother operands have a presence state of false, they are equal.
-2. If either operand has a false presence state, the operands are not equal.
-3. The operands then have their equality checked by their held value.
+Symbol lookup shall be performed in ascending scopes from the current scopes. 
+The order being: Local Scope, Current Function Scope, Global Scope.
 
 <h3 id="overflow">Overflow/Underflow Semantics</h3>
 
@@ -1042,52 +1020,34 @@ Overflows and underflows happen when an arithmetic type's value exceeds its
 maximum representable value, or when its value subceeds it's minimum
 representable value.
 
-In such cases, the value wraps around without any errors.
+In such cases, the value shall wrap around without any errors.
 
 In cases where overflow or underflow is detectable by the translation
 environment, the user should be warned about it. For example, when assigning
 a constant value larger than 255 to a variable of type `uint8`.
-
-<h3 id="def-init">Default Initialization</h3>
-
-Default initialization occurs when a variable or class/struct property is
-declared with no value.
-
-Arithmetic types are initialized to the type's equivalent of the value
-`0`. Booleans to the value false. Arrays and  strings are
-initialized to an empty value. Nullable types are default initialized to a
-value with a false presence state. Enumeration types are initialized to the
-enum value with the ordinal `0`.
-
-Variants are initialized to the variant with the ordinal 0. If the variant
-with value 0 requires arguments, then the type cannot be default-initialized.
-
-Structs are initialized with all properties set to their default values as
-specified in the struct declaration.
-
-If a type cannot be default initialized, such as in the case of a class with
-no no-argument constructors, variants where the 0 ordinal variant requires
-property values to be specified or an interface type. Then the declaration
-is considered invalid and a value must be explicitly set.
 
 ## Syntax Notation
 
 References to other syntactic rules are in *italic*, literal values are
 in <literal>bold, monospaced font</literal>. An italic syntactic rule followed
 by a colon *(:)* defines the rule. Alternative definitions of the rule
-are defined on new lines. Optional parts are described with the subscript
-*"opt"*. And parts which may repeat and appear several times will be
-described with the suffix *"rep"*.
+are defined on new lines.
 
-Basic Syntax Notation Example
+The syntax *(x)* denotes a part of the grammar where _x_ may occur zero or one 
+times. The syntax *{x}* denotes a part of the grammar where _x_ may occur zero 
+or multiple times. The syntax *\[x\]* denotes a part of the grammar where _x_ 
+may occur one or more times.
 
+Basic Syntax Notation Example:
+<grammar-def>
 <literal>(</literal> <rule modifiers="opt rep">expression</rule> <literal>)</literal>
+</grammar-def>
 
-Indicates a syntax element enclosed with *"()"* which might contain
+Indicates a Syntax element enclosed with *"()"* which might contain
 an expression, or several expressions.
 
 ## Lexical Elements
-
+##### Syntax
 <grammar-def>
   <rule-def id="token">
     <def><rule>keyword</rule></def>
@@ -1098,21 +1058,21 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
+Lexical analysis shall consume the largest sequence of source characters that
+constitutes a valid token.
 
-1. Lexical analysis shall consume the largest sequence of source characters that
-   constitutes a valid token.
-2. Tokens, outside of character or string literals, ignore all white space.
-   White space is defined as any Unicode codepoint in the input source code
-   with the `White_Space` binary property.
-3. Any use of a literal (eg: <literal>const</literal>) in the definition of the
-   language grammar is case-sensitive and thus must match the keyword exactly.
-4. No Unicode normalization is performed on the parsed tokens.
+Tokens, outside of character or string literals, shall ignore all white space.
+White space is defined as any Unicode codepoint in the input test with the 
+`White_Space` binary property.
+
+Any use of a literal (eg: <literal>const</literal>) in the definition of the
+language grammar is case-sensitive and thus must match the literal exactly.
+
+No Unicode normalization is performed on the parsed tokens.
 
 ### Keywords
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="keyword">
     <def><rule>real-keyword</rule></def>
@@ -1200,16 +1160,17 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
+When lexical analysis encounters a sequence which can be both a keyword or
+an identifier, then keywords shall take precedence over identifiers.
 
-1. When lexical analysis encounters a sequence which can be both a keyword or
-   an identifier, then keywords take precedence over identifiers.
-2. After lexical analysis, alias keywords shall have the same syntactic meaning
-   as their corresponding real keywords. For alias token mappings, see
-   <table-ref target="aliasmappings"></table-ref>.
-3. Contextual keywords are only keywords in specific contexts. Those contexts
-   are defined in the grammar as they appear. Outside the context which will
-   be defined, <rule>contextual-keywords</rule>'s are identifiers.
+After lexical analysis, alias keywords shall have the same syntactic meaning
+as their corresponding real keywords. For alias token mappings, see
+<table-ref target="aliasmappings"></table-ref>.
+
+Contextual keywords shall only be keywords in specific contexts. Those contexts
+are defined in the grammar as they appear. Outside the context which will
+be defined, <rule>contextual-keyword</rule>s shall be identifiers.
 
 <table id="aliasmappings">
   <caption>Alias token mappings</caption>
@@ -1264,9 +1225,7 @@ an expression, or several expressions.
 </table>
 
 ### Identifiers
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="identifier">
     <def>
@@ -1299,26 +1258,22 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+Identifiers must reference a valid symbol that is accessible in the current
+semantic context. (Lookup Semantics defined in <chapter-ref target="id-Semantics"></chapter-ref>.)
 
-1. Identifiers must reference a valid symbol that is accessible in the current
-   semantic context. (Lookup semantics defined in
-   <chapter-ref target="id-semantics"></chapter-ref>.)
+##### Semantics
+A symbol lookup is performed as defined in <chapter-ref target="id-Semantics"></chapter-ref>.
 
-##### SEMANTICS
+The result of an identifier expression, is value of the symbol it is  
+referencing.
 
-1. A symbol lookup is performed as defined in
-   <chapter-ref target="id-semantics"></chapter-ref>.
-2. The result of an identifier expression, is value of the symbol it is
-   referencing.
-3. An identifier which references a valid semantic variable or a constant is a
-   valid lvalue. If the value it references is mutable, the result is a valid
-   mutable lvalue.
+An identifier which references a valid semantic variable or a constant is a
+valid lvalue. If the value it references is mutable, the result is a valid
+mutable lvalue.
 
 ### Constants
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="constant">
     <def><rule>integer-constant</rule></def>
@@ -1329,9 +1284,7 @@ an expression, or several expressions.
 </grammar-def>
 
 #### Integer Constants
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="integer-constant">
     <def>
@@ -1396,11 +1349,8 @@ an expression, or several expressions.
     </def>
   </rule-def>
   <rule-def id="octal-sequence" type="oneof">
-    <def><rule>octal-digit</rule></def>
     <def>
-      <rule>octal-sequence</rule>
-      <rule modifiers="opt">underscore</rule>
-      <rule>octal-digit</rule>
+      <rule>octal-digit</rule> <sgroup modifiers="opt rep"><rule modifiers="opt">underscore</rule> <rule>octal-digit</rule></sgroup>
     </def>
   </rule-def>
   <rule-def id="octal-digit" type="oneof">
@@ -1411,21 +1361,22 @@ an expression, or several expressions.
   <rule-def id="hexadecimal-constant">
     <def>
       <literal>0x</literal>
-      <rule modifiers="rep">hexadecimal-sequence</rule>
+      <rule>hexadecimal-sequence</rule>
       <rule modifiers="opt">integer-suffix</rule>
     </def>
     <def>
       <literal>0X</literal>
-      <rule modifiers="rep">hexadecimal-sequence</rule>
+      <rule>hexadecimal-sequence</rule>
       <rule modifiers="opt">integer-suffix</rule>
     </def>
   </rule-def>
   <rule-def id="hexadecimal-sequence">
-    <def><rule>hexadecimal-digit</rule></def>
     <def>
       <rule>hexadecimal-sequence</rule>
-      <rule modifiers="opt">underscore</rule>
-      <rule>hexadecimal-digit</rule>
+      <sgroup modifiers="opt rep">
+        <rule modifiers="opt">underscore</rule>
+        <rule>hexadecimal-digit</rule>
+      </sgroup>
     </def>
   </rule-def>
   <rule-def id="hexadecimal-digit" type="oneof">
@@ -1437,21 +1388,22 @@ an expression, or several expressions.
   <rule-def id="binary-constant">
     <def>
       <literal>0b</literal>
-      <rule modifiers="rep">binary-sequence</rule>
+      <rule>binary-sequence</rule>
       <rule modifiers="opt">integer-suffix</rule>
     </def>
     <def>
       <literal>0B</literal>
-      <rule modifiers="rep">binary-sequence</rule>
+      <rule>binary-sequence</rule>
       <rule modifiers="opt">integer-suffix</rule>
     </def>
   </rule-def>
   <rule-def id="binary-sequence">
-    <def><rule>binary-digit</rule></def>
     <def>
-      <rule>binary-sequence</rule>
-      <rule modifiers="opt">underscore</rule>
       <rule>binary-digit</rule>
+      <sgroup modifiers="opt rep">
+        <rule modifiers="opt">underscore</rule>
+        <rule>binary-digit</rule>
+      </sgroup>
     </def>
   </rule-def>
   <rule-def id="binary-digit" type="oneof">
@@ -1470,8 +1422,10 @@ an expression, or several expressions.
     <def><rule>digit</rule></def>
     <def>
       <rule>digit-sequence</rule>
-      <rule modifiers="opt">underscore</rule>
-      <rule>digit</rule>
+      <sgroup modifiers="opt rep">
+        <rule modifiers="opt">underscore</rule>
+        <rule>digit</rule>
+      </sgroup>
     </def>
   </rule-def>
 
@@ -1480,20 +1434,22 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+Unsuffixed integer constants shall not represent a value that exceeds the
+maximum value of an unsigned 64-bit integer.
 
-1. Unsuffixed integer constants cannot represent a value that exceeds the
-   maximum value of an unsigned 64-bit integer.
-2. Suffixed integer constants cannot represent a value that exceeds the
-   suffix specifier's type. (See <table-ref target="intsuffixes"></table-ref>.)
-3. Any integer constant with the value of <literal>-0</literal> is invalid.
+Suffixed integer constants shall not represent a value that exceeds the
+suffix specifier's type. (See <table-ref target="intsuffixes"></table-ref>.)
 
-##### SEMANTICS
+Any integer constant with the value of <literal>-0</literal> shall be invalid.
 
-1. Unsuffixed integer constants result in one of three types of integral types
-   based on the smallest type that can hold the constant value. (See <table-ref target="unsuffixedints"></table-ref>.)
-2. Suffixed integer constants result in a value with the integer type specified
-   by the suffix. (See <table-ref target="intsuffixes"></table-ref>.)
+##### Semantics
+Unsuffixed integer constants shall result in one of three types of integral 
+types based on the smallest type that can hold the constant value. 
+(See <table-ref target="unsuffixedints"></table-ref>.)
+
+Suffixed integer constants shall result in a value with the integral type 
+specified by the suffix. (See <table-ref target="intsuffixes"></table-ref>.)
 
 <table id="intsuffixes">
   <caption>Suffix type mappings</caption>
@@ -1572,9 +1528,7 @@ an expression, or several expressions.
 </table>
 
 #### Floating Point Constants
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="floating-point-constant">
     <def>
@@ -1625,21 +1579,22 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+An unsuffixed floating point constant must contain a valid floating point
+value that can be represented as a 64-bit floating point value.
 
-1. An unsuffixed floating point constant must contain a valid floating point
-   value that can be represented as a 64-bit floating point value.
-2. A suffixed floating point constant must contain a valid floating value that
-   can be represented by the type specified by the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
-3. Hexadecimal/Octal/Binary floating point numbers are explicitly not
-   supported in Tetral grammar.
+A suffixed floating point constant must contain a valid floating value that
+can be represented by the type specified by the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
 
-##### SEMANTICS
+Hexadecimal/Octal/Binary floating point numbers are explicitly not
+supported in Tetral grammar.
 
-1. The result of an unsuffixed floating point constant is a 64-bit floating
-   point number.
-2. The result of a suffixed floating point constant is a floating point value
-   of the type matching the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
+##### Semantics
+The result of an unsuffixed floating point constant shall be a 64-bit floating
+point value.
+
+The result of a suffixed floating point constant shall be a floating point value
+of the type matching the suffix. (See <table-ref target="floatsuffixes"></table-ref>.)
 
 <table id="floatsuffixes">
   <caption>Floating point suffix type table</caption>
@@ -1662,9 +1617,7 @@ an expression, or several expressions.
 </table>
 
 #### Character Constants
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="character-constant">
     <def>
@@ -1702,20 +1655,22 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+A character constant's contained codepoint must be a valid Unicode
+codepoint.
 
-1. A character constant's contained codepoint must be a valid Unicode
-   codepoint.
+A hexadecimal escape sequence shall not contain more than 6 hexadecimal 
+digits.
 
-##### SEMANTICS
+##### Semantics
+Character constants result in a value of a 32-bit unsigned integer type,
+representing the Unicode codepoint of the character.
 
-1. Character constants result in a value of a 32-bit unsigned integer,
-   representing the Unicode codepoint of the character.
-2. An escaped sequence leads to the escaped character's value being used. See
-   the table below for escaped character values.
+An escaped sequence shall lead to the escaped character's value being used. See
+<table-ref target="charescapetable"></table-ref>.
 
-<table>
-  <caption>String/Character escape sequence values.</caption>
+<table id="charescapetable">
+  <caption>String/Character escape sequence values</caption>
   <thead>
   <tr>
     <th>Escape Sequence</th>
@@ -1763,9 +1718,7 @@ an expression, or several expressions.
 </table>
 
 #### Predefined Constants
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="predefined-constant">
     <def><literal>true</literal></def>
@@ -1778,24 +1731,24 @@ an expression, or several expressions.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
+The result of the <literal>true</literal> and <literal>false</literal>
+keywords shall be a boolean value of the corresponding value.
 
-1. The result of the <literal>true</literal> and <literal>false</literal>
-   keywords are a boolean value of the corresponding value.
-2. The result of the <literal>null</literal> value is a nullable value with a
-   false presence state value. A null value can be implicitly cast to any
-   nullable type.
-3. The result of the <literal>nan</literal> keyword is a 32-bit floating point
-   value with the special Not-A-Number value.
-4. The result of the <literal>inf</literal>, <literal>-inf</literal> and
-   <literal>+inf</literal> keywords are a 32-bit floating point value with an
-   infinite value of the corresponding signedness. If no sign is specified,
-   then the result the same as with the <literal>+</literal> sign.
+The result of the <literal>null</literal> value shall be a nullable value with a
+false presence state value. A <literal>null</literal> value can be implicitly 
+cast to any nullable type.
+
+The result of the <literal>nan</literal> keyword shall be a 32-bit floating 
+point value with the special Not-A-Number value.
+
+The result of the <literal>inf</literal>, <literal>-inf</literal> and
+<literal>+inf</literal> keywords shall be 32-bit floating point value with an
+infinite value of the corresponding signedness. If no sign is specified,
+then the result shall be the same as with the <literal>+</literal> sign.
 
 ### Operators
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="operator" type="oneof">
     <def>
@@ -1809,34 +1762,32 @@ an expression, or several expressions.
 </grammar-def>
 
 ### Semicolons
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="semicolon">
     <def><literal>;</literal></def>
   </rule-def>
 </grammar-def>
 
-##### Lexical Analysis Rules
+##### Semantics
+The semicolon as a marker for the end of an expression or for a statement shall 
+be completely optional and need not be used unless there may be ambiguity in
+the syntax.
 
-1. The semicolon as a marker for the end of an expression or for a statement is
-   completely optional and need not be used unless there may be ambiguity in
-   the syntax.
-2. Certain syntactic elements (For example, the <rule>for-loop-statement</rule>)
-   explicitly use semicolons to delimit parts of the grammar. In such cases the
-   semicolon is required.
+Certain syntactic elements (For example, the <rule>for-loop-statement</rule>)
+explicitly use semicolons to delimit parts of the grammar. In such cases the
+semicolon shall be required.
 
 ### Comments
 
-Except within a string or character literal, the characters <literal>//</literal> and
-<literal></literal> denote the beginning of a line comment. The comment consumes the
-rest of the source file's line, or until the end of input has
-been reached.
+Except within a string or character literal, the characters <literal>//</literal> 
+and <literal>#</literal> denote the beginning of a line comment. The comment 
+consumes the rest of the source text's line, or until the end of input has been 
+reached.
 
-Except within a string or character literal, the characters <literal>/*</literal> denote
+Except within a string or character literal, the characters <literal>/\*</literal> denote
 the beginning of a block comment. The comment consumes input until a matching
-<literal>*/</literal> sequence has been found, or until the end of input has
+<literal>\*/</literal> sequence has been found, or until the end of input has
 been reached.
 
 Except within a string or character literal, the characters
@@ -1844,18 +1795,15 @@ Except within a string or character literal, the characters
 comment consumes input until a matching <literal>*/</literal> sequence has
 been found, or until the end of input has been reached.
 
-In almost all cases, comments are simply skipped over and ignored, except for
-documentation comments (Starting with <literal>/**</literal>) which are linked
-to the specific <rule>declaration</rule> that they prefix. This may be ignored
-by implementations that have do not generate documentation or otherwise make
-use of user-written documentation.
+In almost all cases, comments may be simply skipped over and ignored, except for
+documentation comments (Starting with <literal>/**</literal>) which shall be 
+linked to the specific <rule>declaration</rule> that they prefix. This may be 
+ignored by implementations that have do not generate documentation or otherwise 
+make use of user-written documentation.
 
 ## Expressions
-
 ### Primary Expressions
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="primary-expression">
     <def><rule>constant</rule></def>
@@ -1874,7 +1822,7 @@ use of user-written documentation.
 
 #### New Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="new-expression">
@@ -1906,84 +1854,80 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+New expressions shall only be used to instantiate structs, classes and arrays.
 
-1. New expressions can only be used to instantiate structs, classes and arrays.
+##### Semantics
+A new-expression shall instantiate a new instance of a specific type.
 
-##### SEMANTICS
-
-1. Instantiates a new instance of a specific type.
-2. If the type name was not specified, the type must be inferred from the
-   surrounding context.
+If the type name was not specified, the type must be inferred from the
+surrounding context.
 
 ##### Object Instantiation
+##### Constraints
+The specified arguments must match a constructor that exists on the type.
 
-##### CONSTRAINTS
+##### Semantics
+The object instantiation expression shall instantiate an object by calling the 
+appropriate constructor if it is constructing a class.
 
-1. The specified arguments must match a constructor that exists on the type.
-
-##### SEMANTICS
-
-1. Instantiates an object by calling the appropriate constructor.
+If the object being instatiated is a struct, then no arguments shall be 
+specified.
 
 ##### Array Instantiation
 
-##### CONSTRAINTS
+##### Constraints
+The specified expression must result in a value that can be implictly
+converted to an unsigned 32-bit integer, this expression's result will be
+referred to as the instantiated array's length.
 
-1. The specified expression must result in a value that can be implictly
-   converted to an unsigned 32-bit integer, this expression's result will be
-   referred to as the instantiated array's length.
-2. The array type must be default initialize-able.
+The array type must be default initialize-able.
 
-##### SEMANTICS
-
-1. Instantiates an array of the defined length and initializes each value in
-   the created array to the array type's default initialized value.
+##### Semantics
+Instantiates an array of the defined length and initializes each value in
+the created array to the array type's default initialized value.
 
 #### 'Super' Expression
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="super-expression">
     <def><literal>super</literal></def>
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+The super expression shall only be used inside an object type's method body or 
+constructor body.
 
-1. May only be used inside a class or interface method declaration or a class
-   constructor declaration.
+The super expression shall only be used inside an object type which has a parent 
+type.
 
-##### SEMANTICS
+##### Semantics
+The result of the expression shall be a reference to the instance of the parent 
+of the class in which the expression was used.
 
-1. The result of the expression is a pointer to the <literal>this</literal>
-   object's parent object in the current context.
+Any members which are accessed through the <literal>super</literal> 
+keyword shall not be redirected to any members of the current class which 
+override the parent class' members.
 
 #### 'This' Expression
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="this-expression">
     <def><literal>this</literal></def>
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
+This expression shall only be used inside an object type's method body or 
+constructor body.
 
-1. May only be used inside a class or interface method declaration or
-   a class constructor declaration.
-
-##### SEMANTICS
-
-1. The result of the expression is the current instance of the object in the
-   semantic context in which it was used.
+##### Semantics
+The result of the expression shall be a reference to the instance of the class 
+in which the expression was used.
 
 #### Cast Expression
-
-##### SYNTAX
-
+##### Syntax
 <grammar-def>
   <rule-def id="cast-expression">
     <def><rule>value-cast-expression</rule></def>
@@ -2013,7 +1957,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Cast expressions can only cast between types which have a defined implicit
    or explicit conversion. (See
@@ -2021,7 +1965,7 @@ use of user-written documentation.
 2. Bit-casting can only be performed on arithmetic types.
 3. Bit-casting can only cast from one type to another type of the same size.
 
-##### SEMANTICS
+##### Semantics
 
 1. Casts a value returned by an expression to a different type.
 2. Regular casting operations are defined in
@@ -2031,7 +1975,7 @@ use of user-written documentation.
 
 #### Object Literals
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="object-literal">
@@ -2066,7 +2010,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. If an object literal's struct type cannot be inferred from the surrounding
    context, then the expression is invalid.
@@ -2074,7 +2018,7 @@ use of user-written documentation.
    type.
 3. An object literal may not declare any duplicate properties.
 
-##### SEMANTICS
+##### Semantics
 
 1. The type of struct initialized by an object literal must be inferred from
    the surrounding context.
@@ -2083,7 +2027,7 @@ use of user-written documentation.
 
 #### Array Literals
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
  <rule-def id="array-literal">
@@ -2110,12 +2054,12 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. If an array literal's component type cannot be inferred from the surrounding
    context, then the expression is invalid.
 
-##### SEMANTICS
+##### Semantics
 
 1. The component type of the array initialized by an array literal must be
    inferred from the surrounding context.
@@ -2124,7 +2068,7 @@ use of user-written documentation.
 
 #### String Literals
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="string-literal">
@@ -2196,12 +2140,12 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. All expressions and identifiers declared inside a string must return a
    non-void value.
 
-##### SEMANTICS
+##### Semantics
 
 1. A string literal will always result in a value of a `string`
    type.
@@ -2220,7 +2164,7 @@ use of user-written documentation.
 
 ### Trail Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="trail-expression">
@@ -2234,7 +2178,7 @@ use of user-written documentation.
 
 ### Index Access Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="index-access-expression">
@@ -2247,7 +2191,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The type returned by the target <rule>trail-expression</rule> must be an
    indexable type. (See <table-ref target="typeindexing"></table-ref>)
@@ -2256,7 +2200,7 @@ use of user-written documentation.
 3. If the type being accessed is a `string`, then the index may not
    be written to.
 
-##### SEMANTICS
+##### Semantics
 
 1. Accesses an indexable element in an indexable value.
 2. A valid index access expression is a valid lvalue.
@@ -2292,7 +2236,7 @@ use of user-written documentation.
 
 ### Property Access Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="property-access-expression">
@@ -2314,15 +2258,15 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The property being accessed must exist on the object operand.
-2. A property access must not violate class/interface access semantics.
+2. A property access must not violate class/interface access Semantics.
 3. The <literal>.</literal> operator cannot be used on a nullable operand.
    Either the <literal>!.</literal> or <literal>?.</literal> operator must be
    used by the user to acknowledge the nullability value.
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the <literal>.</literal> and <literal>!.</literal> operator
    is a copy of the value of the property or virtual property being accessed.
@@ -2339,7 +2283,7 @@ use of user-written documentation.
 
 ### Function Call Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="function-call-expression">
@@ -2364,15 +2308,15 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The value returned by the target *trail-expression* must be a function.
 2. All arguments passed to the function must be assignable to that function's
    declared arguments.
 3. All type parameters passed to the function must conform with any type
-   paramater constraints the function declared.
+   paramater Constraints the function declared.
 
-##### SEMANTICS
+##### Semantics
 
 1. Invokes a function with the specified arguments.
 2. Calling arguments are evaluated from left to right.
@@ -2384,7 +2328,7 @@ use of user-written documentation.
 
 ### Coalescence Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="coalescence-expression">
@@ -2397,13 +2341,13 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The left operand must be a nullable value.
 2. The right operand must be assignable to the left operand, or be a
    non-nullable value of an assignable type to the left operand.
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the <literal>??</literal> operator is the left operand if it
    is present. Otherwise, the result of the operator is the right operand.
@@ -2411,7 +2355,7 @@ use of user-written documentation.
 
 ### Unary Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-expression">
@@ -2426,7 +2370,7 @@ use of user-written documentation.
 
 #### Unary Increment Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-increment-expression">
@@ -2441,12 +2385,12 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The operand must be a valid lvalue that can be modified.
 2. The operand must be of an integral or floating point type.
 
-##### SEMANTICS
+##### Semantics
 
 1. If the increment operator is placed before the operand, the result is the
    value of the operand incremented by 1. As a side effect, the resulting
@@ -2457,7 +2401,7 @@ use of user-written documentation.
 
 #### Unary Decrement Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-decrement-expression">
@@ -2472,12 +2416,12 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The operand must be a valid lvalue that can be modified.
 2. The operand must be of an integral or floating point type.
 
-##### SEMANTICS
+##### Semantics
 
 1. If the decrement operator is placed before the operand, the result is the
    value of the operand decremented by 1. As a side effect, the resulting
@@ -2488,7 +2432,7 @@ use of user-written documentation.
 
 #### Unary Arithmetic Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-arithmetic-expression">
@@ -2497,14 +2441,14 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. For the <literal>-</literal> operator, the operand must be of an
    arithmetic type.
 2. For the <literal>+</literal> operator, the operand must be of an
    arithmetic type or a boolean. (Not boolean-assignable, an explicit boolean.)
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the **-** operator is the negative of the operand's value,
    or positive, if the operand's value is already negative. If the operand's
@@ -2516,7 +2460,7 @@ use of user-written documentation.
 
 #### Unary Bitwise Negation Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-bitwise-negation-expression">
@@ -2524,19 +2468,19 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The operand must be a valid lvalue.
 2. The operand must be of an integral type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the expression is the value of the operand with all the
    bits flipped (All zeroes set to ones and vice versa)
 
 #### Unary Logical Negation Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="unary-logical-negation-expression">
@@ -2544,18 +2488,18 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The operand's value must be boolean-assignable. (Defined in <chapter-ref target="boolean-conversion"></chapter-ref>.)
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the <literal>!</literal> operator is the value of the operand,
    converted to a boolean, and then the value inverted.
 
 ### Power (POW) Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="power-expression">
@@ -2564,11 +2508,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a compatible arithmetic type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the **\*\*** operator is the left operand raised to the
@@ -2576,7 +2520,7 @@ use of user-written documentation.
 
 ### Multiplicative Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="multiplicative-expression">
@@ -2587,13 +2531,13 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a compatible arithmetic type.
 2. In the case of the <literal>*</literal> operator, if the left operator is
    a string, the right operand must be an integral.
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the <literal>*</literal> operator, when applied to two arithmetic types,
@@ -2608,7 +2552,7 @@ use of user-written documentation.
 
 ### Additive Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="additive-expression">
@@ -2618,7 +2562,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. For the <literal>-</literal> operator, both operands must be a compatible
    arithmetic type.
@@ -2626,7 +2570,7 @@ use of user-written documentation.
    compatible arithmetic type, or the left operand must be a string, and the
    other operand must be a non-void value.
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the <literal>+</literal> operator, when both operands are arithmetic, is
@@ -2640,7 +2584,7 @@ use of user-written documentation.
 
 ### Shift Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="bitshift-expression">
@@ -2650,11 +2594,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of an integral type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the **<<** operator is the value of the left operand
    with its bits shifted to the left by the value of the right operand.
@@ -2665,7 +2609,7 @@ use of user-written documentation.
 
 ### Relational Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="relational-expression">
@@ -2677,11 +2621,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
-1. Both operands must be of a compatible comparable type (See <chapter-ref target="comp-semantics"></chapter-ref>.)
+1. Both operands must be of a compatible comparable type (See <chapter-ref target="comp-Semantics"></chapter-ref>.)
 
-##### SEMANTICS
+##### Semantics
 
 1. If both operands are compatible arithmetic types, then the usual arithmetic
    conversions are applied.
@@ -2698,7 +2642,7 @@ use of user-written documentation.
 
 ### Equality Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="equality-expression">
@@ -2708,11 +2652,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a compatible type.
 
-##### SEMANTICS
+##### Semantics
 
 1. If both operands are compatible arithmetic types, then the usual arithmetic
    conversions are applied.
@@ -2723,7 +2667,7 @@ use of user-written documentation.
 
 ### XOR Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="xor-expression">
@@ -2732,11 +2676,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a valid integral type
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the **`^`** operator is the value of the left
@@ -2745,7 +2689,7 @@ use of user-written documentation.
 
 ### Bitwise AND Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="bitwise-and-expression">
@@ -2754,11 +2698,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a valid integral type
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the **`&`** operator is the value of the left
@@ -2767,7 +2711,7 @@ use of user-written documentation.
 
 ### Bitwise OR Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="bitwise-or-expression">
@@ -2776,11 +2720,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a valid integral type
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied.
 2. The result of the **`|`** operator is the value of the left
@@ -2789,7 +2733,7 @@ use of user-written documentation.
 
 ### Logical AND Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="logical-and-expression">
@@ -2798,11 +2742,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a valid integral or boolean-assignable type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied if both operands are arithmetic
    types.
@@ -2813,7 +2757,7 @@ use of user-written documentation.
 
 ### Logical OR Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="logical-or-expression">
@@ -2822,11 +2766,11 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Both operands must be of a valid integral or boolean-assignable type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The usual arithmetic conversions are applied if both operands are arithmetic
    types.
@@ -2837,7 +2781,7 @@ use of user-written documentation.
 
 ### Conditional Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="conditional-expression">
@@ -2852,12 +2796,12 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The condition expression must result in a boolean-assignable value.
 2. Both the left and the right operands must result in a compatible type.
 
-##### SEMANTICS
+##### Semantics
 
 1. The condition operand is evaluated first, if it results in a true value,
    the left operand is the result of the expression, otherwise the right
@@ -2867,7 +2811,7 @@ use of user-written documentation.
 
 ### Assignment Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="assignment-expression">
@@ -2882,13 +2826,13 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The left operand must be a valid mutable lvalue.
-2. Both operands must meet all constraints, as declared in each operator's
+2. Both operands must meet all Constraints, as declared in each operator's
    section.
 
-##### SEMANTICS
+##### Semantics
 
 1. For non-simple assignment operations (Not <literal>=</literal>), the result
    of an assignment expression is the left operand and right operand's result
@@ -2901,7 +2845,7 @@ use of user-written documentation.
 
 ### Top Level Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="expression">
@@ -2911,7 +2855,7 @@ use of user-written documentation.
 
 ### Loop Condition Expression
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="statement-condition-expression">
@@ -2920,17 +2864,17 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The operand must result in a boolean-assignable value.
 
-##### SEMANTICS
+##### Semantics
 
 1. The result of the loop condition expression is a boolean true/false value.
 
 ## Type Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="type-expression">
@@ -2940,7 +2884,7 @@ use of user-written documentation.
 
 ### Type Name Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="type-name-expression">
@@ -2954,18 +2898,18 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The referenced type must be accessible in the current scope.
 
-##### SEMANTICS
+##### Semantics
 
 1. References a declared/imported type.
 2. The order of type declarations must be irrelevant to when its referenced.
 
 ### Type Parameter Instantiation Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="parameterized-type-expression">
@@ -2983,18 +2927,18 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The type being referenced must support type parameters and have declared type parameters.
 2. Each type parameter must match the one on the declared type.
 
-##### SEMANTICS
+##### Semantics
 
 1. Fills out a referenced type's type parameters.
 
 ### Nullable Type Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="nullable-type-expression">
@@ -3003,7 +2947,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares a type to be nullable.
 2. Variables, properties, fields or function arguments marked as nullable may
@@ -3011,7 +2955,7 @@ use of user-written documentation.
 
 ### Array Type Expressions
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="array-type-expression">
@@ -3021,7 +2965,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
 
 1. References an array of a specific type.
 2. Declaring a <literal>readonly</literal> array prohibits all modification of
@@ -3029,7 +2973,7 @@ use of user-written documentation.
 
 ## Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="declaration">
@@ -3057,7 +3001,7 @@ use of user-written documentation.
 
 ### Declaration Modifiers
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="declaration-modifiers">
@@ -3071,13 +3015,13 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. No declaration modifier may be set more than once.
 
 ### Type Parameter Lists
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="type-arguments">
@@ -3118,7 +3062,7 @@ use of user-written documentation.
 
 ### Module Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="module-declaration">
@@ -3162,7 +3106,7 @@ use of user-written documentation.
   </dd>
 </dl>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The file name/path referenced by the native library path, if present, must
    be a valid path to a dynamically linkable library. The path must be
@@ -3170,7 +3114,7 @@ use of user-written documentation.
 2. It is not required for a module declaration to declare a name unique to the
    file it's declared in. Multiple files may share the same namespace.
 
-##### SEMANTICS
+##### Semantics
 
 1. A module declaration is used by import statements to know from which file
    to import certain symbols.
@@ -3180,7 +3124,7 @@ use of user-written documentation.
 
 ### Import Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="import-declaration">
@@ -3191,13 +3135,13 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The import statement must result in at least one symbol being included in
    the source file. If no symbols are found with the namespace specified in
    the import, then the import is considered a failure.
 
-##### SEMANTICS
+##### Semantics
 
 1. Import all export symbols with the specified module name namespace into
    the source file.
@@ -3212,7 +3156,7 @@ use of user-written documentation.
 
 ### Function Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="function-declaration">
@@ -3256,7 +3200,7 @@ use of user-written documentation.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The name and parameter types must not match a function that already exists
    in the current scope.
@@ -3274,7 +3218,7 @@ Declares a function that will be accessible in the current scope.
 
 ### Extension Function Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="extension-function-declaration">
@@ -3294,19 +3238,19 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The type referenced in the <rule>extension-function-name</rule> must be a
    valid type.
 2. The function may not access any private variables declared in the extended
    type if it is a class type.
 
-##### SEMANTICS
+##### Semantics
 
 
 ### Variable Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="variable-declaration">
@@ -3325,7 +3269,7 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Must not have the name of an already accessible variable in the current
    scope.
@@ -3345,7 +3289,7 @@ Declares a function that will be accessible in the current scope.
 8. If the variable's type cannot be default-initialized, then a value must be
    explicitly specified. (See <chapter-ref target="def-init"></chapter-ref>)
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares a variable or a constant that will be accessible in the current
    scope.
@@ -3355,7 +3299,7 @@ Declares a function that will be accessible in the current scope.
 
 ### Struct Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="struct-declaration">
@@ -3382,7 +3326,7 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. A struct must not be declared with the <literal>native</literal> modifier.
 2. Struct's must only be declared in the main scope of a source file.
@@ -3392,13 +3336,13 @@ Declares a function that will be accessible in the current scope.
 5. Struct properties may not directly or indirectly reference the declared
    struct type unless through a nullable value.
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares a struct data type and its properties.
 
 ### Enum Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="enum-declaration">
@@ -3437,7 +3381,7 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. An enum type must not be declared with the same name as an existing type in
    the same namespace.
@@ -3445,7 +3389,7 @@ Declares a function that will be accessible in the current scope.
 3. Any enum constant declared with a value expression must be an expression
    which only contains integer constant operands.
 
-##### SEMANTICS
+##### Semantics
 
 1. An enum declaration declares an enumeration data type.
 2. The ordinal value of each declared enum constant is either the value of the
@@ -3455,7 +3399,7 @@ Declares a function that will be accessible in the current scope.
 
 ### Variant Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="variant-type-declaration">
@@ -3497,20 +3441,20 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. A Variant may not be declared with the same name as an existing declaration
    in the same namespace.
 2. Each declared variant of a variant type declaration must have a unique name.
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares a variant type with the specified name and variants.
 2. Declares each variant's properties.
 
 ### Interface Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="interface-declaration">
@@ -3559,15 +3503,15 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Interfaces can only be declared in a source file's global scope.
 
-##### SEMANTICS
+##### Semantics
 
 ### Class Declarations
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="class-declaration">
@@ -3665,7 +3609,7 @@ Declares a function that will be accessible in the current scope.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Classes may only be declared in a file's global scope.
 2. Classes must not be declared with the same name as an already existing
@@ -3673,7 +3617,7 @@ Declares a function that will be accessible in the current scope.
 3. Classes implementing interfaces must declare a valid method
    implementation for every function outlined by its interfaces.
 4. Classes may not implement 2 or more interfaces with methods whose
-   implementation would cause other constraints to be violated.
+   implementation would cause other Constraints to be violated.
 5. Classes may not extend themselves, directly or indirectly.
 6. Classes may not extend a class that has not been marked with the
    <literal>extendable</literal> keyword.
@@ -3682,13 +3626,13 @@ Declares a function that will be accessible in the current scope.
 9. Classes may not extend classes if the extension would cause an inheritence
    cycle.
 
-##### SEMANTICS
+##### Semantics
 
-1. The same padding and alignment semantics apply to classes as do to structs.
+1. The same padding and alignment Semantics apply to classes as do to structs.
 
 #### Class Fields
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Classes may not have 2 or more fields with the same name.
 2. Fields declared with the **`const`** modifier must either
@@ -3696,35 +3640,35 @@ Declares a function that will be accessible in the current scope.
 3. If a field has a default value, its value must be a valid expression that
    results in a type compatible with the field's type.
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares an accessible property.
 
 #### Class Constructors
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Classes may not have 2 or more constructors with the same function
    signature.
 2. Constructors may not be declared with the **`override`** or
    **`static`** keyword.
 3. Constructors may not return a value.
-4. All constraints that apply to regular function argument lists also apply to
+4. All Constraints that apply to regular function argument lists also apply to
    constructor arguments.
 5. If a class is declared with a base type that requires explicit
    initialization, then each constructor declared in a class must
    initialize the base type with a <rule>super-constructor-expression</rule>.
 
-##### SEMANTICS
+##### Semantics
 
 1.
 
 #### Class Methods
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The declared return type must be a valid type.
-2. The same constraints that apply to regular function declarations also apply
+2. The same Constraints that apply to regular function declarations also apply
    to method declarations, except for those which cannot be applied to method
    declarations.
 3. Classes may only declare functions with the same name if the argument
@@ -3738,18 +3682,18 @@ Declares a function that will be accessible in the current scope.
 7. A method declared with the <literal>static</literal> modifier cannot also
    use the modifier <literal>override</literal>.
 
-##### SEMANTICS
+##### Semantics
 
 1. Declares a member function that belongs to the class the method was
    declared in.
 
 #### Class Access Modifiers
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Each modifier is mutually exclusive to another access modifier.
 
-##### SEMANTICS
+##### Semantics
 
 1. Access modifiers modify how fields and methods may be accessed from outside
    the class the symbol was declared in.
@@ -3765,7 +3709,7 @@ Declares a function that will be accessible in the current scope.
 
 ## Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="statement">
@@ -3792,7 +3736,7 @@ Declares a function that will be accessible in the current scope.
 
 ### Block Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="block-statement">
@@ -3814,7 +3758,7 @@ outside of that block.
 
 ### Loop Flow Control Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="control-flow-statement">
@@ -3840,7 +3784,7 @@ Control Flow statements can be declared with a label. This label is optional,
 if no label is specified, the statement changes how the immediate loop
 behaves. If a label is set, then it controls how the referenced loop behaves.
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Can only be used inside a loop
 2. If a label is specified, the label can only reference a label of a loop
@@ -3848,7 +3792,7 @@ behaves. If a label is set, then it controls how the referenced loop behaves.
 
 ### If Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="if-statement">
@@ -3872,14 +3816,14 @@ behaves. If a label is set, then it controls how the referenced loop behaves.
 Evaluates a condition and executes either a body, an else statement or moves
 on without executing.
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The if statement's condition must result in a value that can be assigned to
    a true/false value.
 
 ### Labeled Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="labeled-statement">
@@ -3893,7 +3837,7 @@ on without executing.
 
 ### Switch Statements
 
-##### SYNTAX
+##### Syntax
 
 #### Switch Expression
 
@@ -3967,7 +3911,7 @@ on without executing.
 
 ### For Loop Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="for-loop-statement">
@@ -3991,15 +3935,15 @@ A for loop has three operands, the first, second and third operand. The first,
 if present, declares a variable, the second evaluates a condition, and a third
 expression performs some operation to move the for-loop forward.
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The second operand, if present, must result in a boolean-assignable value.
 
-##### SEMANTICS
+##### Semantics
 
 ### For-Each Loop Statement
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="foreach-loop-statement">
@@ -4016,14 +3960,14 @@ expression performs some operation to move the for-loop forward.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The right operand, after the <rule>identifier</rule>, must result in an
    array or a string.
 2. The variable declaration must be of the type that the right operand
    contains.
 
-##### SEMANTICS
+##### Semantics
 
 1. Iterates over each element of the right operand and performs some operation.
 2. The element being iterated over is the one declared in the
@@ -4031,7 +3975,7 @@ expression performs some operation to move the for-loop forward.
 
 ### Do While Loop Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="do-while-statement">
@@ -4044,7 +3988,7 @@ expression performs some operation to move the for-loop forward.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The loop's condition must result in a value that can be evaluated as a boolean.
 
@@ -4056,7 +4000,7 @@ is reached.
 
 ### Regular While Loop Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="while-statement">
@@ -4068,7 +4012,7 @@ is reached.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The loop's condition must result in a value that can be evaluated as a boolean.
 
@@ -4080,7 +4024,7 @@ reached, the loop's block is not evaluated at all.
 
 ### Return Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="return-statement">
@@ -4095,7 +4039,7 @@ reached, the loop's block is not evaluated at all.
 
 Causes the current function to halt execution and return to the caller.
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Can only be used inside a function body.
 2. If the return statement is used in a non-void function, it must always
@@ -4107,7 +4051,7 @@ Causes the current function to halt execution and return to the caller.
 
 ### Yield Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="yield-statement">
@@ -4118,19 +4062,19 @@ Causes the current function to halt execution and return to the caller.
   </rule-def>
 </grammar-def>
 
-##### CONSTRAINTS
+##### Constraints
 
 1. Can only be used inside a switch statement's case.
 2. The yielded value must be a non-void value.
 
-##### SEMANTICS
+##### Semantics
 
 1. Evaluate an expression and return, or *yield*, it as the result of a
    switch statement's case.
 
 ### Assert Statements
 
-##### SYNTAX
+##### Syntax
 
 <grammar-def>
   <rule-def id="assert-statement">
@@ -4146,7 +4090,7 @@ Causes the current function to halt execution and return to the caller.
   </rule-def>
 </grammar-def>
 
-##### SEMANTICS
+##### Semantics
 
 1. Evaluates the condition operand. If the condition results in a true
    boolean-assignable value, nothing happens. Otherwise, an error is thrown.
@@ -4158,7 +4102,7 @@ Causes the current function to halt execution and return to the caller.
 4. The inclusion of the assert statement in the compiled output is optional,
    as is the execution of the assert statement
 
-##### CONSTRAINTS
+##### Constraints
 
 1. The expression the assert statement evaluates must always result in a
    boolean-assignable value.
@@ -4937,5 +4881,50 @@ respective type.
 ## The `std::io` Module
 
 ## The `std::reflection` Module
+
+<h4 tocignore>The <code>DataTypeKind</code> enumeration</h4>
+
+<code class="qs">
+  <keyw>enum</keyw> <id>DataTypeKind</id> {
+  <br><ident></ident>VOID = <quoted>0</quoted>,
+  <br><ident></ident>PRIMITIVE = <quoted>1</quoted>,
+  <br><ident></ident>STRING = <quoted>2</quoted>,
+  <br><ident></ident>ARRAY = <quoted>3</quoted>,
+  <br><ident></ident>FUNCTION = <quoted>4</quoted>,
+  <br><ident></ident>ENUM = <quoted>5</quoted>,
+  <br><ident></ident>VARIANT = <quoted>6</quoted>,
+  <br><ident></ident>VARIANT_TYPE = <quoted>7</quoted>,
+  <br><ident></ident>INTERFACE = <quoted>8</quoted>,
+  <br><ident></ident>CLASS = <quoted>9</quoted>,
+  <br><ident></ident>STRUCT = <quoted>10</quoted>,
+  <br><ident></ident>NULLABLE = <quoted>11</quoted>,
+  <br>}
+</code>
+
+<h4 tocignore>The <code>DataType</code> interface</h4>
+
+<code class="qs">
+  <keyw>interface</keyw> <id>DataType</id> {
+  <br><ident></ident><keyw>DataTypeKind</keyw> <id>getKind</id>()
+  <br>
+  <br><ident></ident><keyw>bool</keyw> <id>isDefaultInitializeable</id>()
+  <br>
+  <br><ident></ident><keyw>string</keyw> <id>getNamespace</id>()
+  <br><ident></ident><keyw>string</keyw> <id>getSimpleName</id>()
+  <br><ident></ident><keyw>string</keyw> <id>getName</id>()
+  <br>
+  <br><ident></ident><keyw>uint32</keyw>? <id>getPropertyCount</id>()
+  <br><ident></ident><keyw>string</keyw>? <id>getPropertyName</id>(<keyw>uint32</keyw> index)
+  <br><ident></ident><keyw>DataType</keyw>? <id>getPropertyType</id>(<keyw>uint32</keyw> index)
+  <br>
+  <br><ident></ident><keyw>uint32</keyw>? <id>getArgumentCount</id>()
+  <br>}
+</code>
+
+<h4 tocignore>The <code>getTetralDataType</code> function</h4>
+
+<code class="qs">
+  <br><ident></ident><keyw>DataType</keyw> <id>getTetralDataType</id>&lt;<quoted>T</quoted>&gt;()
+</code>
 
 ## The `std::json` Module
