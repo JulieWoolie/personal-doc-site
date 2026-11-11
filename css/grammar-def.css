@@ -3,10 +3,35 @@ literal {
   font-weight: bold;
 }
 
-:is(rule, literal)[modifiers]::after {
-  content: attr(modifiers);
-  vertical-align: sub;
-  font-size: smaller;
+:is(rule, literal, sgroup)[modifiers] {
+  &::before, &::after {
+    opacity: 60%;
+  }
+
+  &[modifiers~="opt"]:not([modifiers~="rep"]) {
+    &::before {
+      content: "(";
+    }
+    &::after {
+      content: ")";
+    }
+  }
+  &[modifiers~="rep"]:not([modifiers~="opt"]) {
+    &::before {
+      content: "[";
+    }
+    &::after {
+      content: "]";
+    }
+  }
+  &[modifiers~="rep"][modifiers~="opt"] {
+    &::before {
+      content: "{";
+    }
+    &::after {
+      content: "}";
+    }
+  }
 }
 
 rule {
@@ -77,5 +102,8 @@ code.qs {
   }
   ident {
     padding-left: attr(level ch, 2ch);
+  }
+  comment {
+    color: gray;
   }
 }
