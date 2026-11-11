@@ -220,21 +220,21 @@ sup a {
     font-size: 1.25em;
   }
 
-  table {
+  table:not(.lntable) {
     border-collapse: collapse;
     text-align: left;
     width: 100%;
-  }
-  th {
-    padding: 5px;
-    border-bottom: 1px solid white;
-  }
-  td {
-    padding: 5px;
-    border: 0;
-  }
-  tr:nth-of-type(even) {
-    background-color: var(--lighter);
+    th {
+      padding: 5px;
+      border-bottom: 1px solid white;
+    }
+    td {
+      padding: 5px;
+      border: 0;
+    }
+    tr:nth-of-type(even) {
+      background-color: var(--lighter);
+    }
   }
 }
 
