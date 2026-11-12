@@ -13,8 +13,8 @@ This document is a work-in-progress and is subject to change and
 its current state does not represent a final document.
 
 # Introduction
-Tetral, from the Greek word for *"four,"* is a scripting language intended
-to be executed by an interpreter, or virtual machine, and to provide a 
+Tetral, derived the Greek prefix _tetra-_ for *"four,"* is a scripting language 
+intended to be executed by an interpreter, or virtual machine, and to provide a 
 platform-agnostic execution system. This document will serve as the 
 specification for this language and outline key aspects of its grammar, type 
 system and code execution.
@@ -158,10 +158,10 @@ standalone program with a single defined entry point.
 A standalone program's entry point must be defined as a function with the
 name *main* and have one of the following signatures:
 
-- `void main()`
-- `int32 main()`
-- `void main(string[] args)`
 - `int32 main(string[] args)`
+- `void main(string[] args)`
+- `int32 main()`
+- `void main()`
 
 The standalone environment must also provide full support for the standard
 library and the importing of external symbols.
@@ -200,6 +200,12 @@ Each section will also define the following properties for its data type:
   considered a _comparable type_.
 - Which types of values the data type can be equal to and how equality is 
   established.
+- If the type is _indexable,_ meaning if a value of the type can be accessed 
+  with an index access operator. (`[]`) If a type is indexable, then it will 
+  also specify the data type of the values that are returned when indexing into 
+  a value of the type along with what type of value is considered a valid 
+  _indexer._ An indexer shall be the data type(s) of the values used to index 
+  into an indexable type. 
 
 Data types additionally exist in two categories. The first category is *value 
 types*. When value types are passed to a callable object or assigned, the value 
@@ -376,6 +382,10 @@ and the amount of items the array holds shall be called its *"length."*
 The data type contained by an array type shall be referred to as its
 *component type*.
 
+Arrays are an _indexable_ type. Array types shall be accessible with an indexer
+value of any signed or unsigned integral type. The indexed type of an array 
+shall be its component type.
+
 Arrays shall exist in two separate kinds: mutable and immutable. Elements in an
 immutable array cannot be changed, while in a mutable array, they can.
 
@@ -414,6 +424,11 @@ The amount of UTF-8 code units stored in a string shall be called its
 
 Array and string types collectively constitute the _"indexable"_ types. This 
 means these types can be accessed with the index operator. (`[]`)
+
+Strings are an _indexable_ type. String values shall be accessible with an 
+indexer value of any signed or unsigned integral type. The indexed type of a 
+string shall be an unsigned 8-bit integral, representing the UTF-8 code unit at
+that index inside the string.
 
 The string type shall be _default-initialized_. Its default value shall be an 
 empty string, a string with length 0.
@@ -1033,10 +1048,17 @@ in <literal>bold, monospaced font</literal>. An italic syntactic rule followed
 by a colon *(:)* defines the rule. Alternative definitions of the rule
 are defined on new lines.
 
-The syntax *(x)* denotes a part of the grammar where _x_ may occur zero or one 
-times. The syntax *{x}* denotes a part of the grammar where _x_ may occur zero 
-or multiple times. The syntax *\[x\]* denotes a part of the grammar where _x_ 
-may occur one or more times.
+The syntax <sgroup modifiers="opt">_x_</sgroup> denotes a part of the grammar 
+where _x_ may occur zero or one times. The syntax <sgroup modifiers="opt rep">_x_</sgroup> 
+denotes a part of the grammar where _x_ may occur zero or multiple times. The 
+syntax <sgroup modifiers="rep">_x_</sgroup> denotes a part of the grammar where 
+_x_ may occur one or more times.
+
+Syntax rule definitions followed by a _"one of:"_ mean that any of the specified 
+literals are a valid value for the token.
+
+Syntax rule definitions that are written in regular font are used when the 
+number of alternative definitions is too great to specify manually.
 
 Basic Syntax Notation Example:
 <grammar-def>
@@ -1629,7 +1651,7 @@ of the type matching the suffix. (See <table-ref target="floatsuffixes"></table-
 
   <rule-def id="char-sequence">
     <def>
-      Any valid UTF-8 character except the single-quote, backslash or newline character
+      Any valid Unicode codepoint except the single-quote, backslash or newline character
     </def>
     <def><rule>escape-sequence</rule></def>
   </rule-def>
@@ -1796,10 +1818,10 @@ comment consumes input until a matching <literal>*/</literal> sequence has
 been found, or until the end of input has been reached.
 
 In almost all cases, comments may be simply skipped over and ignored, except for
-documentation comments (Starting with <literal>/**</literal>) which shall be 
+documentation comments (Starting with <literal>/**</literal>) which may be 
 linked to the specific <rule>declaration</rule> that they prefix. This may be 
-ignored by implementations that have do not generate documentation or otherwise 
-make use of user-written documentation.
+ignored by implementations that do not generate documentation or otherwise make 
+use of user-written documentation.
 
 ## Expressions
 ### Primary Expressions
@@ -1958,25 +1980,28 @@ in which the expression was used.
 </grammar-def>
 
 ##### Constraints
+Regular cast expressions shall only convert a value to a specified type if the 
+type of the value resulting from the expression can be implcitly or explicitly
+converted to the specified type.
+(See <chapter-ref target="type-conversions"></chapter-ref>.)
 
-1. Cast expressions can only cast between types which have a defined implicit
-   or explicit conversion. (See
-   <chapter-ref target="type-conversions"></chapter-ref>.)
-2. Bit-casting can only be performed on arithmetic types.
-3. Bit-casting can only cast from one type to another type of the same size.
+Bit cast expressions shall only be performed with an expression that results in 
+an arithmetic value and shall only allow casting from that arithmetic value to 
+another arithmetic type of the same size as the expression value's resulting 
+type.
 
 ##### Semantics
 
-1. Casts a value returned by an expression to a different type.
-2. Regular casting operations are defined in
-   <chapter-ref target="type-conversions"></chapter-ref>.
-3. Bit-casing only treats the expression's value as a different type, no
-   conversion operations are performed.
+A regular casting expression shall return a value of the specified type by 
+performing either an implicit or explicit conversion on the value resulting from 
+the expression.
+
+A bit casting expression shall return a value of the specified type by simply 
+treating bits of the value resulting from the expression as a value of the 
+specified type.
 
 #### Object Literals
-
 ##### Syntax
-
 <grammar-def>
   <rule-def id="object-literal">
     <def>
@@ -1986,47 +2011,56 @@ in which the expression was used.
     </def>
   </rule-def>
   <rule-def id="object-literal-property-list">
-    <def><rule>object-literal-property</rule></def>
-    <def><rule>object-literal-property</rule> <literal>,</literal></def>
     <def>
       <rule>object-literal-property-list</rule>
-      <literal>,</literal>
-      <rule>object-literal-property</rule>
-    </def>
-    <def>
-      <rule>object-literal-property-list</rule>
-      <literal>,</literal>
-      <rule>object-literal-property</rule>
-      <literal>,</literal>
+      <sgroup modifiers="opt rep">
+        <literal>,</literal>
+        <rule>object-literal-property</rule>
+      </sgroup>
+      <sgroup modifiers="opt"><literal>,</literal></sgroup>
     </def>
   </rule-def>
   <rule-def id="object-literal-property">
     <def>
       <rule>identifier</rule>
-      <literal>:</literal>
-      <rule>expression</rule>
-      <literal>,</literal>
+      <sgroup modifiers="opt">
+        <literal>:</literal>
+        <rule>expression</rule>
+      </sgroup>
     </def>
   </rule-def>
 </grammar-def>
 
 ##### Constraints
+If an object literal's struct type cannot be inferred from the surrounding
+context, then the expression shall be invalid.
 
-1. If an object literal's struct type cannot be inferred from the surrounding
-   context, then the expression is invalid.
-2. An object literal may only initialize properties that exist on the struct
-   type.
-3. An object literal may not declare any duplicate properties.
+An object literal shall only initialize properties that exist on the struct
+type.
+
+An object literal shall not declare any duplicate properties.
+
+Object literals shall not be used to initialize class values.
+
+If an object literal property omits value expression, then a symbol with the
+name specified by the identifier must exist in the current semantic context.
 
 ##### Semantics
+The type of struct initialized by an object literal must be inferred from
+the surrounding context. If the object literal is being assigned to a property 
+of a struct or variant, or if the object literal is being assigned to a variable
+or class field, the inferred type shall be the assigned object's type. If the 
+object literal is used as a return value in a <rule>return-statement</rule> then
+the inferred type shall be the function's return type.
 
-1. The type of struct initialized by an object literal must be inferred from
-   the surrounding context.
-2. Semantically, an object literal is identical to constructing the struct
-   type and setting each property separately.
+An object literal expression shall result in a value of an inferred struct type
+with each of the struct value's properties being set to the values specified.
+
+If an object literal property omits the value expression, then it shall be 
+semantically equivalent to assigning a property with the name of the identifier 
+to a symbol with the same as the identifier. 
 
 #### Array Literals
-
 ##### Syntax
 
 <grammar-def>
@@ -2038,50 +2072,35 @@ in which the expression was used.
    </def>
  </rule-def>
   <rule-def id="array-literal-values">
-    <def><rule>expression</rule></def>
-    <def><rule>expression</rule> <literal>,</literal></def>
     <def>
-      <rule>array-literal-values</rule>
-      <literal>,</literal>
       <rule>expression</rule>
-    </def>
-    <def>
-      <rule>array-literal-values</rule>
-      <literal>,</literal>
-      <rule>expression</rule>
-      <literal>,</literal>
+      <sgroup modifiers="opt rep">
+        <literal>,</literal>
+        <rule>expression</rule>
+      </sgroup>
+      <sgroup modifiers="opt"><literal>,</literal></sgroup>
     </def>
   </rule-def>
 </grammar-def>
 
 ##### Constraints
-
-1. If an array literal's component type cannot be inferred from the surrounding
-   context, then the expression is invalid.
+If an array literal's type cannot be inferred from the surrounding semantic 
+context, then the expression shall be invalid.
 
 ##### Semantics
+The type of the array initialized by an array literal must be inferred from the 
+surrounding context. The semantics for inferring the component type shall be the
+same as inferring an object literal's type.
 
-1. The component type of the array initialized by an array literal must be
-   inferred from the surrounding context.
-2. Semantically, an array literal is identical to constructing the array with
-   a <rule>new-expression</rule> and setting each element separately.
+Semantically, an array literal is identical to constructing the array with
+a <rule>new-expression</rule> and setting each element separately.
 
 #### String Literals
-
 ##### Syntax
-
 <grammar-def>
   <rule-def id="string-literal">
     <def><rule>line-string-literal</rule></def>
     <def><rule>multiline-string-literal</rule></def>
-    <def>
-      <rule>string-literal</rule>
-      <rule>line-string-literal</rule>
-    </def>
-    <def>
-      <rule>string-literal</rule>
-      <rule>multiline-string-literal</rule>
-    </def>
   </rule-def>
 
   <rule-def id="line-string-literal">
@@ -2130,37 +2149,61 @@ in which the expression was used.
   </rule-def>
 
   <rule-def id="line-string-character">
-    <def>Any valid UTF-8 character except ", \, $ or newline character.</def>
+    <def>Any valid Unicode codepoint except ", \, $ or newline character.</def>
     <def><rule>escape-sequence</rule></def>
   </rule-def>
 
   <rule-def id="multiline-string-character">
-    <def>Any valid UTF-8 character except """, \ or $.</def>
+    <def>Any valid Unicode codepoint except \ or $, provided it is not the start of three consecutive " characters.</def>
     <def><rule>escape-sequence</rule></def>
   </rule-def>
 </grammar-def>
 
 ##### Constraints
+All expressions and identifiers declared inside a string shall return a
+non-void value.
 
-1. All expressions and identifiers declared inside a string must return a
-   non-void value.
+A template of the form <literal>$</literal><rule>identifier</rule> must not 
+have any white space between the dollar sign character and the start of the 
+identifier.
 
 ##### Semantics
+A string literal shall always result in a value of the String type.
 
-1. A string literal will always result in a value of a `string`
-   type.
-2. It can be assumed that each line in a multiline string will have some level
-   of indentation. After parsing, this indentation must be stripped from the
-   start of each line. Since indentation can vary from line to line, the amount
-   indentation removed depends on the line with the least indentation.
-3. The template expressions <literal>$</literal><rule>identifier</rule> and
-   <literal>${</literal><rule>expression</rule><literal>}</literal> with an
-   identifier as the expression are semantically identical.
-4. For templated strings, each templated expression is evaluated in declaration
-   order and appended to the resulting string. (See
-   <chapter-ref target="strconv"></chapter-ref>.)
-5. Semantically, a templated string literal is identical to declaring each part
-   of the string as its own separate expression and concatenating it together.
+It can be assumed that each line in a multiline string will have some level
+of indentation. After parsing, this indentation must be stripped from the
+start of each line. Since indentation can vary from line to line, the amount
+indentation removed depends on the line with the least indentation.
+
+The template of the form <literal>$</literal><rule>identifier</rule> shall be 
+semantically identical to a template of the form 
+<literal>${</literal><rule>identifier</rule><literal>}</literal>.
+
+If a string contains any templates it is considered a _templated string._ 
+Otherwise, if a string literal contains no templates, it is considered a 
+_non-templated string._ Templated strings are made up of the following parts:
+1. A _string head,_ which is the part of the string's content up to the first 
+   template.
+2. A _template._
+3. For each additional template, a _string part_ which is the part of the 
+   string between two templates, followed by another template.
+4. A _string tail,_ which is the part of the string's content from the end of 
+   the last template until the end of the string's content.
+
+A string head, string tail and each string part, may be empty. A templated 
+string contains exactly one string head and tail and one more template than it 
+has string parts.
+
+##### Evaluation
+Templated strings are evaluated in order, beginning from the head. Each
+template is evaluated and the string representation of the value resulting from 
+the evaluation is then appended to the resulting string. 
+
+After a template has been evaluated, evaluation of the string moves on to the 
+next part of the string. If the next part is the tail, the tail's content is 
+appended to the resulting string and evaluation ends. Otherwise, the next string
+part is appended to the resulting string and the next template is then 
+evaluated. 
 
 ### Trail Expressions
 
@@ -2177,9 +2220,7 @@ in which the expression was used.
 </grammar-def>
 
 ### Index Access Expression
-
 ##### Syntax
-
 <grammar-def>
   <rule-def id="index-access-expression">
     <def>
@@ -2192,52 +2233,25 @@ in which the expression was used.
 </grammar-def>
 
 ##### Constraints
+The type of value returned by the <rule>trail-expression</rule> must be a value 
+of an indexable type.
 
-1. The type returned by the target <rule>trail-expression</rule> must be an
-   indexable type. (See <table-ref target="typeindexing"></table-ref>)
-2. The indexing *expression* must be a type used to index into the
-   target expression's type. (See <table-ref target="typeindexing"></table-ref>)
-3. If the type being accessed is a `string`, then the index may not
-   be written to.
+The indexer _expression_ must result in a value of the type that is used to 
+index into the indexable operand's value.
 
 ##### Semantics
+The value returned by an index access expression shall be of the indexed type of 
+the object being indexed into. 
 
-1. Accesses an indexable element in an indexable value.
-2. A valid index access expression is a valid lvalue.
-3. Accessing a non-readonly array is a valid mutable lvalue.
+A valid index access expression is a valid lvalue. Accessing a non-immutable 
+array shall be a valid mutable lvalue.
 
-##### RUNTIME ERRORS
-
-1. It is a runtime error if the index being accessed is beyond the length of
-   the indexed operand.
-
-<table id="typeindexing">
-  <caption>Type Indexing</caption>
-  <thead>
-  <tr>
-    <th>Type</th>
-    <th>Indexing Type</th>
-    <th>Value type returned by index access</th>
-  </tr>
-  </thead>
-  <tbody>
-  <tr>
-    <td>String Type</td>
-    <td><code>uint32</code></td>
-    <td>Single UTF-8 byte, (<code>uint8</code>)</td>
-  </tr>
-  <tr>
-    <td>Any Array Type</td>
-    <td><code>uint32</code></td>
-    <td>The array's component type</td>
-  </tr>
-  </tbody>
-</table>
+If the type of value being indexed into is a string or an array, and the index 
+is beyond the length of that value, then it shall be a runtime error to access 
+the element.
 
 ### Property Access Expression
-
 ##### Syntax
-
 <grammar-def>
   <rule-def id="property-access-expression">
     <def>
@@ -2277,7 +2291,7 @@ in which the expression was used.
    operator causes the nullable to be flattened.
 4. A valid property access expression is a valid lvalue.
 
-##### RUNTIME ERRORS
+##### Runtime Errors
 
 1. It is a runtime error if the object operand is an empty nullable value.
 
