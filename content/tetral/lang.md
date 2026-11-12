@@ -43,7 +43,10 @@ de-allocated as they're using them.
 # Scope
 
 This document defines the Tetral scripting language (Also referred to as 
-_TetralScript_, or _TetralLang_) and the Tetral Bytecode format.
+_TetralScript_, or _TetralLang_.)
+
+Note that this document exists in conjunction with two other specifications for 
+the Tetral Bytecode Format and the Tetral Virtual Machine.
 
 # Terms, Concepts and Definitions
 
