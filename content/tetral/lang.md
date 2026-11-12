@@ -1,7 +1,7 @@
 ---
 title: "Tetral Language Specification"
 subtitle: "Technical Specification for the Tetral Language"
-weight: 40
+weight: 10
 publish_date: '2026-09-20 15:00:00 +0200 UTC'
 author: Julie
 toc: true
