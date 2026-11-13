@@ -1,1 +1,31 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Delphi Menu Engine on My New Hugo Site</title><link>https://juliewoolie.com/delphi/</link><description>Recent content in Delphi Menu Engine on My New Hugo Site</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://juliewoolie.com/delphi/index.xml" rel="self" type="application/rss+xml"/><item><title>NLayout Engine</title><link>https://juliewoolie.com/delphi/layout/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/delphi/layout/</guid><description>Introduction This document describes the process of writing the NLayout engine that executes layout for Delphi and how it works. This part, the layout engine, has been the most difficult part of the Delphi project to date, executing layout with so many variables that interact in so many different ways depending on layout context and such. The layout engine is in the nlayout module, which, obviously, handles the layout execution.</description></item><item><title>Rendering Elements</title><link>https://juliewoolie.com/delphi/element-rendering/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/delphi/element-rendering/</guid><description>Introduction This document describes the process of turning DOM elements into render objects and how those objects are rendered into display entities. The rendering is part of the delphirender module. Note: The document uses a lot of pseudo code with syntax similar to TypeScript, but breaks it occasionally for simplicity or brevity. Data Structure At the heart of the renderer is the data structure which more or less maps render objects to their DOM elements.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Delphi Menu Engine on My New Hugo Site</title><link>https://juliewoolie.com/delphi/</link><description>Recent content in Delphi Menu Engine on My New Hugo Site</description><generator>Hugo</generator><language>en-us</language><atom:link href="https://juliewoolie.com/delphi/index.xml" rel="self" type="application/rss+xml"/><item><title>NLayout Engine</title><link>https://juliewoolie.com/delphi/layout/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/delphi/layout/</guid><description>&lt;h2>Introduction&lt;/h2>
+&lt;p>
+ This document describes the process of writing the &lt;i>NLayout&lt;/i> engine that
+ executes layout for Delphi and how it works.
+&lt;/p>
+&lt;p>
+ This part, the layout engine, has been the most difficult part of the Delphi 
+ project to date, executing layout with so many variables that interact in so 
+ many different ways depending on layout context and such.
+&lt;/p>
+&lt;p>
+ The layout engine is in the &lt;code>nlayout&lt;/code> module, which, obviously,
+ handles the layout execution.
+&lt;/p></description></item><item><title>Rendering Elements</title><link>https://juliewoolie.com/delphi/element-rendering/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/delphi/element-rendering/</guid><description>&lt;h2>Introduction&lt;/h2>
+&lt;p>
+ This document describes the process of turning DOM elements into render 
+ objects and how those objects are rendered into display entities.
+&lt;/p>
+&lt;p>
+ The rendering is part of the &lt;code>delphirender&lt;/code> module.
+&lt;/p>
+&lt;p>
+ &lt;b>Note:&lt;/b> The document uses a lot of pseudo code with syntax similar to 
+ TypeScript, but breaks it occasionally for simplicity or brevity.
+&lt;/p>
+
+&lt;h2>Data Structure&lt;/h2>
+&lt;p>
+ At the heart of the renderer is the data structure which more or less maps 
+ render objects to their DOM elements.
+&lt;/p></description></item></channel></rss>

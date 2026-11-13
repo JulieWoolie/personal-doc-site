@@ -1,1 +1,64 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on My New Hugo Site</title><link>https://juliewoolie.com/blog/</link><description>Recent content in Blog on My New Hugo Site</description><generator>Hugo -- gohugo.io</generator><language>en-us</language><atom:link href="https://juliewoolie.com/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>GitHub as a file server</title><link>https://juliewoolie.com/blog/github-as-file-server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/github-as-file-server/</guid><description>So, I had this idea, GitHub pages is intended to host static websites for documentation and so forth, but, the thing is, in reality, it's just a simple read-only file server. It's given a URL which it replies to with a file in the repository. Other than some shortcuts to make it so index.html files are served more easily, it's just a regular file server. This got me thinking, I could use GitHub as a Maven repo in that case, since at it's core, a Maven repo is just a read-only file server that hosts jars and xml files that are related to something.</description></item><item><title>Random mini stories</title><link>https://juliewoolie.com/blog/mini/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/mini/</guid><description>Uriel Sobs A choir of divine angels, their wings as white as the very clouds upon which they lay. Their robes torn by iron blades. Screams erupt from them as the final realization sets in: There is no god, they were created by nothing and for no one. For a millennia they shall scream in longing for a god that does not exist, for a god that will not hold or cradle them.</description></item><item><title>Unreality</title><link>https://juliewoolie.com/blog/unreality/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/unreality/</guid><description>Surely reality is not the space which I inhabit, surely reality would be more exciting, more substantive than this dull existence. I live in a single room and while I wish I could claim it was a room with a view of the Seine in Paris, or with a view of the Oder, the Rhine or the Elbe in Germany, it isn't. My view is of another apartment building and these 2 monitors before me on which I type these very letters is my life based on.</description></item><item><title>Comforting Oblivion</title><link>https://juliewoolie.com/blog/oblivion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/oblivion/</guid><description>I know this siren voice within that calls, demands and begs for my end. I know the reasons it gives, the oratories it delivers to me to goad me to the noose. And I can say for certain a great part of the rhetoric comes from a place of deep isolation, a knowledge that better is possible somehow, but that in every way imaginable, it feels beyond my reach. It speaks of the time I lost in isolation and even still continue to lose.</description></item><item><title>What's happening</title><link>https://juliewoolie.com/blog/whatamdoing/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/whatamdoing/</guid><description>This post is mostly to explain what I'm currently working and what my long term goals are with the projects. I've got a vision for a couple projects I want to work on, on the side, and a major project I wanna pursue as well. First the big project! Tetral, and the Argead Engine Tetral, is a programming language I'm developing. It's my first real attempt at writing a technical specification for a project as well (See it here.</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Blog on My New Hugo Site</title><link>https://juliewoolie.com/blog/</link><description>Recent content in Blog on My New Hugo Site</description><generator>Hugo</generator><language>en-us</language><atom:link href="https://juliewoolie.com/blog/index.xml" rel="self" type="application/rss+xml"/><item><title>GitHub as a file server</title><link>https://juliewoolie.com/blog/github-as-file-server/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/github-as-file-server/</guid><description>&lt;p>
+ So, I had this idea, GitHub pages is intended to host static websites for
+ documentation and so forth, but, the thing is, in reality, it's just a simple
+ read-only file server. It's given a URL which it replies to with a file in
+ the repository. Other than some shortcuts to make it so
+ &lt;code>index.html&lt;/code> files are served more easily, it's just a regular file
+ server.
+&lt;/p>
+&lt;p>
+ This got me thinking, I could use GitHub as a Maven repo in that case, since
+ at it's core, a Maven repo is just a read-only file server that hosts jars and
+ xml files that are related to something.
+&lt;/p></description></item><item><title>Random mini stories</title><link>https://juliewoolie.com/blog/mini/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/mini/</guid><description>&lt;h2>Uriel Sobs&lt;/h2>
+&lt;p big-letter>
+ A choir of divine angels, their wings as white as the very clouds upon which
+ they lay. Their robes torn by iron blades. Screams erupt from them as the
+ final realization sets in: There is no god, they were created by nothing and
+ for no one.
+&lt;/p>
+&lt;p>
+ For a millennia they shall scream in longing for a god that does not exist, for
+ a god that will not hold or cradle them. Like chicks crying out for a mother
+ that will not return to the nest, screaming and crying.
+&lt;/p></description></item><item><title>Unreality</title><link>https://juliewoolie.com/blog/unreality/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/unreality/</guid><description>&lt;p no-indent big-letter>
+ Surely reality is not the space which I inhabit, surely reality would be more
+ exciting, more substantive than this dull existence. I live in a single room
+ and while I wish I could claim it was a room with a view of the Seine in
+ Paris, or with a view of the Oder, the Rhine or the Elbe in Germany, it isn't.
+ My view is of another apartment building and these 2 monitors before me on
+ which I type these very letters is my life based on.
+&lt;/p></description></item><item><title>Comforting Oblivion</title><link>https://juliewoolie.com/blog/oblivion/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/oblivion/</guid><description>&lt;p bigletter noindent>
+ I know this siren voice within that calls, demands and begs for my end. I know the
+ reasons it gives, the oratories it delivers to me to goad me to the noose. And
+ I can say for certain a great part of the rhetoric comes from a place of
+ deep isolation, a knowledge that better is possible somehow, but that in every
+ way imaginable, it feels beyond my reach. It speaks of the time I lost in
+ isolation and even still continue to lose. That this wasted time is too great
+ to recover from, that I have missed the time in my life that I could have
+ &lt;i>"lived."&lt;/i> Truly lived, enjoyed my life. Perhaps that itself is a target
+ which does not exist, this concept of &lt;i>"having lived"&lt;/i> that haunts me,
+ that I was denied, or that I denied myself. Too late it screams at me, to have
+ experienced it, I watched those I grew up with experience it before they
+ even turned 20. The voice's oration continues, stating that I have not the
+ time now to experience it, for to properly do so requires years upon years of
+ foundational &lt;i>"social knowledge"&lt;/i> that I have ever acquired.
+&lt;/p></description></item><item><title>What's happening</title><link>https://juliewoolie.com/blog/whatamdoing/</link><pubDate>Mon, 01 Jan 0001 00:00:00 +0000</pubDate><guid>https://juliewoolie.com/blog/whatamdoing/</guid><description>&lt;p>
+ This post is mostly to explain what I'm currently working and what my long
+ term goals are with the projects. I've got a vision for a couple projects I
+ want to work on, on the side, and a major project I wanna pursue as well.
+&lt;/p>
+&lt;p>
+ First the big project!
+&lt;/p>
+
+&lt;h2>Tetral, and the Argead Engine&lt;/h2>
+&lt;p>
+ Tetral, is a programming language I'm developing. It's my first real attempt
+ at writing a technical specification for a project as well (See it
+ &lt;a href="https://juliewoolie.com/tetral/spec2/" target="_blank">here&lt;/a>.) The purpose of this
+ project is twofold. I want it to serve as its own standalone thing, a
+ type-safe scripting language that's familiar to people who use C, C++, Java
+ or C#. Just something you can write and run with a single command, no
+ complicated build system or anything.
+&lt;/p></description></item></channel></rss>
