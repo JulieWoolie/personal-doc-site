@@ -1,4 +1,5 @@
 {{- $level := math.Min (add .Level 1) 6 -}}
+{{fmt.Warnf "Render hook for header! original-level=%d upped-level=%.0f text='%s'" .Level $level .Text }}
 <h{{ $level }} id="{{ .Anchor }}">
 {{- .Text -}}
 </h{{ $level }}>
